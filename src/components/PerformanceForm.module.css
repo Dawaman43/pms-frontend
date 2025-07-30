@@ -1,0 +1,316 @@
+.formContainer {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.formHeader {
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+}
+
+.universityHeader {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  text-align: left;
+}
+
+.logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.universityInfo h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 5px 0;
+}
+
+.universityInfo p {
+  font-size: 16px;
+  color: #718096;
+  margin: 0;
+}
+
+.evaluationForm {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.section {
+  background: #f8fafc;
+  padding: 25px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 20px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #cbd5e0;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.infoItem {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.infoItem label {
+  font-weight: 600;
+  color: #4a5568;
+  min-width: 120px;
+}
+
+.infoItem span {
+  color: #2d3748;
+  font-weight: 500;
+}
+
+.evaluationTable {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 50px 2fr 80px 200px 80px;
+  background: #667eea;
+  color: white;
+  font-weight: 600;
+}
+
+.headerCell {
+  padding: 15px 10px;
+  text-align: center;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.headerCell:last-child {
+  border-right: none;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 50px 2fr 80px 200px 80px;
+  border-bottom: 1px solid #e2e8f0;
+  background: white;
+}
+
+.tableRow:hover {
+  background: #f7fafc;
+}
+
+.totalRow {
+  display: grid;
+  grid-template-columns: 50px 2fr 80px 200px 80px;
+  background: #edf2f7;
+  font-weight: 600;
+  border-top: 2px solid #cbd5e0;
+}
+
+.cell {
+  padding: 15px 10px;
+  text-align: center;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cell:first-child {
+  text-align: center;
+  font-weight: 600;
+}
+
+.cell:nth-child(2) {
+  text-align: left;
+  padding-left: 15px;
+}
+
+.cell:last-child {
+  border-right: none;
+}
+
+.ratingButtons {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+
+.ratingButton {
+  width: 30px;
+  height: 30px;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  background: white;
+  color: #4a5568;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.ratingButton:hover {
+  border-color: #667eea;
+  background: #f7fafc;
+}
+
+.ratingButton.active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.overallScore {
+  text-align: center;
+  padding: 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+}
+
+.overallScore h3 {
+  font-size: 24px;
+  margin: 0 0 20px 0;
+}
+
+.scoreDisplay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.scoreValue {
+  font-size: 48px;
+  font-weight: 700;
+}
+
+.scoreGrade {
+  font-size: 18px;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.commentsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.commentBox {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.commentBox label {
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.commentTextarea {
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+  transition: border-color 0.3s ease;
+}
+
+.commentTextarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.submitSection {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.submitButton {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.submitButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(72, 187, 120, 0.3);
+}
+
+@media (max-width: 768px) {
+  .formContainer {
+    padding: 15px;
+  }
+
+  .universityHeader {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+
+  .tableHeader,
+  .tableRow,
+  .totalRow {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .cell {
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+    padding: 10px 15px;
+  }
+
+  .cell:last-child {
+    border-bottom: none;
+  }
+
+  .ratingButtons {
+    justify-content: flex-start;
+  }
+
+  .commentsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .scoreValue {
+    font-size: 36px;
+  }
+}
