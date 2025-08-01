@@ -65,21 +65,21 @@ const HomePage = () => {
       title: "Evaluate Peers",
       description: "Review and evaluate your colleagues",
       icon: "👥",
-      color: "var(--success-color)",
+      color: "var(--secondary-color)",
       link: "/peer-evaluation",
     },
     {
       title: "View Reports",
       description: "Access your performance reports",
       icon: "📊",
-      color: "var(--warning-color)",
+      color: "var(--accent-color)",
       link: "/reports",
     },
     {
       title: "Update Profile",
       description: "Manage your personal information",
       icon: "⚙️",
-      color: "var(--info-color)",
+      color: "var(--neutral-color)",
       link: "/profile",
     },
   ])
@@ -93,7 +93,7 @@ const HomePage = () => {
       <header className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.logoSection}>
-            <img src="/assets/astu_logo.svg" alt="ASTU Logo" className={styles.logo} />
+            <img src="/astu_logo.svg" alt="ASTU Logo" className={styles.logo} />
             <div className={styles.systemTitle}>
               <h1>Performance Management System</h1>
               <p>Adama Science & Technology University</p>
@@ -123,7 +123,7 @@ const HomePage = () => {
         <section className={styles.welcomeSection}>
           <div className={styles.welcomeCard}>
             <div className={styles.welcomeContent}>
-              <h2>Welcome back, {user.name !== "User" ? user.name.split(" ")[0] : "User"}! 👋</h2>
+              <h2>Welcome back, {user.name !== "User" ? user.name.split(" ")[0] : "User"}</h2>
               <p>Here's an overview of your performance management activities</p>
             </div>
             <div className={styles.welcomeGraphic}>

@@ -1,44 +1,50 @@
 :root {
-  /* Color Palette */
-  --primary-color: #4f46e5;
-  --primary-light: #818cf8;
-  --primary-dark: #3730a3;
-  --success-color: #10b981;
-  --success-light: #34d399;
-  --success-dark: #059669;
-  --warning-color: #f59e0b;
-  --warning-light: #fbbf24;
-  --warning-dark: #d97706;
-  --danger-color: #ef4444;
-  --danger-light: #f87171;
-  --danger-dark: #dc2626;
-  --info-color: #6366f1;
-  --info-light: #a5b4fc;
-  --info-dark: #4f46e5;
+  /* Professional Color Palette */
+  --primary-color: #2c3e50;  /* Dark blue-gray */
+  --primary-light: #34495e;
+  --primary-dark: #1a252f;
+  --secondary-color: #546e7a; /* Blue-gray */
+  --secondary-light: #78909c;
+  --secondary-dark: #455a64;
+  --accent-color: #607d8b;    /* Light blue-gray */
+  --accent-light: #78909c;
+  --accent-dark: #455a64;
+  --neutral-color: #5d6d7e;   /* Neutral blue-gray */
+  
+  /* Notification Colors - More subtle */
+  --success-color: #27ae60;   /* Green */
+  --success-light: #2ecc71;
+  --success-dark: #219653;
+  --warning-color: #f39c12;   /* Amber */
+  --warning-light: #f1c40f;
+  --warning-dark: #d35400;
+  --danger-color: #c0392b;    /* Red */
+  --danger-light: #e74c3c;
+  --danger-dark: #922b21;
   
   /* Neutral Colors */
-  --gray-50: #f8fafc;
-  --gray-100: #f1f5f9;
-  --gray-200: #e2e8f0;
-  --gray-300: #cbd5e1;
-  --gray-400: #94a3b8;
-  --gray-500: #64748b;
-  --gray-600: #475569;
-  --gray-700: #334155;
-  --gray-800: #1e293b;
-  --gray-900: #0f172a;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
   
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.07), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   
   /* Border Radius */
   --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
   --radius-full: 9999px;
 }
 
@@ -55,7 +61,7 @@
 .header {
   background: white;
   border-bottom: 1px solid var(--gray-200);
-  padding: 20px 0;
+  padding: 18px 0;
   box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
@@ -80,18 +86,18 @@
 .logo {
   width: 48px;
   height: 48px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-sm);
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: transform 0.2s ease;
 }
 
 .logo:hover {
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 
 .systemTitle h1 {
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--gray-800);
   margin: 0;
   line-height: 1.2;
@@ -135,21 +141,21 @@
   height: 48px;
   border-radius: var(--radius-full);
   object-fit: cover;
-  border: 2px solid var(--primary-light);
-  transition: all 0.3s ease;
+  border: 2px solid var(--gray-200);
+  transition: all 0.2s ease;
 }
 
 .userAvatar:hover {
-  transform: scale(1.05);
-  box-shadow: var(--shadow-md);
+  transform: scale(1.02);
+  box-shadow: var(--shadow-sm);
 }
 
 .statusIndicator {
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   background-color: var(--success-color);
   border: 2px solid white;
   border-radius: var(--radius-full);
@@ -171,11 +177,11 @@
 
 .welcomeCard {
   position: relative;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--info-dark) 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
   color: white;
   padding: 32px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
   display: flex;
   justify-content: space-between;
@@ -187,8 +193,8 @@
 }
 
 .welcomeCard h2 {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 600;
   margin: 0 0 12px 0;
 }
 
@@ -211,7 +217,7 @@
 .graphicCircle {
   position: absolute;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .graphicCircle:nth-child(1) {
@@ -243,58 +249,59 @@
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 24px;
+  gap: 20px;
 }
 
 .statCard {
   background: white;
   padding: 24px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
   display: flex;
   align-items: center;
   gap: 20px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  border: 1px solid var(--gray-100);
 }
 
 .statCard:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .statPrimary .statIcon {
-  background: rgba(79, 70, 229, 0.1);
+  background: rgba(44, 62, 80, 0.1);
   color: var(--primary-color);
 }
 
 .statWarning .statIcon {
-  background: rgba(245, 158, 11, 0.1);
+  background: rgba(243, 156, 18, 0.1);
   color: var(--warning-color);
 }
 
 .statSuccess .statIcon {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(39, 174, 96, 0.1);
   color: var(--success-color);
 }
 
 .statInfo .statIcon {
-  background: rgba(99, 102, 241, 0.1);
-  color: var(--info-color);
+  background: rgba(93, 109, 126, 0.1);
+  color: var(--neutral-color);
 }
 
 .statIcon {
-  font-size: 24px;
-  width: 60px;
-  height: 60px;
+  font-size: 22px;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
 }
 
 .statContent h3 {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 600;
   color: var(--gray-800);
   margin: 0 0 5px 0;
 }
@@ -316,10 +323,10 @@
 
 /* Section Titles */
 .sectionTitle {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 600;
   color: var(--gray-800);
-  margin: 0 0 24px 0;
+  margin: 0 0 20px 0;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -327,7 +334,7 @@
 
 .sectionDivider {
   flex-grow: 1;
-  height: 2px;
+  height: 1px;
   background: linear-gradient(to right, var(--gray-200), transparent);
   margin-left: 12px;
 }
@@ -340,43 +347,44 @@
 .actionsGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 16px;
+  gap: 14px;
 }
 
 .actionCard {
   background: white;
-  padding: 20px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  padding: 18px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
   display: flex;
   align-items: center;
   gap: 16px;
   text-decoration: none;
   color: inherit;
-  transition: all 0.3s ease;
-  border-left: 4px solid var(--accent-color, var(--primary-color));
+  transition: all 0.2s ease;
+  border-left: 3px solid var(--accent-color, var(--primary-color));
   position: relative;
   overflow: hidden;
+  border: 1px solid var(--gray-100);
 }
 
 .actionCard:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .actionCard:hover .actionArrow {
-  transform: translateX(5px);
+  transform: translateX(3px);
 }
 
 .actionIcon {
-  font-size: 24px;
-  width: 48px;
-  height: 48px;
+  font-size: 20px;
+  width: 42px;
+  height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--accent-color, var(--primary-color));
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   color: white;
 }
 
@@ -399,7 +407,7 @@
 
 .actionArrow {
   color: var(--accent-color, var(--primary-color));
-  transition: transform 0.3s ease;
+  transition: transform 0.2s ease;
 }
 
 /* Activities Section */
@@ -409,18 +417,19 @@
 
 .activitiesList {
   background: white;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
+  border: 1px solid var(--gray-100);
 }
 
 .activityItem {
   display: flex;
   align-items: flex-start;
   gap: 16px;
-  padding: 20px;
+  padding: 18px;
   border-bottom: 1px solid var(--gray-100);
-  transition: background-color 0.3s ease;
+  transition: background-color 0.2s ease;
 }
 
 .activityItem:hover {
@@ -432,28 +441,28 @@
 }
 
 .activityIcon {
-  width: 42px;
-  height: 42px;
-  border-radius: var(--radius-md);
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 18px;
   flex-shrink: 0;
 }
 
 .activityIcon.new {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(39, 174, 96, 0.1);
   color: var(--success-color);
 }
 
 .activityIcon.pending {
-  background: rgba(245, 158, 11, 0.1);
+  background: rgba(243, 156, 18, 0.1);
   color: var(--warning-color);
 }
 
 .activityIcon.completed {
-  background: rgba(79, 70, 229, 0.1);
+  background: rgba(44, 62, 80, 0.1);
   color: var(--primary-color);
 }
 
@@ -469,7 +478,7 @@
 }
 
 .activityContent h4 {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--gray-800);
   margin: 0;
@@ -489,24 +498,24 @@
 
 .activityStatusBadge {
   display: inline-block;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
   font-size: 12px;
   font-weight: 500;
 }
 
 .activityStatusBadge.new {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(39, 174, 96, 0.1);
   color: var(--success-color);
 }
 
 .activityStatusBadge.pending {
-  background: rgba(245, 158, 11, 0.1);
+  background: rgba(243, 156, 18, 0.1);
   color: var(--warning-color);
 }
 
 .activityStatusBadge.completed {
-  background: rgba(79, 70, 229, 0.1);
+  background: rgba(44, 62, 80, 0.1);
   color: var(--primary-color);
 }
 
@@ -553,9 +562,10 @@
 
 .performanceCard {
   background: white;
-  padding: 28px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  padding: 24px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-100);
 }
 
 .performanceHeader {
@@ -566,21 +576,21 @@
 }
 
 .performanceHeader h4 {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--gray-800);
   margin: 0;
 }
 
 .performanceScore {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 600;
   color: var(--success-color);
 }
 
 .progressBar {
   width: 100%;
-  height: 8px;
+  height: 6px;
   background: var(--gray-100);
   border-radius: var(--radius-full);
   overflow: hidden;
@@ -589,21 +599,21 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, var(--success-color) 0%, var(--success-light) 100%);
+  background: var(--success-color);
   border-radius: var(--radius-full);
-  transition: width 1s ease-in-out;
+  transition: width 0.8s ease-in-out;
 }
 
 .performanceDetails {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+  gap: 16px;
 }
 
 .performanceItem {
   background: var(--gray-50);
-  border-radius: var(--radius-md);
-  padding: 16px;
+  border-radius: var(--radius-sm);
+  padding: 14px;
 }
 
 .performanceItemHeader {
@@ -627,7 +637,7 @@
 
 .progressBarSmall {
   width: 100%;
-  height: 5px;
+  height: 4px;
   background: var(--gray-200);
   border-radius: var(--radius-full);
   overflow: hidden;
@@ -635,7 +645,7 @@
 
 .progressFillSmall {
   height: 100%;
-  background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-light) 100%);
+  background: var(--primary-color);
   border-radius: var(--radius-full);
   transition: width 0.8s ease-in-out;
 }
@@ -644,7 +654,7 @@
 .footer {
   background: white;
   border-top: 1px solid var(--gray-200);
-  padding: 24px 0;
+  padding: 20px 0;
   margin-top: auto;
 }
 
@@ -668,7 +678,7 @@
   color: var(--primary-color);
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.3s ease;
+  transition: color 0.2s ease;
 }
 
 .footerLinks a:hover {
@@ -714,7 +724,7 @@
   }
 
   .welcomeCard h2 {
-    font-size: 24px;
+    font-size: 22px;
   }
   
   .welcomeGraphic {
@@ -746,6 +756,6 @@
   }
   
   .sectionTitle {
-    font-size: 18px;
+    font-size: 17px;
   }
 }
