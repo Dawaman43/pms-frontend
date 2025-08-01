@@ -204,17 +204,159 @@
   background: #feb2b2;
 }
 
+/* Scale Styles */
+.scaleContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.scaleItem {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  min-width: 150px;
+  flex: 1;
+}
+
+.scaleLevel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.scaleLabelInput {
+  padding: 8px 12px;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.scaleValue {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.scaleValueInput {
+  width: 50px;
+  padding: 6px 8px;
+  border: 1px solid #cbd5e0;
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* Sub-sections styles */
+.subSectionsContainer {
+  margin: 15px 0;
+  padding: 15px;
+  background: #f7fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.subSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.subSectionHeader h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0;
+}
+
+.subSectionItem {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.subSectionInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.removeSubSectionButton {
+  background: none;
+  border: none;
+  color: #f56565;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.removeSubSectionButton:hover {
+  background: #fed7d7;
+}
+
+.addSubSection {
+  margin-top: 15px;
+}
+
+.subSectionForm {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.subSectionActions {
+  display: flex;
+  gap: 8px;
+}
+
+.addSubSectionButton {
+  background: #e2e8f0;
+  color: #4a5568;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.addSubSectionButton:hover {
+  background: #cbd5e0;
+}
+
+/* Criteria styles */
 .criteriaContainer {
   margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid #e2e8f0;
 }
 
-.criteriaContainer h4 {
+.criteriaHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.criteriaHeader h4 {
   font-size: 16px;
   font-weight: 600;
   color: #2d3748;
-  margin: 0 0 15px 0;
+  margin: 0;
 }
 
 .criterionItem {
@@ -298,6 +440,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
+  width: 100%;
 }
 
 .addCriterionButton:hover {
@@ -320,6 +463,7 @@
   margin: 0 auto;
 }
 
+/* Preview styles */
 .previewContainer {
   background: white;
   border: 2px solid #e2e8f0;
@@ -333,33 +477,54 @@
   border-bottom: 1px solid #e2e8f0;
 }
 
-.previewHeader h4 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #2d3748;
-  margin: 0 0 8px 0;
+.previewTitle {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-.previewHeader p {
+.previewTitle h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+}
+
+.previewDescription {
   color: #718096;
-  margin: 0 0 10px 0;
+  margin: 0;
   line-height: 1.5;
 }
 
-.previewRole {
-  background: #667eea;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
+.previewInfo {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.previewPeriod {
+  font-size: 14px;
+}
+
+.previewEmployeeInfo {
+  margin-top: 20px;
+}
+
+.previewInfoRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.previewInfoRow p {
+  margin: 0;
+  flex: 1;
 }
 
 .previewSections {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 30px;
 }
 
 .previewSection {
@@ -369,28 +534,115 @@
   border-left: 4px solid #667eea;
 }
 
-.previewSection h5 {
-  font-size: 16px;
+.previewSection h3 {
+  font-size: 18px;
   font-weight: 600;
   color: #2d3748;
   margin: 0 0 15px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-.previewCriteria {
-  margin: 0;
-  padding-left: 20px;
+.previewSubSections {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.previewCriteria li {
+.previewSubSection {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.previewSubSection h4 {
+  font-size: 16px;
+  font-weight: 600;
   color: #4a5568;
-  margin-bottom: 8px;
-  line-height: 1.4;
+  margin: 0 0 15px 0;
 }
 
-.noCriteria {
-  color: #a0aec0;
-  font-style: italic;
-  margin: 0;
+.previewTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.previewTable th,
+.previewTable td {
+  border: 1px solid #cbd5e0;
+  padding: 10px;
+  text-align: center;
+}
+
+.previewTable th {
+  background: #f1f5f9;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.previewTable td {
+  color: #4a5568;
+}
+
+.previewTable td:nth-child(2) {
+  text-align: left;
+}
+
+.checkboxCell {
+  font-size: 18px;
+}
+
+.previewSummary {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  border: 2px solid #e2e8f0;
+}
+
+.summaryTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 30px;
+}
+
+.summaryTable th,
+.summaryTable td {
+  border: 1px solid #cbd5e0;
+  padding: 12px;
+  text-align: center;
+}
+
+.summaryTable th {
+  background: #f1f5f9;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.totalRow {
+  background: #edf2f7;
+  font-weight: 600;
+}
+
+.signatureSection {
+  margin-top: 30px;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 20px;
+}
+
+.signatureRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.signatureField {
+  flex: 1;
+}
+
+.signatureField p {
+  margin: 10px 0;
 }
 
 @media (max-width: 768px) {
@@ -422,5 +674,14 @@
   .addSectionForm {
     flex-direction: column;
     max-width: none;
+  }
+
+  .signatureRow {
+    flex-direction: column;
+  }
+
+  .previewInfo,
+  .previewInfoRow {
+    flex-direction: column;
   }
 }
