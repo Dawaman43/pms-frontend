@@ -36,9 +36,9 @@ const LoginPage = () => {
 
       // Redirect based on role
       if (formData.role === "admin") {
-        navigate("/admin")
-      } else {
         navigate("/dashboard")
+      } else {
+        navigate("/home")
       }
     }, 1500)
   }
