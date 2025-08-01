@@ -1,32 +1,27 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import styles from "./SignupPage.module.css"
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import styles from "./SignupPage.module.css";
 
 const SignupPage = () => {
-  const [currentStep, setCurrentStep] = useState(1)
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    // Personal Information
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
-
-    // Professional Information
     role: "teacher",
     department: "",
     title: "",
     employeeId: "",
-
-    // Account Security
     password: "",
     confirmPassword: "",
-  })
-  const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const navigate = useNavigate()
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate = useNavigate();
 
   const departments = [
     "Computer Science & Engineering",
@@ -42,51 +37,68 @@ const SignupPage = () => {
     "Languages & Literature",
     "Human Resources",
     "Administration",
-  ]
+  ];
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
   const handleNext = () => {
     if (currentStep < 3) {
-      setCurrentStep(currentStep + 1)
+      setCurrentStep(currentStep + 1);
     }
-  }
+  };
 
   const handlePrevious = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
+      setCurrentStep(currentStep - 1);
     }
-  }
+  };
 
   const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword)
-  }
+    setShowPassword(!showPassword);
+  };
 
   const toggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword(!showConfirmPassword)
-  }
+    setShowConfirmPassword(!showConfirmPassword);
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
+
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!")
-      return
+      alert("Passwords do not match!");
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      navigate("/login")
-    }, 2000)
-  }
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("Signup successful!");
+        navigate("/login");
+      } else {
+        alert(`Signup failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error("Signup error:", error);
+      alert("Error signing up. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -96,9 +108,7 @@ const SignupPage = () => {
             <h3 className={styles.stepTitle}>Personal Information</h3>
             <div className={styles.inputRow}>
               <div className={styles.inputGroup}>
-                <label htmlFor="firstName" className={styles.label}>
-                  First Name
-                </label>
+                <label htmlFor="firstName" className={styles.label}>First Name</label>
                 <input
                   type="text"
                   id="firstName"
@@ -111,9 +121,7 @@ const SignupPage = () => {
                 />
               </div>
               <div className={styles.inputGroup}>
-                <label htmlFor="lastName" className={styles.label}>
-                  Last Name
-                </label>
+                <label htmlFor="lastName" className={styles.label}>Last Name</label>
                 <input
                   type="text"
                   id="lastName"
@@ -127,9 +135,7 @@ const SignupPage = () => {
               </div>
             </div>
             <div className={styles.inputGroup}>
-              <label htmlFor="email" className={styles.label}>
-                Email Address
-              </label>
+              <label htmlFor="email" className={styles.label}>Email Address</label>
               <input
                 type="email"
                 id="email"
@@ -142,9 +148,7 @@ const SignupPage = () => {
               />
             </div>
             <div className={styles.inputGroup}>
-              <label htmlFor="phone" className={styles.label}>
-                Phone Number
-              </label>
+              <label htmlFor="phone" className={styles.label}>Phone Number</label>
               <input
                 type="tel"
                 id="phone"
@@ -157,16 +161,14 @@ const SignupPage = () => {
               />
             </div>
           </div>
-        )
+        );
 
       case 2:
         return (
           <div className={styles.stepContent}>
             <h3 className={styles.stepTitle}>Professional Information</h3>
             <div className={styles.inputGroup}>
-              <label htmlFor="role" className={styles.label}>
-                Role
-              </label>
+              <label htmlFor="role" className={styles.label}>Role</label>
               <div className={styles.roleSelector}>
                 <select
                   id="role"
@@ -183,9 +185,7 @@ const SignupPage = () => {
               </div>
             </div>
             <div className={styles.inputGroup}>
-              <label htmlFor="department" className={styles.label}>
-                Department
-              </label>
+              <label htmlFor="department" className={styles.label}>Department</label>
               <div className={styles.roleSelector}>
                 <select
                   id="department"
@@ -197,18 +197,14 @@ const SignupPage = () => {
                 >
                   <option value="">Select Department</option>
                   {departments.map((dept) => (
-                    <option key={dept} value={dept}>
-                      {dept}
-                    </option>
+                    <option key={dept} value={dept}>{dept}</option>
                   ))}
                 </select>
               </div>
             </div>
             <div className={styles.inputRow}>
               <div className={styles.inputGroup}>
-                <label htmlFor="title" className={styles.label}>
-                  Job Title
-                </label>
+                <label htmlFor="title" className={styles.label}>Job Title</label>
                 <input
                   type="text"
                   id="title"
@@ -221,9 +217,7 @@ const SignupPage = () => {
                 />
               </div>
               <div className={styles.inputGroup}>
-                <label htmlFor="employeeId" className={styles.label}>
-                  Employee ID
-                </label>
+                <label htmlFor="employeeId" className={styles.label}>Employee ID</label>
                 <input
                   type="text"
                   id="employeeId"
@@ -237,16 +231,14 @@ const SignupPage = () => {
               </div>
             </div>
           </div>
-        )
+        );
 
       case 3:
         return (
           <div className={styles.stepContent}>
             <h3 className={styles.stepTitle}>Account Security</h3>
             <div className={styles.inputGroup}>
-              <label htmlFor="password" className={styles.label}>
-                Password
-              </label>
+              <label htmlFor="password" className={styles.label}>Password</label>
               <div className={styles.passwordWrapper}>
                 <input
                   type={showPassword ? "text" : "password"}
@@ -258,29 +250,13 @@ const SignupPage = () => {
                   placeholder="Create a strong password"
                   required
                 />
-                <button 
-                  type="button" 
-                  className={styles.passwordToggle}
-                  onClick={togglePasswordVisibility}
-                >
-                  {showPassword ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                      <line x1="1" y1="1" x2="23" y2="23"></line>
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  )}
+                <button type="button" className={styles.passwordToggle} onClick={togglePasswordVisibility}>
+                  {showPassword ? "🙈" : "👁️"}
                 </button>
               </div>
             </div>
             <div className={styles.inputGroup}>
-              <label htmlFor="confirmPassword" className={styles.label}>
-                Confirm Password
-              </label>
+              <label htmlFor="confirmPassword" className={styles.label}>Confirm Password</label>
               <div className={styles.passwordWrapper}>
                 <input
                   type={showConfirmPassword ? "text" : "password"}
@@ -292,22 +268,8 @@ const SignupPage = () => {
                   placeholder="Confirm your password"
                   required
                 />
-                <button 
-                  type="button" 
-                  className={styles.passwordToggle}
-                  onClick={toggleConfirmPasswordVisibility}
-                >
-                  {showConfirmPassword ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                      <line x1="1" y1="1" x2="23" y2="23"></line>
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  )}
+                <button type="button" className={styles.passwordToggle} onClick={toggleConfirmPasswordVisibility}>
+                  {showConfirmPassword ? "🙈" : "👁️"}
                 </button>
               </div>
             </div>
@@ -321,12 +283,12 @@ const SignupPage = () => {
               </ul>
             </div>
           </div>
-        )
+        );
 
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <div className={styles.signupContainer}>
@@ -334,7 +296,7 @@ const SignupPage = () => {
         <div className={styles.signupSidebar}>
           <div className={styles.brandContent}>
             <div className={styles.brandLogo}>
-              <img src="/astu_logo.svg?height=80&width=80&text=ASTU" alt="ASTU Logo" className={styles.logoImage} />
+              <img src="/astu_logo.svg" alt="ASTU Logo" className={styles.logoImage} />
               <h1 className={styles.brandTitle}>ASTU</h1>
             </div>
             <p className={styles.brandDescription}>
@@ -369,21 +331,13 @@ const SignupPage = () => {
                   Previous
                 </button>
               )}
-
               {currentStep < 3 ? (
                 <button type="button" onClick={handleNext} className={styles.nextButton}>
                   Next
                 </button>
               ) : (
                 <button type="submit" className={styles.submitButton} disabled={isLoading}>
-                  {isLoading ? (
-                    <span className={styles.loadingSpinner}>
-                      <span className={styles.spinner}></span>
-                      Creating Account...
-                    </span>
-                  ) : (
-                    "Create Account"
-                  )}
+                  {isLoading ? "Creating Account..." : "Create Account"}
                 </button>
               )}
             </div>
@@ -391,14 +345,12 @@ const SignupPage = () => {
 
           <div className={styles.loginPrompt}>
             <span>Already have an account? </span>
-            <Link to="/login" className={styles.loginLink}>
-              Sign in here
-            </Link>
+            <Link to="/login" className={styles.loginLink}>Sign in here</Link>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default SignupPage
+export default SignupPage;
