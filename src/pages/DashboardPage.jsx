@@ -1,14 +1,239 @@
 "use client"
+
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import PerformanceForm from "../components/PerformanceForm"
 import PerformanceHistory from "../components/PerformanceHistory"
 import styles from "./DashboardPage.module.css"
 
+const EmployeeRegistration = ({ onRegister }) => {
+  const [formData, setFormData] = useState({
+    name: "",
+    jobTitle: "",
+    level: "",
+    email: "",
+    department: "",
+  });
+
+  const [password, setPassword] = useState("");
+  const [isGenerated, setIsGenerated] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const departments = [
+    "Information Communication Technology",
+    "Computer Science & Engineering",
+    "Electrical Engineering",
+    "Mechanical Engineering",
+    "Human Resources",
+    "Finance",
+    "Administration",
+    "Academic Affairs"
+  ];
+
+  const jobLevels = [
+    "I - Entry Level",
+    "II - Intermediate",
+    "III - Professional",
+    "IV - Senior Professional",
+    "V - Lead",
+    "VI - Manager",
+    "VII - Director"
+  ];
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const generatePassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%";
+    let newPassword = "";
+    for (let i = 0; i < 10; i++) {
+      newPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setPassword(newPassword);
+    setIsGenerated(true);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!isGenerated) {
+      setError("Please generate a password first");
+      return;
+    }
+    if (!formData.name || !formData.email || !formData.jobTitle || !formData.department) {
+      setError("Please fill all required fields");
+      return;
+    }
+
+    setError("");
+    onRegister({ ...formData, password });
+    setSuccess("Employee registered successfully!");
+    
+    // Reset form
+    setFormData({
+      name: "",
+      jobTitle: "",
+      level: "",
+      email: "",
+      department: "",
+    });
+    setPassword("");
+    setIsGenerated(false);
+    
+    // Clear success message after 5 seconds
+    setTimeout(() => setSuccess(""), 5000);
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(password);
+    alert("Password copied to clipboard!");
+  };
+
+  return (
+    <div className={styles.registrationContainer}>
+      <div className={styles.registrationHeader}>
+        <h3>Register New Employee</h3>
+        <p className={styles.registrationSubtitle}>Fill in the details below to create a new employee account</p>
+      </div>
+      
+      {error && <div className={styles.errorMessage}>{error}</div>}
+      {success && <div className={styles.successMessage}>{success}</div>}
+      
+      <form onSubmit={handleSubmit} className={styles.registrationForm}>
+        <div className={styles.formGrid}>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Full Name *</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className={styles.formInput}
+              placeholder="Enter employee's full name"
+              required
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Job Title *</label>
+            <input
+              type="text"
+              name="jobTitle"
+              value={formData.jobTitle}
+              onChange={handleChange}
+              className={styles.formInput}
+              placeholder="e.g. Software Engineer"
+              required
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Job Level</label>
+            <select
+              name="level"
+              value={formData.level}
+              onChange={handleChange}
+              className={styles.formSelect}
+            >
+              <option value="">Select job level</option>
+              {jobLevels.map((level, index) => (
+                <option key={index} value={level}>{level}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Department *</label>
+            <select
+              name="department"
+              value={formData.department}
+              onChange={handleChange}
+              className={styles.formSelect}
+              required
+            >
+              <option value="">Select department</option>
+              {departments.map((dept, index) => (
+                <option key={index} value={dept}>{dept}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Email Address *</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className={styles.formInput}
+              placeholder="employee@astu.edu.et"
+              required
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Temporary Password</label>
+            <div className={styles.passwordContainer}>
+              <input
+                type="text"
+                value={password}
+                readOnly
+                className={styles.passwordInput}
+                placeholder="Click generate to create password"
+              />
+              <div className={styles.passwordActions}>
+                <button
+                  type="button"
+                  onClick={generatePassword}
+                  className={styles.generateButton}
+                >
+                  Generate
+                </button>
+                {password && (
+                  <button
+                    type="button"
+                    onClick={copyToClipboard}
+                    className={styles.copyButton}
+                    title="Copy to clipboard"
+                  >
+                    Copy
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className={styles.passwordStrength}>
+              {password && (
+                <>
+                  <span className={password.length >= 10 ? styles.strong : styles.weak}>
+                    Password strength: {password.length >= 10 ? "Strong" : "Weak"}
+                  </span>
+                  <span className={styles.passwordHint}>
+                    The password will be shown only once
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.formActions}>
+          <button type="submit" className={styles.submitButton}>
+            Register Employee
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+// Rest of your DashboardPage component remains the same...
 const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState("overview")
   const [showFormBuilder, setShowFormBuilder] = useState(false)
   const [editingForm, setEditingForm] = useState(null)
+  const [employees, setEmployees] = useState([])
 
   // Admin data
   const [admin] = useState({
@@ -129,57 +354,6 @@ const DashboardPage = () => {
             { id: 1, name: "Communication Skills", weight: 50 },
             { id: 2, name: "Teamwork", weight: 50 },
           ],
-        },
-      ],
-      ratingScale: {
-        min: 1,
-        max: 4,
-        labels: ["Poor", "Fair", "Good", "Excellent"],
-      },
-    },
-    {
-      id: 3,
-      title: "Leadership Performance Review",
-      description: "Evaluation form for department heads and managers",
-      targetRole: "admin",
-      status: "draft",
-      createdDate: "2024-03-01",
-      lastModified: "2024-03-15",
-      usageCount: 0,
-      sections: [
-        {
-          id: 1,
-          name: "Leadership Skills",
-          weight: 35,
-          criteria: [
-            { id: 1, name: "Decision Making", weight: 40 },
-            { id: 2, name: "Team Motivation", weight: 35 },
-            { id: 3, name: "Conflict Resolution", weight: 25 },
-          ],
-        },
-        {
-          id: 2,
-          name: "Strategic Planning",
-          weight: 25,
-          criteria: [
-            { id: 1, name: "Vision Setting", weight: 60 },
-            { id: 2, name: "Goal Achievement", weight: 40 },
-          ],
-        },
-        {
-          id: 3,
-          name: "Team Management",
-          weight: 25,
-          criteria: [
-            { id: 1, name: "Staff Development", weight: 50 },
-            { id: 2, name: "Performance Management", weight: 50 },
-          ],
-        },
-        {
-          id: 4,
-          name: "Communication",
-          weight: 15,
-          criteria: [{ id: 1, name: "Internal and External Communication", weight: 100 }],
         },
       ],
       ratingScale: {
@@ -461,6 +635,13 @@ const DashboardPage = () => {
     )
   }
 
+  // Employee registration handler
+  const handleRegisterEmployee = (employee) => {
+    setEmployees([...employees, employee]);
+    // Here you would typically make an API call to save the employee to your database
+    console.log("New employee registered:", employee);
+  };
+
   // Menu data structure for integrated dashboard - REORDERED as requested
   const menuItems = [
     { id: "overview", label: "📊 Overview", icon: "dashboard" },
@@ -487,7 +668,6 @@ const DashboardPage = () => {
                   <span className={styles.statTrend}>+12 this month</span>
                 </div>
               </div>
-
               <div className={styles.statCard}>
                 <div className={styles.statIcon}>📝</div>
                 <div className={styles.statContent}>
@@ -496,7 +676,6 @@ const DashboardPage = () => {
                   <span className={styles.statTrend}>In progress</span>
                 </div>
               </div>
-
               <div className={styles.statCard}>
                 <div className={styles.statIcon}>✅</div>
                 <div className={styles.statContent}>
@@ -505,7 +684,6 @@ const DashboardPage = () => {
                   <span className={styles.statTrend}>This quarter</span>
                 </div>
               </div>
-
               <div className={styles.statCard}>
                 <div className={styles.statIcon}>⏳</div>
                 <div className={styles.statContent}>
@@ -560,7 +738,6 @@ const DashboardPage = () => {
                     </button>
                   </div>
                 </div>
-
                 <div className={styles.formBuilderContent}>
                   {/* Form Details Section */}
                   <div className={styles.formBuilderSection}>
@@ -706,7 +883,8 @@ const DashboardPage = () => {
                   {formBuilder.sections.length > 0 && (
                     <div className={styles.formBuilderSection}>
                       <h3>
-                        Form Preview - Total Weight: {formBuilder.sections.reduce((sum, s) => sum + s.weight, 0)}%
+                        Form Preview - Total Weight:{" "}
+                        {formBuilder.sections.reduce((sum, s) => sum + s.weight, 0)}%
                       </h3>
                       <div className={styles.formPreview}>
                         {formBuilder.sections.map((section) => (
@@ -746,7 +924,6 @@ const DashboardPage = () => {
                     ➕ Create New Form
                   </button>
                 </div>
-
                 <div className={styles.formsGrid}>
                   {evaluationForms.map((form) => (
                     <div key={form.id} className={styles.formCard}>
@@ -755,21 +932,28 @@ const DashboardPage = () => {
                         <div className={styles.formActions}>
                           <span className={`${styles.statusBadge} ${styles[form.status]}`}>{form.status}</span>
                           <div className={styles.actionButtons}>
-                            <button className={styles.editButton} onClick={() => handleEditForm(form.id)}>
+                            <button
+                              className={styles.editButton}
+                              onClick={() => handleEditForm(form.id)}
+                            >
                               ✏️
                             </button>
-                            <button className={styles.toggleButton} onClick={() => handleToggleFormStatus(form.id)}>
+                            <button
+                              className={styles.toggleButton}
+                              onClick={() => handleToggleFormStatus(form.id)}
+                            >
                               {form.status === "active" ? "⏸️" : "▶️"}
                             </button>
-                            <button className={styles.deleteButton} onClick={() => handleDeleteForm(form.id)}>
+                            <button
+                              className={styles.deleteButton}
+                              onClick={() => handleDeleteForm(form.id)}
+                            >
                               🗑️
                             </button>
                           </div>
                         </div>
                       </div>
-
                       <p className={styles.formDescription}>{form.description}</p>
-
                       <div className={styles.formDetails}>
                         <div className={styles.formMeta}>
                           <span>
@@ -779,7 +963,6 @@ const DashboardPage = () => {
                             Usage: <strong>{form.usageCount} times</strong>
                           </span>
                         </div>
-
                         <div className={styles.formSections}>
                           <h4>Form Sections:</h4>
                           {form.sections.map((section, index) => (
@@ -789,7 +972,6 @@ const DashboardPage = () => {
                             </div>
                           ))}
                         </div>
-
                         <div className={styles.formDates}>
                           <small>Created: {new Date(form.createdDate).toLocaleDateString()}</small>
                           <small>Modified: {new Date(form.lastModified).toLocaleDateString()}</small>
@@ -823,7 +1005,10 @@ const DashboardPage = () => {
                 </select>
               </div>
             </div>
-
+            
+            {/* Employee Registration Form */}
+            <EmployeeRegistration onRegister={handleRegisterEmployee} />
+            
             <div className={styles.usersTable}>
               <table>
                 <thead>
@@ -875,19 +1060,16 @@ const DashboardPage = () => {
                 <p>Comprehensive performance analysis across all departments</p>
                 <button className={styles.generateButton}>Generate Report</button>
               </div>
-
               <div className={styles.reportCard}>
                 <h3>📈 Evaluation Trends</h3>
                 <p>Track evaluation completion rates and score trends</p>
                 <button className={styles.generateButton}>Generate Report</button>
               </div>
-
               <div className={styles.reportCard}>
                 <h3>👥 User Activity</h3>
                 <p>Monitor user engagement and system usage statistics</p>
                 <button className={styles.generateButton}>Generate Report</button>
               </div>
-
               <div className={styles.reportCard}>
                 <h3>🎯 Goal Achievement</h3>
                 <p>Track goal completion and performance improvement</p>
@@ -900,10 +1082,8 @@ const DashboardPage = () => {
       // User dashboard tabs integrated into admin dashboard
       case "myEvaluations":
         return <PerformanceForm onSubmit={(data) => console.log("Evaluation submitted:", data)} />
-
       case "myHistory":
         return <PerformanceHistory />
-
       case "myProfile":
         return (
           <div className={styles.profileContent}>
@@ -957,7 +1137,6 @@ const DashboardPage = () => {
                   <span className={styles.statTrend}>+2.3% from last quarter</span>
                 </div>
               </div>
-
               <div className={styles.statCard}>
                 <div className={styles.statIcon}>✅</div>
                 <div className={styles.statContent}>
@@ -966,7 +1145,6 @@ const DashboardPage = () => {
                   <span className={styles.statTrend}>This year</span>
                 </div>
               </div>
-
               <div className={styles.statCard}>
                 <div className={styles.statIcon}>⏳</div>
                 <div className={styles.statContent}>
@@ -975,7 +1153,6 @@ const DashboardPage = () => {
                   <span className={styles.statTrend}>Due soon</span>
                 </div>
               </div>
-
               <div className={styles.statCard}>
                 <div className={styles.statIcon}>🎯</div>
                 <div className={styles.statContent}>
@@ -1082,7 +1259,6 @@ const DashboardPage = () => {
               <p>Adama Science & Technology University</p>
             </div>
           </div>
-
           <div className={styles.userSection}>
             <div className={styles.userInfo}>
               <span className={styles.userName}>{admin.name}</span>
