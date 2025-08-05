@@ -3,7 +3,6 @@ import LoginPage from "./pages/LoginPage"
 import SignupPage from "./pages/SignupPage"
 import HomePage from "./pages/HomePage"
 import DashboardPage from "./pages/DashboardPage"
-import AdminDashboard from "./pages/AdminDashboard"
 import "./App.css"
 
 function App() {
@@ -16,7 +15,6 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </div>
     </Router>
