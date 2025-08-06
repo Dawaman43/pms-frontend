@@ -1,106 +1,87 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import styles from "./PerformanceForm.module.css"
 
-const PerformanceForm = ({ evaluationType = "self", onSubmit }) => {
+const PerformanceForm = ({ employeeId, onSubmit }) => {
   const [formData, setFormData] = useState({
-    employeeName: "Samuel Hailu Demse",
-    position: "Software Programmer IV",
-    department: "Information Communication Technology",
-    evaluationPeriod: "January 01, 2017 - June 30, 2017",
-    supervisor: "Daniel Asfaw",
+    employeeName: "",
+    position: "",
+    department: "",
+    evaluationPeriod: "",
+    supervisor: "",
   })
 
-  const [taskEvaluations, setTaskEvaluations] = useState([
-    {
-      id: 1,
-      task: "Support and maintenance for HRMS, Attendance System, Transport System and Clinic Service System",
-      weight: 25,
-      rating: 4,
-      score: 0,
-    },
-    {
-      id: 2,
-      task: "Community and Special School System development and user training",
-      weight: 25,
-      rating: 4,
-      score: 0,
-    },
-    {
-      id: 3,
-      task: "Employee ID card printing based on new structure and system improvement",
-      weight: 10,
-      rating: 4,
-      score: 0,
-    },
-    {
-      id: 4,
-      task: "ASTU Academic Staff Profile System development",
-      weight: 10,
-      rating: 3,
-      score: 0,
-    },
-    {
-      id: 5,
-      task: "Stock and Gate pass Management data collection, design and system development",
-      weight: 20,
-      rating: 4,
-      score: 0,
-    },
-    {
-      id: 6,
-      task: "Strategic and Data Management System requirement gathering, analysis and design",
-      weight: 10,
-      rating: 3,
-      score: 0,
-    },
-  ])
+  const [taskEvaluations, setTaskEvaluations] = useState([])
+  const [behaviorEvaluations, setBehaviorEvaluations] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const [behaviorEvaluations, setBehaviorEvaluations] = useState([
-    {
-      id: 1,
-      behavior: "Anti-corruption attitude and efforts to eliminate corrupt practices",
-      weight: 25,
-      rating: 4,
-      score: 0,
-    },
-    {
-      id: 2,
-      behavior: "Efforts to improve competency",
-      weight: 20,
-      rating: 3,
-      score: 0,
-    },
-    {
-      id: 3,
-      behavior: "Respect for service users and pride in service delivery",
-      weight: 15,
-      rating: 4,
-      score: 0,
-    },
-    {
-      id: 4,
-      behavior: "Efforts to support and empower others",
-      weight: 15,
-      rating: 4,
-      score: 0,
-    },
-    {
-      id: 5,
-      behavior: "Efforts and willingness to improve processes and support ICT",
-      weight: 15,
-      rating: 4,
-      score: 0,
-    },
-    {
-      id: 6,
-      behavior: "Willingness to give and receive performance feedback timely and appropriately",
-      weight: 10,
-      rating: 3,
-      score: 0,
-    },
-  ])
+  // Fetch employee data and evaluation criteria
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        
+        // In a real app, these would be API calls
+        const employeeResponse = await fetch(`/api/employees/${employeeId}`)
+        const employeeData = await employeeResponse.json()
+        
+        const evaluationCriteriaResponse = await fetch('/api/evaluation-criteria')
+        const criteriaData = await evaluationCriteriaResponse.json()
+        
+        // Set form data from employee record
+        setFormData({
+          employeeName: employeeData.fullName,
+          position: employeeData.position,
+          department: employeeData.department,
+          evaluationPeriod: getCurrentEvaluationPeriod(),
+          supervisor: employeeData.supervisor || "Not specified",
+        })
+        
+        // Set evaluation tasks from criteria
+        setTaskEvaluations(criteriaData.tasks.map(task => ({
+          id: task.id,
+          task: task.description,
+          weight: task.weight,
+          rating: 3, // Default to average rating
+          score: (task.weight * 3) / 5, // Calculate initial score
+        })))
+        
+        // Set behavioral evaluations from criteria
+        setBehaviorEvaluations(criteriaData.behaviors.map(behavior => ({
+          id: behavior.id,
+          behavior: behavior.description,
+          weight: behavior.weight,
+          rating: 3, // Default to average rating
+          score: (behavior.weight * 3) / 5, // Calculate initial score
+        })))
+        
+      } catch (err) {
+        setError("Failed to load employee data. Please try again.")
+        console.error("Error fetching data:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    if (employeeId) {
+      fetchData()
+    }
+  }, [employeeId])
+
+  const getCurrentEvaluationPeriod = () => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = now.getMonth()
+    
+    // Assuming biannual evaluations (Jan-Jun and Jul-Dec)
+    if (month < 6) {
+      return `January 01, ${year} - June 30, ${year}`
+    } else {
+      return `July 01, ${year} - December 31, ${year}`
+    }
+  }
 
   const handleTaskRatingChange = (taskId, newRating) => {
     setTaskEvaluations((prev) =>
@@ -131,21 +112,43 @@ const PerformanceForm = ({ evaluationType = "self", onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    
+    if (loading) return
+    
     const evaluationData = {
       ...formData,
+      employeeId,
       taskEvaluations,
       behaviorEvaluations,
       totalScore: calculateTotalScore(),
-      submittedAt: new Date().toISOString(),
+      evaluatedAt: new Date().toISOString(),
+      evaluatorComments: e.target.supervisorComment.value,
     }
+    
     onSubmit?.(evaluationData)
+  }
+
+  if (loading) {
+    return (
+      <div className={styles.formContainer}>
+        <div className={styles.loadingMessage}>Loading employee data...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className={styles.formContainer}>
+        <div className={styles.errorMessage}>{error}</div>
+      </div>
+    )
   }
 
   return (
     <div className={styles.formContainer}>
       <div className={styles.formHeader}>
         <div className={styles.universityHeader}>
-          <img src="/astu_logo.svg?height=60&width=60&text=ASTU" alt="ASTU Logo" className={styles.logo} />
+          <img src="/astu_logo.svg" alt="ASTU Logo" className={styles.logo} />
           <div className={styles.universityInfo}>
             <h1>Adama Science & Technology University</h1>
             <p>Performance Evaluation Form</p>
@@ -174,6 +177,10 @@ const PerformanceForm = ({ evaluationType = "self", onSubmit }) => {
               <label>Evaluation Period:</label>
               <span>{formData.evaluationPeriod}</span>
             </div>
+            <div className={styles.infoItem}>
+              <label>Supervisor:</label>
+              <span>{formData.supervisor}</span>
+            </div>
           </div>
         </section>
 
@@ -184,7 +191,7 @@ const PerformanceForm = ({ evaluationType = "self", onSubmit }) => {
             <div className={styles.tableHeader}>
               <div className={styles.headerCell}>No.</div>
               <div className={styles.headerCell}>Planned Activities</div>
-              <div className={styles.headerCell}>Weight (%)</div>
+              <div className={styles.headerCell}>Weight</div>
               <div className={styles.headerCell}>Performance Rating</div>
               <div className={styles.headerCell}>Score</div>
             </div>
@@ -235,7 +242,7 @@ const PerformanceForm = ({ evaluationType = "self", onSubmit }) => {
             <div className={styles.tableHeader}>
               <div className={styles.headerCell}>No.</div>
               <div className={styles.headerCell}>Behavioral Indicators</div>
-              <div className={styles.headerCell}>Weight (%)</div>
+              <div className={styles.headerCell}>Weight</div>
               <div className={styles.headerCell}>Performance Rating</div>
               <div className={styles.headerCell}>Score</div>
             </div>
@@ -287,7 +294,7 @@ const PerformanceForm = ({ evaluationType = "self", onSubmit }) => {
           <div className={styles.overallScore}>
             <h3>Overall Performance Score</h3>
             <div className={styles.scoreDisplay}>
-              <span className={styles.scoreValue}>{calculateTotalScore().toFixed(2)}/100</span>
+              <span className={styles.scoreValue}>{calculateTotalScore().toFixed(2)}</span>
               <span className={styles.scoreGrade}>
                 {calculateTotalScore() >= 90
                   ? "Excellent"
@@ -308,21 +315,14 @@ const PerformanceForm = ({ evaluationType = "self", onSubmit }) => {
           <h2 className={styles.sectionTitle}>Comments</h2>
           <div className={styles.commentsGrid}>
             <div className={styles.commentBox}>
-              <label htmlFor="supervisorComment">Supervisor's Comment:</label>
+              <label htmlFor="supervisorComment">Evaluator's Comment:</label>
               <textarea
                 id="supervisorComment"
+                name="supervisorComment"
                 className={styles.commentTextarea}
-                placeholder="Enter supervisor's comments..."
+                placeholder="Enter your evaluation comments..."
                 rows={4}
-              />
-            </div>
-            <div className={styles.commentBox}>
-              <label htmlFor="employeeComment">Employee's Comment:</label>
-              <textarea
-                id="employeeComment"
-                className={styles.commentTextarea}
-                placeholder="Enter employee's comments..."
-                rows={4}
+                required
               />
             </div>
           </div>
@@ -330,7 +330,7 @@ const PerformanceForm = ({ evaluationType = "self", onSubmit }) => {
 
         {/* Submit Button */}
         <div className={styles.submitSection}>
-          <button type="submit" className={styles.submitButton}>
+          <button type="submit" className={styles.submitButton} disabled={loading}>
             Submit Evaluation
           </button>
         </div>

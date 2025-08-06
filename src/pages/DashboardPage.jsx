@@ -228,12 +228,24 @@ const EmployeeRegistration = ({ onRegister }) => {
   );
 };
 
-// Rest of your DashboardPage component remains the same...
 const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState("overview")
   const [showFormBuilder, setShowFormBuilder] = useState(false)
   const [editingForm, setEditingForm] = useState(null)
   const [employees, setEmployees] = useState([])
+
+  // Form types definition (was missing)
+  const formTypes = [
+    { id: "workrate", name: "Work Performance" },
+    { id: "behavioral", name: "Behavioral Evaluation" }
+  ];
+  
+  // Evaluator types definition (was missing)
+  const evaluatorTypes = [
+    { id: "admin", name: "Administrator/Manager" },
+    { id: "peer", name: "Peer/Colleague" },
+    { id: "self", name: "Self-Evaluation" }
+  ];
 
   // Admin data
   const [admin] = useState({
@@ -277,9 +289,11 @@ const DashboardPage = () => {
   const [evaluationForms, setEvaluationForms] = useState([
     {
       id: 1,
-      title: "Academic Staff Performance Evaluation",
-      description: "Comprehensive evaluation form for teaching staff",
-      targetRole: "teacher",
+      title: "Work Performance Evaluation (70%)",
+      description: "Evaluation of employee work performance by manager",
+      formType: "workrate",
+      targetEvaluator: "admin",
+      weight: 70,
       status: "active",
       createdDate: "2024-01-15",
       lastModified: "2024-03-10",
@@ -287,38 +301,14 @@ const DashboardPage = () => {
       sections: [
         {
           id: 1,
-          name: "Teaching Performance",
-          weight: 40,
+          name: "Task Performance",
+          weight: 70,
           criteria: [
-            { id: 1, name: "Lesson Planning and Preparation", weight: 25 },
-            { id: 2, name: "Student Engagement and Interaction", weight: 35 },
-            { id: 3, name: "Assessment and Feedback Methods", weight: 40 },
+            { id: 1, name: "Quality of Work", weight: 40 },
+            { id: 2, name: "Timeliness", weight: 30 },
+            { id: 3, name: "Efficiency", weight: 30 },
           ],
-        },
-        {
-          id: 2,
-          name: "Research Activities",
-          weight: 30,
-          criteria: [
-            { id: 1, name: "Publications and Papers", weight: 50 },
-            { id: 2, name: "Research Projects and Grants", weight: 50 },
-          ],
-        },
-        {
-          id: 3,
-          name: "Service Activities",
-          weight: 20,
-          criteria: [
-            { id: 1, name: "Committee Participation", weight: 60 },
-            { id: 2, name: "Community Service", weight: 40 },
-          ],
-        },
-        {
-          id: 4,
-          name: "Professional Development",
-          weight: 10,
-          criteria: [{ id: 1, name: "Training and Workshops Attendance", weight: 100 }],
-        },
+        }
       ],
       ratingScale: {
         min: 1,
@@ -328,6 +318,38 @@ const DashboardPage = () => {
     },
     {
       id: 2,
+      title: "Behavioral Evaluation (Admin - 10%)",
+      description: "Evaluation of employee behavior by manager",
+      formType: "behavioral",
+      targetEvaluator: "admin",
+      weight: 10,
+      status: "active",
+      createdDate: "2024-01-20",
+      lastModified: "2024-02-28",
+      usageCount: 32,
+      sections: [
+        {
+          id: 1,
+          name: "Behavioral Indicators",
+          weight: 100,
+          criteria: [
+            { id: 1, name: "Anti-corruption attitude and action", weight: 25 },
+            { id: 2, name: "Effort to improve competence", weight: 20 },
+            { id: 3, name: "Respect and pride in service", weight: 15 },
+            { id: 4, name: "Effort to support others", weight: 15 },
+            { id: 5, name: "Effort to improve process", weight: 15 },
+            { id: 6, name: "Feedback acceptance", weight: 10 },
+          ],
+        },
+      ],
+      ratingScale: {
+        min: 1,
+        max: 4,
+        labels: ["Poor", "Fair", "Good", "Excellent"],
+      },
+    },
+    {
+      id: 3, // Fixed duplicate ID
       title: "Administrative Staff Evaluation",
       description: "Performance evaluation for administrative personnel",
       targetRole: "academic_worker",
@@ -368,14 +390,16 @@ const DashboardPage = () => {
   const [formBuilder, setFormBuilder] = useState({
     title: "",
     description: "",
-    targetRole: "",
+    formType: "workrate",
+    targetEvaluator: "admin",
+    weight: 70,
     sections: [],
     ratingScale: {
       min: 1,
       max: 4,
       labels: ["Poor", "Fair", "Good", "Excellent"],
     },
-  })
+  });
 
   const [currentSection, setCurrentSection] = useState({
     name: "",
@@ -387,7 +411,7 @@ const DashboardPage = () => {
     name: "",
     weight: 0,
   })
-
+  
   // Admin activities
   const [recentActivities] = useState([
     {
@@ -543,7 +567,7 @@ const DashboardPage = () => {
         }))
         setCurrentSection({ name: "", weight: 0, criteria: [] })
       } else {
-        alert("Criteria weights must total 100%")
+        alert("Criteria weights must total 100% for the section")
       }
     }
   }
@@ -557,29 +581,42 @@ const DashboardPage = () => {
 
   const saveForm = () => {
     if (formBuilder.title && formBuilder.sections.length > 0) {
-      const totalWeight = formBuilder.sections.reduce((sum, s) => sum + s.weight, 0)
-      if (totalWeight === 100) {
-        const newForm = {
-          id: editingForm ? editingForm.id : Date.now(),
-          ...formBuilder,
-          status: editingForm ? editingForm.status : "draft",
-          createdDate: editingForm ? editingForm.createdDate : new Date().toISOString().split("T")[0],
-          lastModified: new Date().toISOString().split("T")[0],
-          usageCount: editingForm ? editingForm.usageCount : 0,
+      // For behavioral forms, ensure section weights total 100%
+      if (formBuilder.formType === "behavioral") {
+        const behavioralSection = formBuilder.sections[0];
+        if (behavioralSection.weight !== 100) {
+          alert("Behavioral evaluation sections must total 100% weight");
+          return;
         }
-
-        if (editingForm) {
-          setEvaluationForms((prev) => prev.map((f) => (f.id === editingForm.id ? newForm : f)))
-        } else {
-          setEvaluationForms((prev) => [...prev, newForm])
-        }
-
-        resetFormBuilder()
-        setShowFormBuilder(false)
-        setEditingForm(null)
-      } else {
-        alert("Section weights must total 100%")
       }
+      
+      // For workrate forms, ensure total weight matches form weight
+      if (formBuilder.formType === "workrate") {
+        const totalWeight = formBuilder.sections.reduce((sum, s) => sum + s.weight, 0);
+        if (totalWeight !== 100) {
+          alert("Work rate evaluation sections must total 100% weight");
+          return;
+        }
+      }
+
+      const newForm = {
+        id: editingForm ? editingForm.id : Date.now(),
+        ...formBuilder,
+        status: editingForm ? editingForm.status : "draft",
+        createdDate: editingForm ? editingForm.createdDate : new Date().toISOString().split("T")[0],
+        lastModified: new Date().toISOString().split("T")[0],
+        usageCount: editingForm ? editingForm.usageCount : 0,
+      }
+
+      if (editingForm) {
+        setEvaluationForms((prev) => prev.map((f) => (f.id === editingForm.id ? newForm : f)))
+      } else {
+        setEvaluationForms((prev) => [...prev, newForm])
+      }
+
+      resetFormBuilder()
+      setShowFormBuilder(false)
+      setEditingForm(null)
     }
   }
 
@@ -587,7 +624,9 @@ const DashboardPage = () => {
     setFormBuilder({
       title: "",
       description: "",
-      targetRole: "",
+      formType: "workrate",
+      targetEvaluator: "admin",
+      weight: 70,
       sections: [],
       ratingScale: {
         min: 1,
@@ -604,36 +643,62 @@ const DashboardPage = () => {
     setFormBuilder({
       title: form.title,
       description: form.description,
-      targetRole: form.targetRole,
+      formType: form.formType,
+      targetEvaluator: form.targetEvaluator,
+      weight: form.weight,
       sections: form.sections,
       ratingScale: form.ratingScale,
     })
     setShowFormBuilder(true)
   }
 
-  // Admin form handlers
+  // Function to distribute forms to evaluators
+  const distributeForms = (employeeId) => {
+    // 1. Create admin forms (workrate + behavioral)
+    createForm(employeeId, 'admin', 'workrate', 70);
+    createForm(employeeId, 'admin', 'behavioral', 10);
+    
+    // 2. Create peer forms (behavioral only)
+    createForm(employeeId, 'peer', 'behavioral', 15);
+    
+    // 3. Create self-eval form (behavioral only)
+    createForm(employeeId, 'self', 'behavioral', 5);
+  };
+
+  const createForm = (employeeId, evaluator, formType, weight) => {
+    // In a real app, this would create form instances in your database
+    console.log(`Creating ${formType} form for employee ${employeeId} to be evaluated by ${evaluator} with weight ${weight}%`);
+  };
+
+  // Missing handler functions that were referenced in the code
   const handleCreateForm = () => {
-    setShowFormBuilder(true)
-  }
+    resetFormBuilder();
+    setShowFormBuilder(true);
+    setEditingForm(null);
+  };
 
   const handleEditForm = (formId) => {
-    const form = evaluationForms.find((f) => f.id === formId)
+    const form = evaluationForms.find(f => f.id === formId);
     if (form) {
-      editForm(form)
+      editForm(form);
     }
-  }
-
-  const handleDeleteForm = (formId) => {
-    setEvaluationForms((forms) => forms.filter((form) => form.id !== formId))
-  }
+  };
 
   const handleToggleFormStatus = (formId) => {
-    setEvaluationForms((forms) =>
-      forms.map((form) =>
-        form.id === formId ? { ...form, status: form.status === "active" ? "inactive" : "active" } : form,
-      ),
-    )
-  }
+    setEvaluationForms(prev => 
+      prev.map(form => 
+        form.id === formId 
+          ? { ...form, status: form.status === "active" ? "inactive" : "active" } 
+          : form
+      )
+    );
+  };
+
+  const handleDeleteForm = (formId) => {
+    if (window.confirm("Are you sure you want to delete this form?")) {
+      setEvaluationForms(prev => prev.filter(form => form.id !== formId));
+    }
+  };
 
   // Employee registration handler
   const handleRegisterEmployee = (employee) => {
@@ -644,13 +709,13 @@ const DashboardPage = () => {
 
   // Menu data structure for integrated dashboard - REORDERED as requested
   const menuItems = [
-    { id: "overview", label: "📊 Overview", icon: "dashboard" },
-    { id: "myEvaluations", label: "📝 New Evaluation", icon: "form" },
-    { id: "forms", label: "📝 Forms Management", icon: "form" },
-    { id: "users", label: "👥 User Management", icon: "users" },
-    { id: "myHistory", label: "📋 My History", icon: "history" },
-    { id: "reports", label: "📈 Reports", icon: "chart" },
-    { id: "myProfile", label: "👤 My Profile", icon: "user" },
+    { id: "overview", label: "Overview", icon: "dashboard" },
+    { id: "myEvaluations", label: "New Evaluation", icon: "form" },
+    { id: "forms", label: "Forms Management", icon: "form" },
+    { id: "users", label: "User Management", icon: "users" },
+    { id: "myHistory", label: "My History", icon: "history" },
+    { id: "reports", label: "Reports", icon: "chart" },
+    { id: "myProfile", label: "My Profile", icon: "user" },
   ]
 
   const renderTabContent = () => {
@@ -661,59 +726,59 @@ const DashboardPage = () => {
             {/* Stats Grid */}
             <div className={styles.statsGrid}>
               <div className={styles.statCard}>
-                <div className={styles.statIcon}>👥</div>
                 <div className={styles.statContent}>
                   <h3>Total Users</h3>
                   <p>{systemStats.totalUsers}</p>
-                  <span className={styles.statTrend}>+12 this month</span>
                 </div>
               </div>
               <div className={styles.statCard}>
-                <div className={styles.statIcon}>📝</div>
                 <div className={styles.statContent}>
                   <h3>Active Evaluations</h3>
                   <p>{systemStats.activeEvaluations}</p>
-                  <span className={styles.statTrend}>In progress</span>
                 </div>
               </div>
               <div className={styles.statCard}>
-                <div className={styles.statIcon}>✅</div>
                 <div className={styles.statContent}>
                   <h3>Completed</h3>
                   <p>{systemStats.completedEvaluations}</p>
-                  <span className={styles.statTrend}>This quarter</span>
                 </div>
               </div>
               <div className={styles.statCard}>
-                <div className={styles.statIcon}>⏳</div>
                 <div className={styles.statContent}>
                   <h3>Pending Approvals</h3>
                   <p>{systemStats.pendingApprovals}</p>
-                  <span className={styles.statTrend}>Needs attention</span>
                 </div>
               </div>
             </div>
-
-            {/* Recent Activities */}
-            <div className={styles.activitiesSection}>
-              <h3 className={styles.sectionTitle}>Recent System Activities</h3>
-              <div className={styles.activitiesList}>
-                {recentActivities.map((activity) => (
-                  <div key={activity.id} className={styles.activityItem}>
-                    <div className={`${styles.activityStatus} ${styles[activity.status]}`}></div>
-                    <div className={styles.activityContent}>
-                      <h4>{activity.title}</h4>
-                      <p>{activity.description}</p>
-                      <span className={styles.activityTime}>
-                        {activity.user} • {activity.time}
-                      </span>
+            
+            {/* Main content would go here */}
+            <div className={styles.contentGrid}>
+              <div className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <h3>Recent Activities</h3>
+                </div>
+                <div className={styles.activitiesList}>
+                  {recentActivities.map((activity) => (
+                    <div key={activity.id} className={styles.activityItem}>
+                      <div className={styles.activityInfo}>
+                        <h4>{activity.title}</h4>
+                        <p>{activity.description}</p>
+                        <span className={styles.activityMeta}>
+                          {activity.user} • {activity.time}
+                        </span>
+                      </div>
+                      <div className={styles.activityStatus}>
+                        <span className={`${styles.statusBadge} ${styles[activity.status]}`}>
+                          {activity.status}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        )
+        );
 
       case "forms":
         return (
@@ -721,10 +786,10 @@ const DashboardPage = () => {
             {showFormBuilder ? (
               <div className={styles.formBuilderContainer}>
                 <div className={styles.formBuilderHeader}>
-                  <h2>{editingForm ? "Edit Form" : "Create New Form"}</h2>
+                  <h2>{editingForm ? "Edit Evaluation Form" : "Create New Evaluation Form"}</h2>
                   <div className={styles.formBuilderActions}>
                     <button className={styles.saveFormButton} onClick={saveForm}>
-                      💾 Save Form
+                      Save Form
                     </button>
                     <button
                       className={styles.cancelFormButton}
@@ -734,7 +799,7 @@ const DashboardPage = () => {
                         resetFormBuilder()
                       }}
                     >
-                      ❌ Cancel
+                      Cancel
                     </button>
                   </div>
                 </div>
@@ -754,17 +819,56 @@ const DashboardPage = () => {
                         />
                       </div>
                       <div className={styles.formField}>
-                        <label>Target Role</label>
+                        <label>Form Type</label>
                         <select
-                          value={formBuilder.targetRole}
-                          onChange={(e) => setFormBuilder((prev) => ({ ...prev, targetRole: e.target.value }))}
+                          value={formBuilder.formType}
+                          onChange={(e) => setFormBuilder((prev) => ({ 
+                            ...prev, 
+                            formType: e.target.value,
+                            // Reset weight when changing form type
+                            weight: e.target.value === "workrate" ? 70 : 
+                                   e.target.value === "behavioral" && formBuilder.targetEvaluator === "admin" ? 10 :
+                                   e.target.value === "behavioral" && formBuilder.targetEvaluator === "peer" ? 15 :
+                                   e.target.value === "behavioral" && formBuilder.targetEvaluator === "self" ? 5 : 0
+                          }))}
                           className={styles.formSelect}
                         >
-                          <option value="">Select target role</option>
-                          <option value="teacher">Teacher</option>
-                          <option value="academic_worker">Academic Worker</option>
-                          <option value="admin">Administrator</option>
+                          {formTypes.map((type) => (
+                            <option key={type.id} value={type.id}>{type.name}</option>
+                          ))}
                         </select>
+                      </div>
+                      <div className={styles.formField}>
+                        <label>Target Evaluator</label>
+                        <select
+                          value={formBuilder.targetEvaluator}
+                          onChange={(e) => setFormBuilder((prev) => ({ 
+                            ...prev, 
+                            targetEvaluator: e.target.value,
+                            // Adjust weight based on evaluator for behavioral forms
+                            weight: prev.formType === "workrate" ? 70 :
+                                   e.target.value === "admin" ? 10 :
+                                   e.target.value === "peer" ? 15 :
+                                   e.target.value === "self" ? 5 : 0
+                          }))}
+                          className={styles.formSelect}
+                        >
+                          {evaluatorTypes.map((evaluator) => (
+                            <option key={evaluator.id} value={evaluator.id}>{evaluator.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className={styles.formField}>
+                        <label>Weight (%)</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          value={formBuilder.weight}
+                          onChange={(e) => setFormBuilder((prev) => ({ ...prev, weight: parseInt(e.target.value) || 0 }))}
+                          className={styles.formInput}
+                          disabled={formBuilder.formType === "workrate"} // Workrate is fixed at 70%
+                        />
                       </div>
                       <div className={styles.formField + " " + styles.fullWidth}>
                         <label>Description</label>
@@ -805,6 +909,7 @@ const DashboardPage = () => {
                           }
                           placeholder="Enter weight percentage"
                           className={styles.formInput}
+                          disabled={formBuilder.formType === "behavioral"} // Behavioral has fixed 100% section
                         />
                       </div>
                     </div>
@@ -838,7 +943,7 @@ const DashboardPage = () => {
                           />
                         </div>
                         <button onClick={addCriterionToSection} className={styles.addCriterionButton}>
-                          ➕ Add Criterion
+                          Add Criterion
                         </button>
                       </div>
 
@@ -856,7 +961,7 @@ const DashboardPage = () => {
                                   onClick={() => removeCriterionFromSection(criterion.id)}
                                   className={styles.removeCriterionButton}
                                 >
-                                  🗑️
+                                  Remove
                                 </button>
                               </div>
                             ))}
@@ -874,7 +979,7 @@ const DashboardPage = () => {
                           !currentSection.name || currentSection.weight === 0 || currentSection.criteria.length === 0
                         }
                       >
-                        ➕ Add Section to Form
+                        Add Section to Form
                       </button>
                     </div>
                   </div>
@@ -883,8 +988,7 @@ const DashboardPage = () => {
                   {formBuilder.sections.length > 0 && (
                     <div className={styles.formBuilderSection}>
                       <h3>
-                        Form Preview - Total Weight:{" "}
-                        {formBuilder.sections.reduce((sum, s) => sum + s.weight, 0)}%
+                        Form Preview - Total Weight: {formBuilder.weight}%
                       </h3>
                       <div className={styles.formPreview}>
                         {formBuilder.sections.map((section) => (
@@ -897,7 +1001,7 @@ const DashboardPage = () => {
                                   onClick={() => removeSectionFromForm(section.id)}
                                   className={styles.removeSectionButton}
                                 >
-                                  🗑️
+                                  Remove
                                 </button>
                               </div>
                             </div>
@@ -920,9 +1024,17 @@ const DashboardPage = () => {
               <>
                 <div className={styles.formsHeader}>
                   <h2>Evaluation Forms Management</h2>
-                  <button className={styles.createButton} onClick={handleCreateForm}>
-                    ➕ Create New Form
-                  </button>
+                  <div className={styles.formActionsRow}>
+                    <button className={styles.createButton} onClick={handleCreateForm}>
+                      Create New Form
+                    </button>
+                    <button 
+                      className={styles.distributeButton}
+                      onClick={() => distributeForms("selected-employee-id")}
+                    >
+                      Distribute Evaluation Forms
+                    </button>
+                  </div>
                 </div>
                 <div className={styles.formsGrid}>
                   {evaluationForms.map((form) => (
@@ -936,19 +1048,19 @@ const DashboardPage = () => {
                               className={styles.editButton}
                               onClick={() => handleEditForm(form.id)}
                             >
-                              ✏️
+                              Edit
                             </button>
                             <button
                               className={styles.toggleButton}
                               onClick={() => handleToggleFormStatus(form.id)}
                             >
-                              {form.status === "active" ? "⏸️" : "▶️"}
+                              {form.status === "active" ? "Deactivate" : "Activate"}
                             </button>
                             <button
                               className={styles.deleteButton}
                               onClick={() => handleDeleteForm(form.id)}
                             >
-                              🗑️
+                              Delete
                             </button>
                           </div>
                         </div>
@@ -957,10 +1069,13 @@ const DashboardPage = () => {
                       <div className={styles.formDetails}>
                         <div className={styles.formMeta}>
                           <span>
-                            Target Role: <strong>{form.targetRole}</strong>
+                            Evaluator: <strong>{form.targetEvaluator}</strong>
                           </span>
                           <span>
-                            Usage: <strong>{form.usageCount} times</strong>
+                            Type: <strong>{form.formType}</strong>
+                          </span>
+                          <span>
+                            Weight: <strong>{form.weight}%</strong>
                           </span>
                         </div>
                         <div className={styles.formSections}>
@@ -1037,9 +1152,9 @@ const DashboardPage = () => {
                       <td className={styles.scoreCell}>{user.evaluationScore}%</td>
                       <td>
                         <div className={styles.userActions}>
-                          <button className={styles.viewButton}>👁️</button>
-                          <button className={styles.editButton}>✏️</button>
-                          <button className={styles.evaluateButton}>📝</button>
+                          <button className={styles.viewButton}>View</button>
+                          <button className={styles.editButton}>Edit</button>
+                          <button className={styles.evaluateButton}>Evaluate</button>
                         </div>
                       </td>
                     </tr>
@@ -1056,22 +1171,22 @@ const DashboardPage = () => {
             <h2>System Reports & Analytics</h2>
             <div className={styles.reportsGrid}>
               <div className={styles.reportCard}>
-                <h3>📊 Performance Analytics</h3>
+                <h3>Performance Analytics</h3>
                 <p>Comprehensive performance analysis across all departments</p>
                 <button className={styles.generateButton}>Generate Report</button>
               </div>
               <div className={styles.reportCard}>
-                <h3>📈 Evaluation Trends</h3>
+                <h3>Evaluation Trends</h3>
                 <p>Track evaluation completion rates and score trends</p>
                 <button className={styles.generateButton}>Generate Report</button>
               </div>
               <div className={styles.reportCard}>
-                <h3>👥 User Activity</h3>
+                <h3>User Activity</h3>
                 <p>Monitor user engagement and system usage statistics</p>
                 <button className={styles.generateButton}>Generate Report</button>
               </div>
               <div className={styles.reportCard}>
-                <h3>🎯 Goal Achievement</h3>
+                <h3>Goal Achievement</h3>
                 <p>Track goal completion and performance improvement</p>
                 <button className={styles.generateButton}>Generate Report</button>
               </div>
@@ -1130,7 +1245,6 @@ const DashboardPage = () => {
             {/* Stats Grid */}
             <div className={styles.statsGrid}>
               <div className={styles.statCard}>
-                <div className={styles.statIcon}>📊</div>
                 <div className={styles.statContent}>
                   <h3>Average Score</h3>
                   <p>{dashboardStats.averageScore}%</p>
@@ -1138,7 +1252,6 @@ const DashboardPage = () => {
                 </div>
               </div>
               <div className={styles.statCard}>
-                <div className={styles.statIcon}>✅</div>
                 <div className={styles.statContent}>
                   <h3>Completed</h3>
                   <p>{dashboardStats.completedEvaluations}</p>
@@ -1146,7 +1259,6 @@ const DashboardPage = () => {
                 </div>
               </div>
               <div className={styles.statCard}>
-                <div className={styles.statIcon}>⏳</div>
                 <div className={styles.statContent}>
                   <h3>Pending</h3>
                   <p>{dashboardStats.pendingEvaluations}</p>
@@ -1154,7 +1266,6 @@ const DashboardPage = () => {
                 </div>
               </div>
               <div className={styles.statCard}>
-                <div className={styles.statIcon}>🎯</div>
                 <div className={styles.statContent}>
                   <h3>Current Quarter</h3>
                   <p>{dashboardStats.currentQuarterScore}%</p>
