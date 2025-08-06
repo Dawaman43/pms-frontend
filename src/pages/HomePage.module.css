@@ -1,44 +1,35 @@
+/* HomePage.module.css */
+
 :root {
   /* Professional Color Palette */
-  --primary-color: #2c3e50;  /* Dark blue-gray */
-  --primary-light: #34495e;
-  --primary-dark: #1a252f;
-  --secondary-color: #546e7a; /* Blue-gray */
-  --secondary-light: #78909c;
-  --secondary-dark: #455a64;
-  --accent-color: #607d8b;    /* Light blue-gray */
-  --accent-light: #78909c;
-  --accent-dark: #455a64;
-  --neutral-color: #5d6d7e;   /* Neutral blue-gray */
-  
-  /* Notification Colors - More subtle */
-  --success-color: #27ae60;   /* Green */
-  --success-light: #2ecc71;
-  --success-dark: #219653;
-  --warning-color: #f39c12;   /* Amber */
-  --warning-light: #f1c40f;
-  --warning-dark: #d35400;
-  --danger-color: #c0392b;    /* Red */
-  --danger-light: #e74c3c;
-  --danger-dark: #922b21;
+  --primary-color: #1A365D;  /* Dark blue */
+  --primary-light: #2C5282;
+  --primary-dark: #0F1A2F;
+  --secondary-color: #4A5568; /* Gray blue */
+  --accent-color: #718096;    /* Light gray blue */
   
   /* Neutral Colors */
-  --gray-50: #f9fafb;
-  --gray-100: #f3f4f6;
-  --gray-200: #e5e7eb;
-  --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
-  --gray-900: #111827;
+  --white: #FFFFFF;
+  --gray-50: #F7FAFC;
+  --gray-100: #EDF2F7;
+  --gray-200: #E2E8F0;
+  --gray-300: #CBD5E0;
+  --gray-400: #A0AEC0;
+  --gray-500: #718096;
+  --gray-600: #4A5568;
+  --gray-700: #2D3748;
+  --gray-800: #1A202C;
+  --gray-900: #171923;
+  
+  /* Status Colors */
+  --success-color: #38A169;
+  --warning-color: #DD6B20;
+  --info-color: #3182CE;
   
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.07), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   
   /* Border Radius */
   --radius-sm: 0.25rem;
@@ -55,13 +46,14 @@
   display: flex;
   flex-direction: column;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: var(--gray-800);
 }
 
 /* Header Styles */
 .header {
-  background: white;
+  background: var(--white);
   border-bottom: 1px solid var(--gray-200);
-  padding: 18px 0;
+  padding: 1rem 0;
   box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
@@ -71,7 +63,7 @@
 .headerContent {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -80,23 +72,18 @@
 .logoSection {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 1rem;
 }
 
 .logo {
-  width: 48px;
-  height: 48px;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: var(--radius-sm);
   object-fit: cover;
-  transition: transform 0.2s ease;
-}
-
-.logo:hover {
-  transform: scale(1.02);
 }
 
 .systemTitle h1 {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 600;
   color: var(--gray-800);
   margin: 0;
@@ -104,7 +91,7 @@
 }
 
 .systemTitle p {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--gray-500);
   margin: 0;
 }
@@ -112,7 +99,7 @@
 .userSection {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 1rem;
 }
 
 .userInfo {
@@ -123,12 +110,12 @@
   display: block;
   font-weight: 600;
   color: var(--gray-800);
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .userRole {
   display: block;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--gray-500);
 }
 
@@ -137,27 +124,21 @@
 }
 
 .userAvatar {
-  width: 48px;
-  height: 48px;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: var(--radius-full);
   object-fit: cover;
-  border: 2px solid var(--gray-200);
-  transition: all 0.2s ease;
-}
-
-.userAvatar:hover {
-  transform: scale(1.02);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
 }
 
 .statusIndicator {
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 10px;
-  height: 10px;
+  width: 0.75rem;
+  height: 0.75rem;
   background-color: var(--success-color);
-  border: 2px solid white;
+  border: 2px solid var(--white);
   border-radius: var(--radius-full);
 }
 
@@ -166,226 +147,192 @@
   flex: 1;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 32px 24px;
+  padding: 1.5rem;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 /* Welcome Section */
 .welcomeSection {
-  margin-bottom: 32px;
+  margin-bottom: 0.5rem;
 }
 
 .welcomeCard {
-  position: relative;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-  color: white;
-  padding: 32px;
+  background: var(--white);
+  color: var(--gray-800);
+  padding: 2rem;
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.welcomeContent {
-  z-index: 1;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
 }
 
 .welcomeCard h2 {
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 600;
-  margin: 0 0 12px 0;
+  margin: 0 0 0.75rem 0;
 }
 
 .welcomeCard p {
-  font-size: 16px;
-  margin: 0;
-  opacity: 0.9;
-  max-width: 80%;
+  font-size: 1rem;
+  margin: 0 0 1.5rem 0;
+  color: var(--gray-600);
 }
 
-.welcomeGraphic {
-  position: absolute;
-  right: 0;
-  top: 0;
-  height: 100%;
-  width: 300px;
-  overflow: hidden;
+.welcomeStats {
+  display: flex;
+  gap: 1.5rem;
 }
 
-.graphicCircle {
-  position: absolute;
-  border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.07);
+.welcomeStat {
+  display: flex;
+  flex-direction: column;
 }
 
-.graphicCircle:nth-child(1) {
-  width: 150px;
-  height: 150px;
-  top: -30px;
-  right: -30px;
+.welcomeStat span {
+  font-size: 0.75rem;
+  color: var(--gray-500);
 }
 
-.graphicCircle:nth-child(2) {
-  width: 100px;
-  height: 100px;
-  bottom: 20px;
-  right: 50px;
-}
-
-.graphicCircle:nth-child(3) {
-  width: 70px;
-  height: 70px;
-  top: 50%;
-  right: 120px;
+.welcomeStat strong {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gray-800);
 }
 
 /* Stats Section */
 .statsSection {
-  margin-bottom: 40px;
+  margin-bottom: 0.5rem;
 }
 
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
 }
 
 .statCard {
-  background: white;
-  padding: 24px;
+  background: var(--white);
+  padding: 1.5rem;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+}
+
+.statContent {
   display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.statHeader {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 20px;
-  transition: all 0.2s ease;
-  border: 1px solid var(--gray-100);
+  margin-bottom: 0.5rem;
 }
 
-.statCard:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.statPrimary .statIcon {
-  background: rgba(44, 62, 80, 0.1);
-  color: var(--primary-color);
-}
-
-.statWarning .statIcon {
-  background: rgba(243, 156, 18, 0.1);
-  color: var(--warning-color);
-}
-
-.statSuccess .statIcon {
-  background: rgba(39, 174, 96, 0.1);
-  color: var(--success-color);
-}
-
-.statInfo .statIcon {
-  background: rgba(93, 109, 126, 0.1);
-  color: var(--neutral-color);
+.statHeader h3 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gray-600);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .statIcon {
-  font-size: 22px;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-md);
+  color: var(--gray-400);
 }
 
-.statContent h3 {
-  font-size: 24px;
+.statIcon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.statValue {
+  font-size: 1.5rem;
   font-weight: 600;
   color: var(--gray-800);
-  margin: 0 0 5px 0;
 }
 
-.statContent p {
-  font-size: 14px;
+.statTrend {
+  font-size: 0.75rem;
   color: var(--gray-500);
-  margin: 0;
-  font-weight: 500;
 }
 
 /* Two Column Layout */
 .twoColumnGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 40px;
+  gap: 1.5rem;
 }
 
 /* Section Titles */
 .sectionTitle {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 600;
   color: var(--gray-800);
-  margin: 0 0 20px 0;
+  margin: 0 0 1rem 0;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .sectionDivider {
   flex-grow: 1;
   height: 1px;
-  background: linear-gradient(to right, var(--gray-200), transparent);
-  margin-left: 12px;
+  background: var(--gray-200);
+  margin-left: 0.75rem;
 }
 
 /* Quick Actions Section */
 .quickActionsSection {
-  margin-bottom: 40px;
+  margin-bottom: 0;
 }
 
 .actionsGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 14px;
+  gap: 0.875rem;
 }
 
 .actionCard {
-  background: white;
-  padding: 18px;
+  background: var(--white);
+  padding: 1.25rem;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 1rem;
   text-decoration: none;
   color: inherit;
+  border: 1px solid var(--gray-200);
   transition: all 0.2s ease;
-  border-left: 3px solid var(--accent-color, var(--primary-color));
-  position: relative;
-  overflow: hidden;
-  border: 1px solid var(--gray-100);
 }
 
 .actionCard:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
-}
-
-.actionCard:hover .actionArrow {
-  transform: translateX(3px);
+  border-color: var(--gray-300);
 }
 
 .actionIcon {
-  font-size: 20px;
-  width: 42px;
-  height: 42px;
+  width: 2.5rem;
+  height: 2.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--accent-color, var(--primary-color));
   border-radius: var(--radius-sm);
-  color: white;
+  color: var(--gray-600);
+  background-color: var(--gray-100);
+  flex-shrink: 0;
+}
+
+.actionIcon svg {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .actionContent {
@@ -393,47 +340,47 @@
 }
 
 .actionContent h4 {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--gray-800);
-  margin: 0 0 4px 0;
+  margin: 0 0 0.25rem 0;
 }
 
 .actionContent p {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--gray-500);
   margin: 0;
 }
 
 .actionArrow {
-  color: var(--accent-color, var(--primary-color));
-  transition: transform 0.2s ease;
+  color: var(--gray-400);
+  flex-shrink: 0;
+}
+
+.actionArrow svg {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 /* Activities Section */
 .activitiesSection {
-  margin-bottom: 40px;
+  margin-bottom: 0;
 }
 
 .activitiesList {
-  background: white;
+  background: var(--white);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
-  border: 1px solid var(--gray-100);
+  border: 1px solid var(--gray-200);
 }
 
 .activityItem {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
-  padding: 18px;
-  border-bottom: 1px solid var(--gray-100);
-  transition: background-color 0.2s ease;
-}
-
-.activityItem:hover {
-  background-color: var(--gray-50);
+  gap: 1rem;
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--gray-200);
 }
 
 .activityItem:last-child {
@@ -441,29 +388,20 @@
 }
 
 .activityIcon {
-  width: 38px;
-  height: 38px;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  background-color: var(--gray-100);
+  color: var(--gray-600);
   flex-shrink: 0;
 }
 
-.activityIcon.new {
-  background: rgba(39, 174, 96, 0.1);
-  color: var(--success-color);
-}
-
-.activityIcon.pending {
-  background: rgba(243, 156, 18, 0.1);
-  color: var(--warning-color);
-}
-
-.activityIcon.completed {
-  background: rgba(44, 62, 80, 0.1);
-  color: var(--primary-color);
+.activityIcon svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 .activityContent {
@@ -474,63 +412,63 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 6px;
+  margin-bottom: 0.5rem;
 }
 
 .activityContent h4 {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--gray-800);
   margin: 0;
 }
 
 .activityContent p {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--gray-600);
-  margin: 0 0 10px 0;
+  margin: 0 0 0.5rem 0;
 }
 
 .activityTime {
-  font-size: 12px;
-  color: var(--gray-400);
+  font-size: 0.75rem;
+  color: var(--gray-500);
   white-space: nowrap;
 }
 
-.activityStatusBadge {
+.activityStatus {
   display: inline-block;
-  padding: 3px 8px;
+  padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
-.activityStatusBadge.new {
-  background: rgba(39, 174, 96, 0.1);
+.activityStatus.new {
+  background-color: rgba(56, 161, 105, 0.1);
   color: var(--success-color);
 }
 
-.activityStatusBadge.pending {
-  background: rgba(243, 156, 18, 0.1);
+.activityStatus.pending {
+  background-color: rgba(221, 107, 32, 0.1);
   color: var(--warning-color);
 }
 
-.activityStatusBadge.completed {
-  background: rgba(44, 62, 80, 0.1);
-  color: var(--primary-color);
+.activityStatus.completed {
+  background-color: rgba(49, 130, 206, 0.1);
+  color: var(--info-color);
 }
 
 .loadingState {
-  padding: 32px;
+  padding: 2rem;
   text-align: center;
 }
 
 .loadingPulse {
   display: inline-block;
-  width: 32px;
-  height: 32px;
+  width: 2rem;
+  height: 2rem;
   border-radius: var(--radius-full);
   background-color: var(--gray-200);
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
   animation: pulse 1.5s infinite ease-in-out;
 }
 
@@ -550,51 +488,51 @@
 }
 
 .emptyState {
-  padding: 32px;
+  padding: 2rem;
   text-align: center;
   color: var(--gray-500);
 }
 
 /* Performance Section */
 .performanceSection {
-  margin-bottom: 40px;
+  margin-bottom: 0;
 }
 
 .performanceCard {
-  background: white;
-  padding: 24px;
+  background: var(--white);
+  padding: 1.5rem;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  border: 1px solid var(--gray-100);
+  border: 1px solid var(--gray-200);
 }
 
 .performanceHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 1rem;
 }
 
 .performanceHeader h4 {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--gray-800);
   margin: 0;
 }
 
 .performanceScore {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 600;
   color: var(--success-color);
 }
 
 .progressBar {
   width: 100%;
-  height: 6px;
-  background: var(--gray-100);
+  height: 0.5rem;
+  background: var(--gray-200);
   border-radius: var(--radius-full);
   overflow: hidden;
-  margin-bottom: 24px;
+  margin-bottom: 1.5rem;
 }
 
 .progressFill {
@@ -604,85 +542,88 @@
   transition: width 0.8s ease-in-out;
 }
 
-.performanceDetails {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+.performanceChart {
+  margin-top: 1.5rem;
 }
 
-.performanceItem {
-  background: var(--gray-50);
-  border-radius: var(--radius-sm);
-  padding: 14px;
+.performanceChart h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin: 0 0 1rem 0;
 }
 
-.performanceItemHeader {
+.chartBars {
   display: flex;
-  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  height: 200px;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.chartBarContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 10px;
+  height: 100%;
 }
 
-.performanceItemHeader span:first-child {
-  color: var(--gray-600);
+.chartBar {
+  width: 100%;
+  background: var(--gray-300);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: height 0.8s ease;
+  flex: 1;
+}
+
+.chartLabel {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--gray-500);
   font-weight: 500;
-  font-size: 14px;
 }
 
-.performanceValue {
+.chartValue {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
   color: var(--gray-800);
   font-weight: 600;
-  font-size: 15px;
-}
-
-.progressBarSmall {
-  width: 100%;
-  height: 4px;
-  background: var(--gray-200);
-  border-radius: var(--radius-full);
-  overflow: hidden;
-}
-
-.progressFillSmall {
-  height: 100%;
-  background: var(--primary-color);
-  border-radius: var(--radius-full);
-  transition: width 0.8s ease-in-out;
 }
 
 /* Footer Styles */
 .footer {
-  background: white;
+  background: var(--white);
   border-top: 1px solid var(--gray-200);
-  padding: 20px 0;
+  padding: 1rem 0;
   margin-top: auto;
 }
 
 .footerContent {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 14px;
+  font-size: 0.75rem;
   color: var(--gray-500);
 }
 
 .footerLinks {
   display: flex;
-  gap: 20px;
+  gap: 1rem;
 }
 
 .footerLinks a {
-  color: var(--primary-color);
+  color: var(--gray-600);
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.2s ease;
 }
 
 .footerLinks a:hover {
-  color: var(--primary-dark);
+  color: var(--gray-800);
   text-decoration: underline;
 }
 
@@ -696,13 +637,13 @@
 @media (max-width: 768px) {
   .headerContent {
     flex-direction: column;
-    gap: 20px;
+    gap: 1rem;
     text-align: center;
   }
 
   .userSection {
     flex-direction: column;
-    gap: 12px;
+    gap: 0.5rem;
   }
 
   .userInfo {
@@ -710,52 +651,47 @@
   }
 
   .statsGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .performanceDetails {
-    grid-template-columns: 1fr;
-  }
-
-  .footerContent {
-    flex-direction: column;
-    gap: 16px;
-    text-align: center;
+    grid-template-columns: 1fr 1fr;
   }
 
   .welcomeCard h2 {
-    font-size: 22px;
-  }
-  
-  .welcomeGraphic {
-    display: none;
+    font-size: 1.25rem;
   }
   
   .welcomeCard p {
-    max-width: 100%;
+    margin-bottom: 1rem;
   }
 }
 
 @media (max-width: 480px) {
   .mainContent {
-    padding: 24px 16px;
+    padding: 1rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
   }
 
   .welcomeCard {
-    padding: 24px;
+    padding: 1.5rem;
+  }
+
+  .welcomeStats {
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
   .statCard,
   .actionCard,
   .performanceCard {
-    padding: 16px;
+    padding: 1rem;
   }
   
   .headerContent {
-    padding: 0 16px;
+    padding: 0 1rem;
   }
   
   .sectionTitle {
-    font-size: 17px;
+    font-size: 1rem;
   }
 }
