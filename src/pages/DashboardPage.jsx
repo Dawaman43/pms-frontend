@@ -1411,6 +1411,7 @@ const DashboardPage = () => {
       </footer>
     </div>
   )
+  
 }
 
 export default DashboardPage
