@@ -25,6 +25,7 @@
   --success-color: #38A169;
   --warning-color: #DD6B20;
   --info-color: #3182CE;
+  --error-color: #E53E3E;
   
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -37,16 +38,259 @@
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
   --radius-full: 9999px;
+
+  /* Sidebar */
+  --sidebar-width: 250px;
+  --sidebar-collapsed-width: 80px;
+  --sidebar-bg: var(--white);
+  --sidebar-border: var(--gray-200);
+  --sidebar-text: var(--gray-700);
+  --sidebar-text-hover: var(--primary-color);
+  --sidebar-active-bg: var(--primary-light);
+  --sidebar-active-text: var(--white);
+  --sidebar-hover-bg: var(--gray-100);
+  --popout-bg: var(--white);
+  --popout-shadow: var(--shadow-md);
 }
 
 /* Base Styles */
 .homeContainer {
   min-height: 100vh;
   background: var(--gray-50);
-  display: flex;
-  flex-direction: column;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   color: var(--gray-800);
+  display: flex;
+}
+
+/* Sidebar Styles */
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+.sidebarOpen {
+  width: var(--sidebar-width);
+}
+
+.sidebar:not(.sidebarOpen) {
+  width: var(--sidebar-collapsed-width);
+}
+
+.sidebarHeader {
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.sidebarLogo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sidebarLogoImage {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: contain;
+}
+
+.sidebarTitle h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--primary-color);
+}
+
+.sidebarTitle p {
+  font-size: 0.75rem;
+  margin: 0;
+  color: var(--gray-500);
+}
+
+.sidebarToggle {
+  background: none;
+  border: none;
+  color: var(--gray-500);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--radius-full);
+  transition: all 0.2s ease;
+}
+
+.sidebarToggle:hover {
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+
+.sidebarToggle svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.sidebarNav {
+  flex: 1;
+  padding: 1rem 0;
+}
+
+.sidebarNav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebarNav li {
+  margin-bottom: 0.25rem;
+  position: relative;
+}
+
+.navItemContainer {
+  position: relative;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  margin: 0 0.5rem;
+  border-radius: var(--radius-md);
+  position: relative;
+}
+
+.navLink:hover {
+  background: var(--sidebar-hover-bg);
+  color: var(--sidebar-text-hover);
+}
+
+.navLink.active {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-active-text);
+}
+
+.navIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.navLink span {
+  margin-left: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.chevronIcon {
+  margin-left: auto;
+  transition: transform 0.2s ease;
+}
+
+.navLink.active .chevronIcon {
+  transform: rotate(90deg);
+}
+
+.popoutMenu {
+  background: var(--popout-bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--popout-shadow);
+  position: absolute;
+  left: 100%;
+  top: 0;
+  min-width: 200px;
+  z-index: 100;
+  margin-left: 0.5rem;
+  overflow: hidden;
+  border: 1px solid var(--gray-200);
+}
+
+.popoutItem {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: var(--gray-700);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.popoutItem:hover {
+  background: var(--gray-100);
+  color: var(--primary-color);
+}
+
+.sidebar:not(.sidebarOpen) .navLink span {
+  display: none;
+}
+
+.sidebar:not(.sidebarOpen) .chevronIcon {
+  display: none;
+}
+
+.sidebarFooter {
+  padding: 1rem;
+  border-top: 1px solid var(--gray-200);
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.userInfo img {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  border: 1px solid var(--gray-200);
+}
+
+.userInfo h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--gray-800);
+}
+
+.userInfo p {
+  font-size: 0.75rem;
+  margin: 0;
+  color: var(--gray-500);
+}
+
+.sidebar:not(.sidebarOpen) .userInfo > div {
+  display: none;
+}
+
+/* Main Content Wrapper */
+.mainWrapper {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  transition: margin-left 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.mainWrapperFull {
+  margin-left: var(--sidebar-collapsed-width);
 }
 
 /* Header Styles */
@@ -69,17 +313,24 @@
   align-items: center;
 }
 
-.logoSection {
+.headerLeft {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-.logo {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: var(--radius-sm);
-  object-fit: cover;
+.mobileMenuButton {
+  background: none;
+  border: none;
+  color: var(--gray-600);
+  cursor: pointer;
+  padding: 0.5rem;
+  display: none;
+}
+
+.mobileMenuButton svg {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .systemTitle h1 {
@@ -627,6 +878,15 @@
   text-decoration: underline;
 }
 
+.errorMessage {
+  padding: 1rem;
+  background: var(--error-color);
+  color: var(--white);
+  border-radius: var(--radius-md);
+  margin: 1rem;
+  text-align: center;
+}
+
 /* Responsive Styles */
 @media (max-width: 1024px) {
   .twoColumnGrid {
@@ -635,6 +895,28 @@
 }
 
 @media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    z-index: 1100;
+  }
+  
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+  
+  .sidebar:not(.sidebarOpen) {
+    width: 0;
+    overflow: hidden;
+  }
+  
+  .mainWrapper, .mainWrapperFull {
+    margin-left: 0;
+  }
+  
+  .mobileMenuButton {
+    display: block;
+  }
+  
   .headerContent {
     flex-direction: column;
     gap: 1rem;

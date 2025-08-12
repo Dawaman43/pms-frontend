@@ -380,3 +380,281 @@
     width: 150px;
   }
 }
+/* Additional CSS for the updated peer evaluation */
+
+/* Main layout for peer evaluation */
+.peerEvaluationContainer {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.peerSelectionPanel {
+  flex: 1;
+  min-width: 280px;
+  max-width: 350px;
+  background-color: var(--white);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-sm);
+  padding: 1.25rem;
+  height: fit-content;
+}
+
+.evaluationPanel {
+  flex: 2;
+  background-color: var(--white);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-sm);
+  padding: 1.25rem;
+}
+
+.panelTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+/* Peer selection styles */
+.peerList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 450px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.peerCard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background-color: var(--gray-50);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-200);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.peerCard:hover {
+  background-color: rgba(26, 54, 93, 0.05);
+  border-color: rgba(26, 54, 93, 0.2);
+}
+
+.peerAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background-color: var(--primary-color);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.peerInfo {
+  flex: 1;
+  overflow: hidden;
+}
+
+.peerInfo h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin: 0 0 0.25rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.peerInfo p {
+  font-size: 0.75rem;
+  color: var(--gray-600);
+  margin: 0 0 0.25rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.peerDepartment {
+  display: inline-block;
+  font-size: 0.6875rem;
+  color: var(--gray-500);
+  background-color: var(--gray-100);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+}
+
+.addPeerButton {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background-color: var(--primary-light);
+  color: var(--white);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.addPeerButton:hover {
+  background-color: var(--primary-color);
+}
+
+/* Selected peers tabs */
+.selectedPeerTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--gray-200);
+  padding-bottom: 1rem;
+}
+
+.peerTab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--gray-100);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.peerTab:hover {
+  background-color: var(--gray-200);
+}
+
+.activeTab {
+  background-color: var(--primary-color);
+  color: var(--white);
+}
+
+.activeTab:hover {
+  background-color: var(--primary-dark);
+}
+
+.removePeerButton {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background-color: rgba(0, 0, 0, 0.1);
+  color: inherit;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.removePeerButton:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.activeTab .removePeerButton {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.activeTab .removePeerButton:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Empty state */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2.5rem 1.5rem;
+  background-color: var(--gray-50);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.emptyState svg {
+  color: var(--gray-400);
+}
+
+.emptyState p {
+  color: var(--gray-600);
+  font-size: 0.875rem;
+  max-width: 350px;
+  margin: 0;
+}
+
+/* Active peer header */
+.activePeerHeader {
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.activePeerHeader h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin: 0 0 0.5rem 0;
+}
+
+.activePeerHeader p {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  margin: 0;
+}
+
+/* Responsive styles */
+@media (max-width: 992px) {
+  .peerEvaluationContainer {
+    flex-direction: column;
+  }
+  
+  .peerSelectionPanel {
+    max-width: none;
+    width: 100%;
+  }
+  
+  .peerList {
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .peerEvaluationContainer {
+    gap: 1rem;
+  }
+  
+  .selectedPeerTabs {
+    gap: 0.375rem;
+    margin-bottom: 1rem;
+  }
+  
+  .peerTab {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.75rem;
+  }
+  
+  .activePeerHeader h4 {
+    font-size: 0.875rem;
+  }
+  
+  .activePeerHeader p {
+    font-size: 0.75rem;
+  }
+}

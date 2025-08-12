@@ -1,251 +1,31 @@
 "use client"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
+
 import PerformanceForm from "../components/PerformanceForm"
 import PerformanceHistory from "../components/PerformanceHistory"
+
 import styles from "./DashboardPage.module.css"
-
-const EmployeeRegistration = ({ onRegister }) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    jobTitle: "",
-    level: "",
-    email: "",
-    department: "",
-  });
-
-  const [password, setPassword] = useState("");
-  const [isGenerated, setIsGenerated] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-
-  const departments = [
-    "Information Communication Technology",
-    "Computer Science & Engineering",
-    "Electrical Engineering",
-    "Mechanical Engineering",
-    "Human Resources",
-    "Finance",
-    "Administration",
-    "Academic Affairs"
-  ];
-
-  const jobLevels = [
-    "I - Entry Level",
-    "II - Intermediate",
-    "III - Professional",
-    "IV - Senior Professional",
-    "V - Lead",
-    "VI - Manager",
-    "VII - Director"
-  ];
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const generatePassword = () => {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%";
-    let newPassword = "";
-    for (let i = 0; i < 10; i++) {
-      newPassword += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setPassword(newPassword);
-    setIsGenerated(true);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!isGenerated) {
-      setError("Please generate a password first");
-      return;
-    }
-    if (!formData.name || !formData.email || !formData.jobTitle || !formData.department) {
-      setError("Please fill all required fields");
-      return;
-    }
-
-    setError("");
-    onRegister({ ...formData, password });
-    setSuccess("Employee registered successfully!");
-    
-    // Reset form
-    setFormData({
-      name: "",
-      jobTitle: "",
-      level: "",
-      email: "",
-      department: "",
-    });
-    setPassword("");
-    setIsGenerated(false);
-    
-    // Clear success message after 5 seconds
-    setTimeout(() => setSuccess(""), 5000);
-  };
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(password);
-    alert("Password copied to clipboard!");
-  };
-
-  return (
-    <div className={styles.registrationContainer}>
-      <div className={styles.registrationHeader}>
-        <h3>Register New Employee</h3>
-        <p className={styles.registrationSubtitle}>Fill in the details below to create a new employee account</p>
-      </div>
-      
-      {error && <div className={styles.errorMessage}>{error}</div>}
-      {success && <div className={styles.successMessage}>{success}</div>}
-      
-      <form onSubmit={handleSubmit} className={styles.registrationForm}>
-        <div className={styles.formGrid}>
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Full Name *</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className={styles.formInput}
-              placeholder="Enter employee's full name"
-              required
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Job Title *</label>
-            <input
-              type="text"
-              name="jobTitle"
-              value={formData.jobTitle}
-              onChange={handleChange}
-              className={styles.formInput}
-              placeholder="e.g. Software Engineer"
-              required
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Job Level</label>
-            <select
-              name="level"
-              value={formData.level}
-              onChange={handleChange}
-              className={styles.formSelect}
-            >
-              <option value="">Select job level</option>
-              {jobLevels.map((level, index) => (
-                <option key={index} value={level}>{level}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Department *</label>
-            <select
-              name="department"
-              value={formData.department}
-              onChange={handleChange}
-              className={styles.formSelect}
-              required
-            >
-              <option value="">Select department</option>
-              {departments.map((dept, index) => (
-                <option key={index} value={dept}>{dept}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Email Address *</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className={styles.formInput}
-              placeholder="employee@astu.edu.et"
-              required
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Temporary Password</label>
-            <div className={styles.passwordContainer}>
-              <input
-                type="text"
-                value={password}
-                readOnly
-                className={styles.passwordInput}
-                placeholder="Click generate to create password"
-              />
-              <div className={styles.passwordActions}>
-                <button
-                  type="button"
-                  onClick={generatePassword}
-                  className={styles.generateButton}
-                >
-                  Generate
-                </button>
-                {password && (
-                  <button
-                    type="button"
-                    onClick={copyToClipboard}
-                    className={styles.copyButton}
-                    title="Copy to clipboard"
-                  >
-                    Copy
-                  </button>
-                )}
-              </div>
-            </div>
-            <div className={styles.passwordStrength}>
-              {password && (
-                <>
-                  <span className={password.length >= 10 ? styles.strong : styles.weak}>
-                    Password strength: {password.length >= 10 ? "Strong" : "Weak"}
-                  </span>
-                  <span className={styles.passwordHint}>
-                    The password will be shown only once
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.formActions}>
-          <button type="submit" className={styles.submitButton}>
-            Register Employee
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-};
+import homeStyles from "./HomePage.module.css"
 
 const DashboardPage = () => {
+  // Dashboard state (unchanged)
   const [activeTab, setActiveTab] = useState("overview")
   const [showFormBuilder, setShowFormBuilder] = useState(false)
   const [editingForm, setEditingForm] = useState(null)
-  const [employees, setEmployees] = useState([])
 
-  // Form types definition (was missing)
+  // Form types definition
   const formTypes = [
     { id: "workrate", name: "Work Performance" },
     { id: "behavioral", name: "Behavioral Evaluation" }
-  ];
-  
-  // Evaluator types definition (was missing)
+  ]
+
+  // Evaluator types definition
   const evaluatorTypes = [
     { id: "admin", name: "Administrator/Manager" },
     { id: "peer", name: "Peer/Colleague" },
     { id: "self", name: "Self-Evaluation" }
-  ];
+  ]
 
   // Admin data
   const [admin] = useState({
@@ -255,14 +35,48 @@ const DashboardPage = () => {
     avatar: "/placeholder.svg?height=80&width=80&text=Admin",
   })
 
-  // User data (kept for reference but not displayed in UI)
+  // User data
   const [user] = useState({
-    name: "Samuel Hailu Demse",
+    name: "Team Leader",
     role: "Software Programmer IV",
     department: "Information Communication Technology",
     employeeId: "ASTU-ICT-001",
     avatar: "/placeholder.svg?height=80&width=80&text=User",
   })
+
+  // Team members data
+  const [teamMembers] = useState([
+    {
+      id: 1,
+      name: "Daniel Asfaw",
+      role: "Senior Software Engineer",
+      department: "ICT",
+      status: "active",
+      lastEvaluation: "2024-02-28",
+      evaluationScore: 92.1,
+      avatar: "/placeholder.svg?height=80&width=80&text=DA",
+    },
+    {
+      id: 2,
+      name: "Banchirga Nurye",
+      role: "Project Manager",
+      department: "Computer Science",
+      status: "active",
+      lastEvaluation: "2024-03-10",
+      evaluationScore: 78.2,
+      avatar: "/placeholder.svg?height=80&width=80&text=BN",
+    },
+    {
+      id: 3,
+      name: "Meron Tesfaye",
+      role: "UI/UX Designer",
+      department: "ICT",
+      status: "active",
+      lastEvaluation: "2024-01-15",
+      evaluationScore: 88.5,
+      avatar: "/placeholder.svg?height=80&width=80&text=MT",
+    },
+  ])
 
   // Admin stats
   const [systemStats] = useState({
@@ -274,7 +88,7 @@ const DashboardPage = () => {
     evaluationForms: 5,
   })
 
-  // User stats (now integrated into admin dashboard)
+  // User stats
   const [dashboardStats] = useState({
     totalEvaluations: 12,
     pendingEvaluations: 3,
@@ -349,7 +163,7 @@ const DashboardPage = () => {
       },
     },
     {
-      id: 3, // Fixed duplicate ID
+      id: 3,
       title: "Administrative Staff Evaluation",
       description: "Performance evaluation for administrative personnel",
       targetRole: "academic_worker",
@@ -399,7 +213,7 @@ const DashboardPage = () => {
       max: 4,
       labels: ["Poor", "Fair", "Good", "Excellent"],
     },
-  });
+  })
 
   const [currentSection, setCurrentSection] = useState({
     name: "",
@@ -411,7 +225,7 @@ const DashboardPage = () => {
     name: "",
     weight: 0,
   })
-  
+
   // Admin activities
   const [recentActivities] = useState([
     {
@@ -471,37 +285,6 @@ const DashboardPage = () => {
     },
   ])
 
-  // Admin users
-  const [users] = useState([
-    {
-      id: 1,
-      name: "Samuel Hailu Demse",
-      role: "teacher",
-      department: "Information Communication Technology",
-      status: "active",
-      lastEvaluation: "2024-03-15",
-      evaluationScore: 85.5,
-    },
-    {
-      id: 2,
-      name: "Banchirga Nurye",
-      role: "academic_worker",
-      department: "Computer Science & Engineering",
-      status: "active",
-      lastEvaluation: "2024-03-10",
-      evaluationScore: 78.2,
-    },
-    {
-      id: 3,
-      name: "Daniel Asfaw",
-      role: "admin",
-      department: "Information Communication Technology",
-      status: "active",
-      lastEvaluation: "2024-02-28",
-      evaluationScore: 92.1,
-    },
-  ])
-
   // User tasks
   const [upcomingTasks] = useState([
     {
@@ -527,7 +310,7 @@ const DashboardPage = () => {
     },
   ])
 
-  // Form builder functions
+  // Form builder functions (unchanged)
   const addCriterionToSection = () => {
     if (currentCriterion.name && currentCriterion.weight > 0) {
       setCurrentSection((prev) => ({
@@ -581,21 +364,19 @@ const DashboardPage = () => {
 
   const saveForm = () => {
     if (formBuilder.title && formBuilder.sections.length > 0) {
-      // For behavioral forms, ensure section weights total 100%
       if (formBuilder.formType === "behavioral") {
-        const behavioralSection = formBuilder.sections[0];
+        const behavioralSection = formBuilder.sections[0]
         if (behavioralSection.weight !== 100) {
-          alert("Behavioral evaluation sections must total 100% weight");
-          return;
+          alert("Behavioral evaluation sections must total 100% weight")
+          return
         }
       }
-      
-      // For workrate forms, ensure total weight matches form weight
+
       if (formBuilder.formType === "workrate") {
-        const totalWeight = formBuilder.sections.reduce((sum, s) => sum + s.weight, 0);
+        const totalWeight = formBuilder.sections.reduce((sum, s) => sum + s.weight, 0)
         if (totalWeight !== 100) {
-          alert("Work rate evaluation sections must total 100% weight");
-          return;
+          alert("Work rate evaluation sections must total 100% weight")
+          return
         }
       }
 
@@ -613,7 +394,6 @@ const DashboardPage = () => {
       } else {
         setEvaluationForms((prev) => [...prev, newForm])
       }
-
       resetFormBuilder()
       setShowFormBuilder(false)
       setEditingForm(null)
@@ -652,72 +432,132 @@ const DashboardPage = () => {
     setShowFormBuilder(true)
   }
 
-  // Function to distribute forms to evaluators
+  // Distribute forms (unchanged)
   const distributeForms = (employeeId) => {
-    // 1. Create admin forms (workrate + behavioral)
-    createForm(employeeId, 'admin', 'workrate', 70);
-    createForm(employeeId, 'admin', 'behavioral', 10);
-    
-    // 2. Create peer forms (behavioral only)
-    createForm(employeeId, 'peer', 'behavioral', 15);
-    
-    // 3. Create self-eval form (behavioral only)
-    createForm(employeeId, 'self', 'behavioral', 5);
-  };
+    createForm(employeeId, 'admin', 'workrate', 70)
+    createForm(employeeId, 'admin', 'behavioral', 10)
+    createForm(employeeId, 'peer', 'behavioral', 15)
+    createForm(employeeId, 'self', 'behavioral', 5)
+  }
 
   const createForm = (employeeId, evaluator, formType, weight) => {
-    // In a real app, this would create form instances in your database
-    console.log(`Creating ${formType} form for employee ${employeeId} to be evaluated by ${evaluator} with weight ${weight}%`);
-  };
+    console.log(`Creating ${formType} form for employee ${employeeId} to be evaluated by ${evaluator} with weight ${weight}%`)
+  }
 
-  // Missing handler functions that were referenced in the code
   const handleCreateForm = () => {
-    resetFormBuilder();
-    setShowFormBuilder(true);
-    setEditingForm(null);
-  };
+    resetFormBuilder()
+    setShowFormBuilder(true)
+    setEditingForm(null)
+  }
 
   const handleEditForm = (formId) => {
-    const form = evaluationForms.find(f => f.id === formId);
+    const form = evaluationForms.find(f => f.id === formId)
     if (form) {
-      editForm(form);
+      editForm(form)
     }
-  };
+  }
 
   const handleToggleFormStatus = (formId) => {
-    setEvaluationForms(prev => 
-      prev.map(form => 
-        form.id === formId 
-          ? { ...form, status: form.status === "active" ? "inactive" : "active" } 
+    setEvaluationForms(prev =>
+      prev.map(form =>
+        form.id === formId
+          ? { ...form, status: form.status === "active" ? "inactive" : "active" }
           : form
       )
-    );
-  };
+    )
+  }
 
   const handleDeleteForm = (formId) => {
     if (window.confirm("Are you sure you want to delete this form?")) {
-      setEvaluationForms(prev => prev.filter(form => form.id !== formId));
+      setEvaluationForms(prev => prev.filter(form => form.id !== formId))
     }
-  };
+  }
 
-  // Employee registration handler
-  const handleRegisterEmployee = (employee) => {
-    setEmployees([...employees, employee]);
-    // Here you would typically make an API call to save the employee to your database
-    console.log("New employee registered:", employee);
-  };
+  // NEW: Home-style sidebar behavior (copied logic)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
 
-  // Menu data structure for integrated dashboard - REORDERED as requested
+  useEffect(() => {
+    const checkIfMobile = () => {
+      const mobile = window.innerWidth < 768
+      setIsMobile(mobile)
+      setIsSidebarOpen(!mobile)
+    }
+    checkIfMobile()
+    window.addEventListener("resize", checkIfMobile)
+    return () => window.removeEventListener("resize", checkIfMobile)
+  }, [])
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen)
+  }
+
+  // Sidebar uses dashboard's menuItems
   const menuItems = [
     { id: "overview", label: "Overview", icon: "dashboard" },
     { id: "myEvaluations", label: "New Evaluation", icon: "form" },
     { id: "forms", label: "Forms Management", icon: "form" },
-    { id: "users", label: "User Management", icon: "users" },
+    { id: "team", label: "Team Members", icon: "users" },
     { id: "myHistory", label: "My History", icon: "history" },
     { id: "reports", label: "Reports", icon: "chart" },
     { id: "myProfile", label: "My Profile", icon: "user" },
   ]
 
+  // Map icon keys to inline SVGs (reusing the style from Home)
+  const Icon = ({ name }) => {
+    const common = { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", xmlns: "http://www.w3.org/2000/svg" }
+    switch (name) {
+      case "dashboard":
+        return (
+          <svg {...common}>
+            <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 22V12H15V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )
+      case "form":
+        return (
+          <svg {...common}>
+            <path d="M21 3H3V21H21V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 8H15V12H9V8Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M17 16H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )
+      case "users":
+        return (
+          <svg {...common}>
+            <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M16 3.13C16.8604 3.3503 17.623 3.8507 18.1676 4.55231C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89317 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )
+      case "history":
+        return (
+          <svg {...common}>
+            <path d="M12 22C16.9706 22 21 17.9706 21 13C21 8.02944 16.9706 4 12 4C7.02944 4 3 8.02944 3 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 9V13L15 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M3 13L6 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )
+      case "chart":
+        return (
+          <svg {...common}>
+            <path d="M9 17V7M15 17V12M21 21H3V3H21V21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )
+      case "user":
+        return (
+          <svg {...common}>
+            <path d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M6 20C6 17.7909 7.79086 16 10 16H14C16.2091 16 18 17.7909 18 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )
+      default:
+        return null
+    }
+  }
+
+  // Dashboard tab renderer (unchanged content, same as your code)
   const renderTabContent = () => {
     switch (activeTab) {
       case "overview":
@@ -750,8 +590,8 @@ const DashboardPage = () => {
                 </div>
               </div>
             </div>
-            
-            {/* Main content would go here */}
+
+            {/* Recent Activities */}
             <div className={styles.contentGrid}>
               <div className={styles.card}>
                 <div className={styles.cardHeader}>
@@ -778,8 +618,7 @@ const DashboardPage = () => {
               </div>
             </div>
           </div>
-        );
-
+        )
       case "forms":
         return (
           <div className={styles.formsContent}>
@@ -804,7 +643,7 @@ const DashboardPage = () => {
                   </div>
                 </div>
                 <div className={styles.formBuilderContent}>
-                  {/* Form Details Section */}
+                  {/* Form Details */}
                   <div className={styles.formBuilderSection}>
                     <h3>Form Details</h3>
                     <div className={styles.formBuilderGrid}>
@@ -822,14 +661,14 @@ const DashboardPage = () => {
                         <label>Form Type</label>
                         <select
                           value={formBuilder.formType}
-                          onChange={(e) => setFormBuilder((prev) => ({ 
-                            ...prev, 
+                          onChange={(e) => setFormBuilder((prev) => ({
+                            ...prev,
                             formType: e.target.value,
-                            // Reset weight when changing form type
-                            weight: e.target.value === "workrate" ? 70 : 
-                                   e.target.value === "behavioral" && formBuilder.targetEvaluator === "admin" ? 10 :
-                                   e.target.value === "behavioral" && formBuilder.targetEvaluator === "peer" ? 15 :
-                                   e.target.value === "behavioral" && formBuilder.targetEvaluator === "self" ? 5 : 0
+                            weight:
+                              e.target.value === "workrate" ? 70 :
+                              e.target.value === "behavioral" && formBuilder.targetEvaluator === "admin" ? 10 :
+                              e.target.value === "behavioral" && formBuilder.targetEvaluator === "peer" ? 15 :
+                              e.target.value === "behavioral" && formBuilder.targetEvaluator === "self" ? 5 : 0
                           }))}
                           className={styles.formSelect}
                         >
@@ -842,14 +681,13 @@ const DashboardPage = () => {
                         <label>Target Evaluator</label>
                         <select
                           value={formBuilder.targetEvaluator}
-                          onChange={(e) => setFormBuilder((prev) => ({ 
-                            ...prev, 
+                          onChange={(e) => setFormBuilder((prev) => ({
+                            ...prev,
                             targetEvaluator: e.target.value,
-                            // Adjust weight based on evaluator for behavioral forms
-                            weight: prev.formType === "workrate" ? 70 :
-                                   e.target.value === "admin" ? 10 :
-                                   e.target.value === "peer" ? 15 :
-                                   e.target.value === "self" ? 5 : 0
+                            weight:
+                              prev.formType === "workrate" ? 70 :
+                              e.target.value === "admin" ? 10 :
+                              e.target.value === "peer" ? 15 : 5
                           }))}
                           className={styles.formSelect}
                         >
@@ -867,7 +705,7 @@ const DashboardPage = () => {
                           value={formBuilder.weight}
                           onChange={(e) => setFormBuilder((prev) => ({ ...prev, weight: parseInt(e.target.value) || 0 }))}
                           className={styles.formInput}
-                          disabled={formBuilder.formType === "workrate"} // Workrate is fixed at 70%
+                          disabled={formBuilder.formType === "workrate"}
                         />
                       </div>
                       <div className={styles.formField + " " + styles.fullWidth}>
@@ -909,7 +747,7 @@ const DashboardPage = () => {
                           }
                           placeholder="Enter weight percentage"
                           className={styles.formInput}
-                          disabled={formBuilder.formType === "behavioral"} // Behavioral has fixed 100% section
+                          disabled={formBuilder.formType === "behavioral"}
                         />
                       </div>
                     </div>
@@ -971,7 +809,6 @@ const DashboardPage = () => {
                           </div>
                         </div>
                       )}
-
                       <button
                         onClick={addSectionToForm}
                         className={styles.addSectionButton}
@@ -1028,7 +865,7 @@ const DashboardPage = () => {
                     <button className={styles.createButton} onClick={handleCreateForm}>
                       Create New Form
                     </button>
-                    <button 
+                    <button
                       className={styles.distributeButton}
                       onClick={() => distributeForms("selected-employee-id")}
                     >
@@ -1099,72 +936,42 @@ const DashboardPage = () => {
             )}
           </div>
         )
-
-      case "users":
+      case "team":
         return (
-          <div className={styles.usersContent}>
-            <div className={styles.usersHeader}>
-              <h2>User Management</h2>
-              <div className={styles.userFilters}>
-                <select className={styles.filterSelect}>
-                  <option value="all">All Roles</option>
-                  <option value="teacher">Teachers</option>
-                  <option value="academic_worker">Academic Workers</option>
-                  <option value="admin">Administrators</option>
-                </select>
-                <select className={styles.filterSelect}>
-                  <option value="all">All Departments</option>
-                  <option value="ict">ICT</option>
-                  <option value="cse">Computer Science</option>
-                  <option value="hr">Human Resources</option>
-                </select>
-              </div>
-            </div>
-            
-            {/* Employee Registration Form */}
-            <EmployeeRegistration onRegister={handleRegisterEmployee} />
-            
-            <div className={styles.usersTable}>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Role</th>
-                    <th>Department</th>
-                    <th>Status</th>
-                    <th>Last Evaluation</th>
-                    <th>Score</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((user) => (
-                    <tr key={user.id}>
-                      <td className={styles.userName}>{user.name}</td>
-                      <td>
-                        <span className={`${styles.roleBadge} ${styles[user.role]}`}>{user.role}</span>
-                      </td>
-                      <td>{user.department}</td>
-                      <td>
-                        <span className={`${styles.statusBadge} ${styles[user.status]}`}>{user.status}</span>
-                      </td>
-                      <td>{new Date(user.lastEvaluation).toLocaleDateString()}</td>
-                      <td className={styles.scoreCell}>{user.evaluationScore}%</td>
-                      <td>
-                        <div className={styles.userActions}>
-                          <button className={styles.viewButton}>View</button>
-                          <button className={styles.editButton}>Edit</button>
-                          <button className={styles.evaluateButton}>Evaluate</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className={styles.teamContent}>
+            <h2>Team Members</h2>
+            <div className={styles.teamGrid}>
+              {teamMembers.map((member) => (
+                <div key={member.id} className={styles.teamCard}>
+                  <div className={styles.teamMemberHeader}>
+                    <img src={member.avatar || "/placeholder.svg"} alt={member.name} className={styles.teamAvatar} />
+                    <div className={styles.teamMemberInfo}>
+                      <h3>{member.name}</h3>
+                      <p>{member.role}</p>
+                      <span className={styles.teamDepartment}>{member.department}</span>
+                    </div>
+                  </div>
+                  <div className={styles.teamMemberStats}>
+                    <div className={styles.statItem}>
+                      <span className={styles.statLabel}>Last Evaluation</span>
+                      <span className={styles.statValue}>
+                        {new Date(member.lastEvaluation).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className={styles.statItem}>
+                      <span className={styles.statLabel}>Score</span>
+                      <span className={styles.statValue}>{member.evaluationScore}%</span>
+                    </div>
+                  </div>
+                  <div className={styles.teamMemberActions}>
+                    <button className={styles.viewButton}>View Profile</button>
+                    <button className={styles.evaluateButton}>Evaluate</button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )
-
       case "reports":
         return (
           <div className={styles.reportsContent}>
@@ -1193,8 +1000,6 @@ const DashboardPage = () => {
             </div>
           </div>
         )
-
-      // User dashboard tabs integrated into admin dashboard
       case "myEvaluations":
         return <PerformanceForm onSubmit={(data) => console.log("Evaluation submitted:", data)} />
       case "myHistory":
@@ -1237,181 +1042,135 @@ const DashboardPage = () => {
             </div>
           </div>
         )
-
-      // Adding a new My Performance tab
-      case "myPerformance":
-        return (
-          <div className={styles.overviewContent}>
-            {/* Stats Grid */}
-            <div className={styles.statsGrid}>
-              <div className={styles.statCard}>
-                <div className={styles.statContent}>
-                  <h3>Average Score</h3>
-                  <p>{dashboardStats.averageScore}%</p>
-                  <span className={styles.statTrend}>+2.3% from last quarter</span>
-                </div>
-              </div>
-              <div className={styles.statCard}>
-                <div className={styles.statContent}>
-                  <h3>Completed</h3>
-                  <p>{dashboardStats.completedEvaluations}</p>
-                  <span className={styles.statTrend}>This year</span>
-                </div>
-              </div>
-              <div className={styles.statCard}>
-                <div className={styles.statContent}>
-                  <h3>Pending</h3>
-                  <p>{dashboardStats.pendingEvaluations}</p>
-                  <span className={styles.statTrend}>Due soon</span>
-                </div>
-              </div>
-              <div className={styles.statCard}>
-                <div className={styles.statContent}>
-                  <h3>Current Quarter</h3>
-                  <p>{dashboardStats.currentQuarterScore}%</p>
-                  <span className={styles.statTrend}>Q2 2024</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Main Content Grid */}
-            <div className={styles.contentGrid}>
-              {/* Recent Evaluations */}
-              <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <h3>Recent Evaluations</h3>
-                  <Link to="/evaluations" className={styles.viewAllLink}>
-                    View All
-                  </Link>
-                </div>
-                <div className={styles.evaluationsList}>
-                  {recentEvaluations.map((evaluation) => (
-                    <div key={evaluation.id} className={styles.evaluationItem}>
-                      <div className={styles.evaluationInfo}>
-                        <h4>{evaluation.type}</h4>
-                        <p>Evaluator: {evaluation.evaluator}</p>
-                        <span className={styles.evaluationDate}>{evaluation.date}</span>
-                      </div>
-                      <div className={styles.evaluationScore}>
-                        {evaluation.status === "Completed" ? (
-                          <span className={styles.scoreValue}>{evaluation.score}%</span>
-                        ) : (
-                          <span className={styles.pendingStatus}>Pending</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Upcoming Tasks */}
-              <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <h3>Upcoming Tasks</h3>
-                  <span className={styles.taskCount}>{upcomingTasks.length} tasks</span>
-                </div>
-                <div className={styles.tasksList}>
-                  {upcomingTasks.map((task) => (
-                    <div key={task.id} className={styles.taskItem}>
-                      <div className={styles.taskInfo}>
-                        <h4>{task.title}</h4>
-                        <p>{task.type}</p>
-                        <span className={styles.taskDue}>Due: {task.dueDate}</span>
-                      </div>
-                      <div className={styles.taskPriority}>
-                        <span className={`${styles.priorityBadge} ${styles[task.priority.toLowerCase()]}`}>
-                          {task.priority}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Performance Chart Placeholder */}
-            <div className={styles.chartCard}>
-              <h3>Performance Trend</h3>
-              <div className={styles.chartPlaceholder}>
-                <div className={styles.chartBars}>
-                  <div className={styles.chartBar} style={{ height: "60%" }}>
-                    <span>Q1</span>
-                  </div>
-                  <div className={styles.chartBar} style={{ height: "75%" }}>
-                    <span>Q2</span>
-                  </div>
-                  <div className={styles.chartBar} style={{ height: "85%" }}>
-                    <span>Q3</span>
-                  </div>
-                  <div className={styles.chartBar} style={{ height: "90%" }}>
-                    <span>Q4</span>
-                  </div>
-                </div>
-                <p className={styles.chartDescription}>Your performance scores over the last 4 quarters</p>
-              </div>
-            </div>
-          </div>
-        )
-
       default:
         return null
     }
   }
 
+  // RENDER: Home-style layout shell + dashboard content
   return (
-    <div className={styles.dashboardContainer}>
-      {/* Header */}
-      <header className={styles.header}>
-        <div className={styles.headerContent}>
-          <div className={styles.logoSection}>
-            <img src="/astu_logo.svg?height=50&width=50&text=ASTU" alt="ASTU Logo" className={styles.logo} />
-            <div className={styles.systemTitle}>
-              <h1>Performance Management System</h1>
-              <p>Adama Science & Technology University</p>
+    <div className={homeStyles.homeContainer}>
+      {/* Sidebar (Home style) */}
+      <aside className={`${homeStyles.sidebar} ${isSidebarOpen ? homeStyles.sidebarOpen : ""}`}>
+        <div className={homeStyles.sidebarHeader}>
+          <div className={homeStyles.sidebarLogo}>
+            <img src="/astu_logo.svg" alt="ASTU Logo" className={homeStyles.sidebarLogoImage} />
+            {isSidebarOpen && (
+              <div className={homeStyles.sidebarTitle}>
+                <h3>PMS</h3>
+                <p>ASTU</p>
+              </div>
+            )}
+          </div>
+          <button className={homeStyles.sidebarToggle} onClick={toggleSidebar}>
+            {isSidebarOpen ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 12H20M20 12L13 5M20 12L13 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </button>
+        </div>
+
+        <nav className={homeStyles.sidebarNav}>
+          <ul>
+            {menuItems.map((item) => {
+              const isActive = activeTab === item.id
+              return (
+                <li key={item.id}>
+                  <div className={homeStyles.navItemContainer}>
+                    <button
+                      type="button"
+                      className={`${homeStyles.navLink} ${isActive ? homeStyles.active : ""}`}
+                      onClick={() => setActiveTab(item.id)}
+                      style={{ background: "transparent", border: "none", width: "100%", textAlign: "left" }}
+                    >
+                      <div className={homeStyles.navIcon}>
+                        <Icon name={item.icon} />
+                      </div>
+                      {isSidebarOpen && <span>{item.label}</span>}
+                    </button>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        </nav>
+
+        {isSidebarOpen && (
+          <div className={homeStyles.sidebarFooter}>
+            <div className={homeStyles.userInfo}>
+              <img
+                src={admin.avatar || "/placeholder.svg"}
+                alt="User Avatar"
+                className={homeStyles.userAvatar}
+              />
+              <div>
+                <h4>{admin.name.split(" ")[0]}</h4>
+                <p>{admin.role}</p>
+              </div>
             </div>
           </div>
-          <div className={styles.userSection}>
-            <div className={styles.userInfo}>
-              <span className={styles.userName}>{admin.name}</span>
-              <span className={styles.userRole}>{admin.role}</span>
+        )}
+      </aside>
+
+      {/* Main Wrapper (Home style) */}
+      <div className={`${homeStyles.mainWrapper} ${!isSidebarOpen ? homeStyles.mainWrapperFull : ""}`}>
+        {/* Header (Home style) */}
+        <header className={homeStyles.header}>
+          <div className={homeStyles.headerContent}>
+            <div className={homeStyles.headerLeft}>
+              {isMobile && (
+                <button className={homeStyles.mobileMenuButton} onClick={toggleSidebar}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              )}
+              <div className={homeStyles.systemTitle}>
+                <h1>Performance Management System</h1>
+                <p>Adama Science & Technology University</p>
+              </div>
             </div>
-            <img src={admin.avatar || "/placeholder.svg"} alt="User Avatar" className={styles.userAvatar} />
+            <div className={homeStyles.userSection}>
+              <div className={homeStyles.userInfo}>
+                <span className={homeStyles.userName}>{admin.name}</span>
+                <span className={homeStyles.userRole}>{admin.role}</span>
+              </div>
+              <div className={homeStyles.avatarContainer}>
+                <img
+                  src={admin.avatar || "/placeholder.svg"}
+                  alt="User Avatar"
+                  className={homeStyles.userAvatar}
+                />
+                <div className={homeStyles.statusIndicator}></div>
+              </div>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Navigation */}
-      <nav className={styles.navigation}>
-        <div className={styles.navTabs}>
-          {menuItems.map((item) => (
-            <button
-              key={item.id}
-              className={`${styles.navTab} ${activeTab === item.id ? styles.active : ""}`}
-              onClick={() => setActiveTab(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </nav>
+        {/* Main Content (combine home + dashboard classes) */}
+        <main className={`${homeStyles.mainContent} ${styles.mainContent}`}>
+          {renderTabContent()}
+        </main>
 
-      {/* Main Content */}
-      <main className={styles.mainContent}>{renderTabContent()}</main>
-
-      {/* Footer */}
-      <footer className={styles.footer}>
-        <div className={styles.footerContent}>
-          <p>&copy; 2024 Adama Science & Technology University. All rights reserved.</p>
-          <div className={styles.footerLinks}>
-            <Link to="/help">Help</Link>
-            <Link to="/privacy">Privacy</Link>
-            <Link to="/terms">Terms</Link>
+        {/* Footer (Home style) */}
+        <footer className={homeStyles.footer}>
+          <div className={homeStyles.footerContent}>
+            <p>&copy; {new Date().getFullYear()} Adama Science & Technology University. All rights reserved.</p>
+            <div className={homeStyles.footerLinks}>
+              <Link to="/help">Help</Link>
+              <Link to="/privacy">Privacy</Link>
+              <Link to="/terms">Terms</Link>
+            </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   )
-  
 }
 
 export default DashboardPage
