@@ -14,7 +14,7 @@ const AdminDashboard = () => {
       level: "Senior",
       email: "a.a@company.com",
       department: "Engineering",
-      team: "Frontend Team",
+      team: "Software Development",
       status: "active",
       dateRegistered: "2024-01-15",
       phone: "+251 xxx-xxx-xxxx",
@@ -30,7 +30,7 @@ const AdminDashboard = () => {
       level: "Senior",
       email: "a.b@company.com",
       department: "Product",
-      team: "Product Strategy",
+      team: "Hardware Support",
       status: "active",
       dateRegistered: "2024-02-20",
       phone: "+251 xxx-xxx-xxxx",
@@ -46,7 +46,7 @@ const AdminDashboard = () => {
       level: "Mid-level",
       email: "Bay.@company.com",
       department: "Design",
-      team: "Design System",
+      team: "Networking",
       status: "active",
       dateRegistered: "2024-03-10",
       phone: "+251 xxx-xxx-xxxx",
@@ -57,9 +57,9 @@ const AdminDashboard = () => {
     },
   ])
   const [teams, setTeams] = useState([
-    { id: 1, name: "ICT Department", leader: "Dr. Samuel Hailu", members: 12 },
-    { id: 2, name: "Computer Science", leader: "Dr. Banchirga Nurye", members: 8 },
-    { id: 3, name: "Administration", leader: "Dr. Daniel Asfaw", members: 5 },
+    { id: 1, name: "Software Development", leader: "Dr. Samuel Hailu", members: 12 },
+    { id: 2, name: "Hardware Support", leader: "Dr. Banchirga Nurye", members: 8 },
+    { id: 3, name: "Networking", leader: "Dr. Daniel Asfaw", members: 5 },
   ])
   const [newTeam, setNewTeam] = useState({ name: "", leader: "" })
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
@@ -319,9 +319,9 @@ const AdminDashboard = () => {
 
   // Generate random password
   const generatePassword = () => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*"
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
     let password = ""
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 8; i++) {
       password += chars.charAt(Math.floor(Math.random() * chars.length))
     }
     setPassword(password)
@@ -647,6 +647,7 @@ const AdminDashboard = () => {
                       onChange={handleEmployeeFormChange}
                       placeholder="Enter full name"
                       required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
                     />
                   </div>
                   <div className={styles.formGroup}>
@@ -660,6 +661,7 @@ const AdminDashboard = () => {
                       onChange={handleEmployeeFormChange}
                       placeholder="Enter email address"
                       required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
                     />
                   </div>
                   <div className={styles.formGroup}>
@@ -673,6 +675,7 @@ const AdminDashboard = () => {
                       onChange={handleEmployeeFormChange}
                       placeholder="Enter phone number"
                       required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
                     />
                   </div>
                   <div className={styles.formGroup}>
@@ -686,6 +689,7 @@ const AdminDashboard = () => {
                       onChange={handleEmployeeFormChange}
                       placeholder="Name - Phone Number"
                       required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
                     />
                   </div>
                   <div className={styles.formGroup} style={{ gridColumn: "1 / -1" }}>
@@ -699,6 +703,7 @@ const AdminDashboard = () => {
                       placeholder="Enter full address"
                       rows="3"
                       required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
                     />
                   </div>
                 </div>
@@ -722,13 +727,20 @@ const AdminDashboard = () => {
                       onChange={handleEmployeeFormChange}
                       placeholder="Enter job title"
                       required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
                     />
                   </div>
                   <div className={styles.formGroup}>
                     <label>
                       Job Level <span className={styles.required}>*</span>
                     </label>
-                    <select name="level" value={employeeForm.level} onChange={handleEmployeeFormChange} required>
+                    <select 
+                      name="level" 
+                      value={employeeForm.level} 
+                      onChange={handleEmployeeFormChange} 
+                      required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
+                    >
                       <option value="">Select job level</option>
                       {jobLevels.map((level) => (
                         <option key={level} value={level}>
@@ -746,6 +758,7 @@ const AdminDashboard = () => {
                       value={employeeForm.department}
                       onChange={handleEmployeeFormChange}
                       required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
                     >
                       <option value="">Select department</option>
                       {departments.map((dept) => (
@@ -759,13 +772,17 @@ const AdminDashboard = () => {
                     <label>
                       Team Assignment <span className={styles.required}>*</span>
                     </label>
-                    <select name="team" value={employeeForm.team} onChange={handleEmployeeFormChange} required>
+                    <select 
+                      name="team" 
+                      value={employeeForm.team} 
+                      onChange={handleEmployeeFormChange} 
+                      required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
+                    >
                       <option value="">Select team (Required)</option>
-                      {teams.map((team) => (
-                        <option key={team.id} value={team.name}>
-                          {team.name}
-                        </option>
-                      ))}
+                      <option value="Software Development">Software Development</option>
+                      <option value="Hardware Support">Hardware Support</option>
+                      <option value="Networking">Networking</option>
                     </select>
                   </div>
                   <div className={styles.formGroup}>
@@ -779,6 +796,7 @@ const AdminDashboard = () => {
                       onChange={handleEmployeeFormChange}
                       placeholder="Enter salary (e.g., $50,000)"
                       required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
                     />
                   </div>
                 </div>
@@ -800,6 +818,7 @@ const AdminDashboard = () => {
                         readOnly
                         placeholder="Click 'Generate Password' to create a secure password"
                         className={styles.passwordInput}
+                        style={{ color: '#1a202c' }} // Darker text color for better visibility
                       />
                       <button type="button" onClick={generatePassword} className={styles.generateButton}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1016,6 +1035,7 @@ const AdminDashboard = () => {
                       value={employeeForm.name}
                       onChange={handleEmployeeFormChange}
                       required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
                     />
                   </div>
                   <div className={styles.formGroup}>
@@ -1026,6 +1046,7 @@ const AdminDashboard = () => {
                       value={employeeForm.jobTitle}
                       onChange={handleEmployeeFormChange}
                       required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
                     />
                   </div>
                 </div>
@@ -1033,7 +1054,13 @@ const AdminDashboard = () => {
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
                     <label>Job Level *</label>
-                    <select name="level" value={employeeForm.level} onChange={handleEmployeeFormChange} required>
+                    <select 
+                      name="level" 
+                      value={employeeForm.level} 
+                      onChange={handleEmployeeFormChange} 
+                      required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
+                    >
                       <option value="">Select job level</option>
                       {jobLevels.map((level) => (
                         <option key={level} value={level}>
@@ -1050,6 +1077,7 @@ const AdminDashboard = () => {
                       value={employeeForm.email}
                       onChange={handleEmployeeFormChange}
                       required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
                     />
                   </div>
                 </div>
@@ -1062,6 +1090,7 @@ const AdminDashboard = () => {
                       value={employeeForm.department}
                       onChange={handleEmployeeFormChange}
                       required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
                     >
                       <option value="">Select department</option>
                       {departments.map((dept) => (
@@ -1073,13 +1102,17 @@ const AdminDashboard = () => {
                   </div>
                   <div className={styles.formGroup}>
                     <label>Team Assignment *</label>
-                    <select name="team" value={employeeForm.team} onChange={handleEmployeeFormChange} required>
+                    <select 
+                      name="team" 
+                      value={employeeForm.team} 
+                      onChange={handleEmployeeFormChange} 
+                      required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
+                    >
                       <option value="">Select team (Required)</option>
-                      {teams.map((team) => (
-                        <option key={team.id} value={team.name}>
-                          {team.name}
-                        </option>
-                      ))}
+                      <option value="Software Development">Software Development</option>
+                      <option value="Hardware Support">Hardware Support</option>
+                      <option value="Networking">Networking</option>
                     </select>
                   </div>
                 </div>
@@ -1093,6 +1126,7 @@ const AdminDashboard = () => {
                       value={employeeForm.phone}
                       onChange={handleEmployeeFormChange}
                       required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
                     />
                   </div>
                   <div className={styles.formGroup}>
@@ -1103,6 +1137,7 @@ const AdminDashboard = () => {
                       value={employeeForm.salary}
                       onChange={handleEmployeeFormChange}
                       required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
                     />
                   </div>
                 </div>
@@ -1116,6 +1151,7 @@ const AdminDashboard = () => {
                       onChange={handleEmployeeFormChange}
                       rows="2"
                       required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
                     />
                   </div>
                   <div className={styles.formGroup}>
@@ -1126,6 +1162,7 @@ const AdminDashboard = () => {
                       value={employeeForm.emergencyContact}
                       onChange={handleEmployeeFormChange}
                       required
+                      style={{ color: '#1a202c' }} // Darker text color for better visibility
                     />
                   </div>
                 </div>
@@ -1327,7 +1364,7 @@ const AdminDashboard = () => {
 
       <div className={`${styles.mainWrapper} ${!isSidebarOpen ? styles.mainWrapperFull : ""}`}>
         {/* Header */}
-        <header className={styles.header}>
+        <header className={styles.header} style={{ backgroundColor: '#1a365d', color: 'white' }}>
           <div className={styles.headerContent}>
             <div className={styles.headerLeft}>
               {isMobile && (
