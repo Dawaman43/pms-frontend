@@ -1,22 +1,22 @@
 /* Shared variables */
 :root {
-  --primary-color: #1A365D;
-  --primary-light: #2C5282;
-  --primary-lighter: #4299E1;
-  --white: #FFFFFF;
-  --gray-50: #F7FAFC;
-  --gray-100: #EDF2F7;
-  --gray-200: #E2E8F0;
-  --gray-300: #CBD5E0;
-  --gray-400: #A0AEC0;
+  --primary-color: #1a365d;
+  --primary-light: #2c5282;
+  --primary-lighter: #4299e1;
+  --white: #ffffff;
+  --gray-50: #f7fafc;
+  --gray-100: #edf2f7;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e0;
+  --gray-400: #a0aec0;
   --gray-500: #718096;
-  --gray-600: #4A5568;
-  --gray-700: #2D3748;
-  --gray-800: #1A202C;
+  --gray-600: #4a5568;
+  --gray-700: #2d3748;
+  --gray-800: #1a202c;
   --gray-900: #171923;
-  --success-color: #38A169;
-  --error-color: #E53E3E;
-  --warning-color: #DD6B20;
+  --success-color: #38a169;
+  --error-color: #e53e3e;
+  --warning-color: #dd6b20;
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -32,11 +32,10 @@
   align-items: center;
   justify-content: center;
   background-color: var(--gray-50);
-  background-image: 
-    radial-gradient(at top left, var(--primary-light), transparent),
+  background-image: radial-gradient(at top left, var(--primary-light), transparent),
     radial-gradient(at bottom right, var(--primary-color), transparent);
   padding: 1rem;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
 .loginCard {
@@ -225,7 +224,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .footer {
@@ -245,7 +246,7 @@
   .loginHeader {
     padding: 1.25rem 1.25rem 0.75rem;
   }
-  
+
   .loginForm {
     padding: 1.25rem;
   }
