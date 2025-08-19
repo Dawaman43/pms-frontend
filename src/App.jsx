@@ -8,6 +8,7 @@ import PeerEvaluation from "./components/employee/PeerEvaluation/PeerEvaluation"
 import Reports from "./components/employee/Reports/Reports";
 import Profile from "./components/employee/Profile/Profile";
 import "./App.css";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -20,15 +21,15 @@ function App() {
           
           
           {/* Main Application Routes */}
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute requiredRole="team_leader"><DashboardPage /></ProtectedRoute>} />
+          <Route path="/admin-dashboard" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
           
           {/* Employee Feature Routes */}
-          <Route path="/self-assessment" element={<SelfAssessment />} />
-          <Route path="/peer-evaluation" element={<PeerEvaluation />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/self-assessment" element={<ProtectedRoute requiredRole="team_member"><SelfAssessment /></ProtectedRoute>} />
+          <Route path="/peer-evaluation" element={<ProtectedRoute requiredRole="team_member"><PeerEvaluation /></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
           {/* Fallback Route */}
           <Route path="*" element={<Navigate to="/login" replace />} />

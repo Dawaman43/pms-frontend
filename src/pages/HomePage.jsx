@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Link, useLocation } from "react-router-dom"
+import { apiFetch } from "../lib/api"
 import styles from "./HomePage.module.css"
 
 const HomePage = () => {
@@ -167,69 +168,6 @@ const HomePage = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Demo data
-  const demoUserData = {
-    name: "Samuel Hailu Demse",
-    role: "Software Programmer IV",
-    department: "Information Communication Technology",
-    avatar: "/assets/avatar-placeholder.png",
-    employeeId: "ASTU-ICT-001"
-  }
-
-  const demoStatsData = {
-    totalEvaluations: 12,
-    pendingEvaluations: 3,
-    completedEvaluations: 9,
-    averageScore: 4.2,
-    currentQuarterScore: 87.5,
-  }
-
-  const demoActivitiesData = [
-    {
-      id: 1,
-      type: "evaluation_received",
-      title: "Performance Evaluation Received",
-      description: "Your supervisor has completed your quarterly evaluation",
-      time: "2 hours ago",
-      status: "new",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M22 16.92V19C22 19.5304 21.7893 20.0391 21.4142 20.4142C21.0391 20.7893 20.5304 21 20 21H4C3.46957 21 2.96086 20.7893 2.58579 20.4142C2.21071 20.0391 2 19.5304 2 19V5C2 4.46957 2.21071 3.96086 2.58579 3.58579C2.96086 3.21071 3.46957 3 4 3H15.08" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M18 7L23 12L18 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M23 12H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      ),
-    },
-    {
-      id: 2,
-      type: "evaluation_pending",
-      title: "Peer Evaluation Due",
-      description: "Please complete evaluation for Team Member by Friday",
-      time: "1 day ago",
-      status: "pending",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M12 8V12L16 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      ),
-    },
-    {
-      id: 3,
-      type: "evaluation_completed",
-      title: "Self-Assessment Submitted",
-      description: "Your self-assessment has been successfully submitted",
-      time: "3 days ago",
-      status: "completed",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.709 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.7649 14.1003 1.98232 16.07 2.85999" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M22 4L12 14.01L9 11.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      ),
-    },
-  ]
-
   const demoPerformanceData = [
     { quarter: "Q1", score: 82 },
     { quarter: "Q2", score: 85 },
@@ -257,12 +195,24 @@ const HomePage = () => {
     const fetchData = async () => {
       try {
         setIsLoading(true)
-        
-        // Using demo data
-        setUser(demoUserData)
-        setStats(demoStatsData)
-        setRecentActivities(demoActivitiesData)
-        
+        const me = await apiFetch("/users/me")
+        setUser({
+          name: `${me.firstName || ''} ${me.lastName || ''}`.trim() || me.email,
+          role: me.role === 'team_member' ? 'Team Member' : me.role,
+          department: me.team?.name || '',
+          avatar: "/assets/avatar-placeholder.png",
+          employeeId: me._id || me.id,
+        })
+        const evals = await apiFetch("/evaluations")
+        const completed = evals.filter(e => e.status === 'submitted').length
+        const pending = Math.max(0, evals.length - completed)
+        setStats({
+          totalEvaluations: evals.length,
+          pendingEvaluations: pending,
+          completedEvaluations: completed,
+          averageScore: 0,
+        })
+        setRecentActivities([])
       } catch (err) {
         setError("Failed to load dashboard data. Please try again.")
         console.error("Error fetching data:", err)
@@ -580,12 +530,12 @@ const HomePage = () => {
             <div className={styles.performanceCard}>
               <div className={styles.performanceHeader}>
                 <h4>Current Quarter Progress</h4>
-                <span className={styles.performanceScore}>{demoStatsData.currentQuarterScore}%</span>
+                <span className={styles.performanceScore}>{stats.currentQuarterScore ?? 0}%</span>
               </div>
               <div className={styles.progressBar}>
                 <div 
                   className={styles.progressFill} 
-                  style={{ width: `${demoStatsData.currentQuarterScore}%` }}
+                  style={{ width: `${stats.currentQuarterScore ?? 0}%` }}
                 ></div>
               </div>
               <div className={styles.performanceChart}>

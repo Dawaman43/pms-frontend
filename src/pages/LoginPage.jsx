@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import styles from "./LoginPage.module.css"
+import { login, saveAuth } from "../lib/api"
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -26,47 +27,29 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    // Basic validation
     if (!formData.email || !formData.password) {
       setError("Please fill in all fields")
       return
     }
 
-    setIsLoading(true)
-    setError("")
-
-    // Simulate API call - role will be determined by backend
-    setTimeout(() => {
+    try {
+      setIsLoading(true)
+      setError("")
+      const result = await login(formData.email, formData.password)
+      saveAuth(result)
+      const role = result?.user?.role
+      if (role === "admin") {
+        navigate("/admin-dashboard")
+      } else if (role === "team_leader") {
+        navigate("/dashboard")
+      } else {
+        navigate("/home")
+      }
+    } catch (err) {
+      setError(err.message || "Login failed")
+    } finally {
       setIsLoading(false)
-
-      // In real implementation, this would come from your authentication API
-      let userRole = "staff" // default
-      if (formData.email.includes("admin")) {
-        userRole = "admin"
-      } else if (formData.email.includes("leader")) {
-        userRole = "team_leader"
-      }
-
-      // Store user data in localStorage
-      localStorage.setItem("userRole", userRole)
-      localStorage.setItem("authToken", "dummy-token")
-      localStorage.setItem("userEmail", formData.email)
-
-      // Redirect based on role determined by backend
-      switch (userRole) {
-        case "admin":
-          navigate("/admin-dashboard")
-          break
-        case "team_leader":
-          navigate("/team-leader-dashboard")
-          break
-        case "staff":
-          navigate("/home")
-          break
-        default:
-          navigate("/home")
-      }
-    }, 1500)
+    }
   }
 
   const togglePasswordVisibility = () => {

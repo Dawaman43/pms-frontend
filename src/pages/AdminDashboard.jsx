@@ -1,66 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
+import { apiFetch } from "../lib/api"
 import styles from "./AdminDashboard.module.css"
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview")
-  const [employees, setEmployees] = useState([
-    {
-      id: 1,
-      name: "Abenezer Abebe",
-      jobTitle: "Senior Software Engineer",
-      level: "Senior",
-      email: "a.a@company.com",
-      department: "Engineering",
-      team: "Software Development",
-      status: "active",
-      dateRegistered: "2024-01-15",
-      phone: "+251 xxx-xxx-xxxx",
-      address: "Adama, Oromia, Ethiopia",
-      emergencyContact: "Abenezer -+251 xxx-xxx-xxxx",
-      salary: "85,000",
-      profileImage: null,
-    },
-    {
-      id: 2,
-      name: "Aman Abdela",
-      jobTitle: "Product Manager",
-      level: "Senior",
-      email: "a.b@company.com",
-      department: "Product",
-      team: "Hardware Support",
-      status: "active",
-      dateRegistered: "2024-02-20",
-      phone: "+251 xxx-xxx-xxxx",
-      address: "Addis Ababa, Ethiopia",
-      emergencyContact: "Aman - +251 xxx-xxx-xxxx",
-      salary: "70,000",
-      profileImage: null,
-    },
-    {
-      id: 3,
-      name: "Baye Balcha",
-      jobTitle: "UX Designer",
-      level: "Mid-level",
-      email: "Bay.@company.com",
-      department: "Design",
-      team: "Networking",
-      status: "active",
-      dateRegistered: "2024-03-10",
-      phone: "+251 xxx-xxx-xxxx",
-      address: "Adama, Oromia, Ethiopia",
-      emergencyContact: "Baye - +251 xxx-xxx-xxxx",
-      salary: "70,000",
-      profileImage: null,
-    },
-  ])
-  const [teams, setTeams] = useState([
-    { id: 1, name: "Software Development", leader: "Dr. Samuel Hailu", members: 12 },
-    { id: 2, name: "Hardware Support", leader: "Dr. Banchirga Nurye", members: 8 },
-    { id: 3, name: "Networking", leader: "Dr. Daniel Asfaw", members: 5 },
-  ])
+  const [employees, setEmployees] = useState([])
+  const [teams, setTeams] = useState([])
   const [newTeam, setNewTeam] = useState({ name: "", leader: "", description: "", department: "" })
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
@@ -75,11 +23,11 @@ const AdminDashboard = () => {
   })
 
   // Admin stats
-  const [systemStats] = useState({
-    totalEmployees: 245,
-    activeTeams: 8,
-    pendingRegistrations: 12,
-    evaluationsThisMonth: 127,
+  const [systemStats, setSystemStats] = useState({
+    totalEmployees: 0,
+    activeTeams: 0,
+    pendingRegistrations: 0,
+    evaluationsThisMonth: 0,
   })
 
   // Departments data
@@ -113,6 +61,7 @@ const AdminDashboard = () => {
     email: "",
     department: "",
     team: "",
+    role: "",
     phone: "",
     address: "",
     emergencyContact: "",
@@ -127,6 +76,10 @@ const AdminDashboard = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null)
   const [isViewingEmployee, setIsViewingEmployee] = useState(false)
   const [isEditingEmployee, setIsEditingEmployee] = useState(false)
+  const [isViewingTeam, setIsViewingTeam] = useState(false)
+  const [isEditingTeam, setIsEditingTeam] = useState(false)
+  const [selectedTeam, setSelectedTeam] = useState(null)
+  const [teamForm, setTeamForm] = useState({ id: "", name: "", department: "", description: "", leaderId: "" })
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen)
@@ -338,24 +291,19 @@ const AdminDashboard = () => {
   }
 
   // Handle employee registration
-  const handleEmployeeRegistration = (e) => {
+  const handleEmployeeRegistration = async (e) => {
     e.preventDefault()
     setError("")
     setSuccess("")
 
     if (
       !employeeForm.name ||
-      !employeeForm.jobTitle ||
-      !employeeForm.level ||
       !employeeForm.email ||
       !employeeForm.department ||
       !employeeForm.team ||
-      !employeeForm.phone ||
-      !employeeForm.address ||
-      !employeeForm.emergencyContact ||
-      !employeeForm.salary
+      !employeeForm.role
     ) {
-      setError("All fields including team selection are required")
+      setError("Please fill all required fields including Role and Team")
       return
     }
 
@@ -364,57 +312,100 @@ const AdminDashboard = () => {
       return
     }
 
-    // Create new employee
-    const newEmployee = {
-      id: Date.now(),
-      ...employeeForm,
-      status: "active",
-      dateRegistered: new Date().toLocaleDateString(),
+    try {
+      const [firstName, ...rest] = employeeForm.name.trim().split(" ")
+      const lastName = rest.join(" ") || ""
+      const teamObj = teams.find(t => t.name === employeeForm.team)
+      await apiFetch("/users", {
+        method: "POST",
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email: employeeForm.email,
+          password,
+          role: employeeForm.role,
+          teamId: teamObj ? teamObj.id || teamObj._id : undefined,
+          jobTitle: employeeForm.jobTitle,
+          level: employeeForm.level,
+          department: employeeForm.department,
+          phone: employeeForm.phone,
+          address: employeeForm.address,
+          emergencyContact: employeeForm.emergencyContact,
+          salary: employeeForm.salary,
+        }),
+      })
+      const users = await apiFetch("/users")
+      setEmployees(users.map(u => ({
+        id: u._id,
+        name: `${u.firstName} ${u.lastName}`,
+        jobTitle: u.jobTitle || u.role,
+        level: u.level || "",
+        email: u.email,
+        department: u.department || u.team?.name || "",
+        team: u.team?.name || "",
+        status: u.isActive ? "active" : "inactive",
+        dateRegistered: new Date(u.createdAt).toLocaleDateString(),
+        phone: u.phone || "",
+        address: u.address || "",
+        emergencyContact: u.emergencyContact || "",
+        salary: u.salary || "",
+        profileImage: null,
+      })))
+      setSuccess("Employee registered successfully!")
+      setEmployeeForm({
+        name: "",
+        jobTitle: "",
+        level: "",
+        email: "",
+        department: "",
+        team: "",
+        role: "",
+        phone: "",
+        address: "",
+        emergencyContact: "",
+        salary: "",
+        profileImage: null,
+      })
+      setPassword("")
+      setIsGenerated(false)
+    } catch (err) {
+      setError(err.message || "Failed to register employee")
     }
-
-    setEmployees((prev) => [...prev, newEmployee])
-    setSuccess("Employee registered successfully!")
-
-    // Reset form
-    setEmployeeForm({
-      name: "",
-      jobTitle: "",
-      level: "",
-      email: "",
-      department: "",
-      team: "",
-      phone: "",
-      address: "",
-      emergencyContact: "",
-      salary: "",
-      profileImage: null,
-    })
-    setPassword("")
-    setIsGenerated(false)
   }
 
   // Handle team creation
-  const handleTeamCreation = (e) => {
+  const handleTeamCreation = async (e) => {
     e.preventDefault()
-    if (!newTeam.name || !newTeam.leader || !newTeam.department) {
-      setError("Team name, leader, and department are required")
+    if (!newTeam.name || !newTeam.department) {
+      setError("Team name and department are required")
       return
     }
-
-    const team = {
-      id: Date.now(),
-      name: newTeam.name,
-      leader: newTeam.leader,
-      department: newTeam.department,
-      description: newTeam.description,
-      members: 0,
-      dateCreated: new Date().toLocaleDateString(),
+    try {
+      await apiFetch("/teams", {
+        method: "POST",
+        body: JSON.stringify({
+          name: newTeam.name,
+          department: newTeam.department,
+          description: newTeam.description,
+          leaderId: newTeam.leader || undefined,
+        }),
+      })
+      const fetchedTeams = await apiFetch("/teams")
+      setTeams(fetchedTeams.map(t => ({ 
+        id: t._id, 
+        name: t.name, 
+        leader: t.leader ? `${t.leader.firstName} ${t.leader.lastName}` : "No leader assigned", 
+        members: t.members?.length || 0, 
+        dateCreated: new Date(t.createdAt).toISOString().slice(0,10), 
+        department: t.department || "Not specified",
+        description: t.description || ""
+      })))
+      setNewTeam({ name: "", leader: "", description: "", department: "" })
+      setSuccess("Team created successfully!")
+      setActiveTab("teams")
+    } catch (err) {
+      setError(err.message || "Failed to create team")
     }
-
-    setTeams((prev) => [...prev, team])
-    setNewTeam({ name: "", leader: "", description: "", department: "" })
-    setSuccess("Team created successfully!")
-    setActiveTab("teams")
   }
 
   const handleViewEmployee = (employee) => {
@@ -428,35 +419,211 @@ const AdminDashboard = () => {
     setIsEditingEmployee(true)
   }
 
-  const handleUpdateEmployee = (e) => {
+  const handleUpdateEmployee = async (e) => {
     e.preventDefault()
-    setEmployees((prev) =>
-      prev.map((emp) => (emp.id === selectedEmployee.id ? { ...employeeForm, id: selectedEmployee.id } : emp)),
-    )
-    setIsEditingEmployee(false)
-    setSelectedEmployee(null)
-    setEmployeeForm({
-      name: "",
-      jobTitle: "",
-      level: "",
-      email: "",
-      department: "",
-      team: "",
-      phone: "",
-      address: "",
-      emergencyContact: "",
-      salary: "",
-      profileImage: null,
-    })
-    setSuccess("Employee updated successfully!")
-  }
-
-  const handleDeleteEmployee = (employeeId) => {
-    if (window.confirm("Are you sure you want to delete this employee?")) {
-      setEmployees((prev) => prev.filter((emp) => emp.id !== employeeId))
-      setSuccess("Employee deleted successfully!")
+    try {
+      if (!selectedEmployee?.id) return
+      const [firstName, ...rest] = (employeeForm.name || "").trim().split(" ")
+      const lastName = rest.join(" ")
+      const teamObj = teams.find((t) => t.name === employeeForm.team)
+      await apiFetch(`/users/${selectedEmployee.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ firstName, lastName, role: employeeForm.jobTitle || selectedEmployee.jobTitle, jobTitle: employeeForm.jobTitle, level: employeeForm.level, department: employeeForm.department, teamId: teamObj?.id || teamObj?._id || null, phone: employeeForm.phone, address: employeeForm.address, emergencyContact: employeeForm.emergencyContact, salary: employeeForm.salary }),
+      })
+      const users = await apiFetch("/users")
+      setEmployees(users.map(u => ({
+        id: u._id,
+        name: `${u.firstName} ${u.lastName}`,
+        jobTitle: u.jobTitle || u.role,
+        level: u.level || "",
+        email: u.email,
+        department: u.department || u.team?.name || "",
+        team: u.team?.name || "",
+        status: u.isActive ? "active" : "inactive",
+        dateRegistered: new Date(u.createdAt).toLocaleDateString(),
+        phone: u.phone || "",
+        address: u.address || "",
+        emergencyContact: u.emergencyContact || "",
+        salary: u.salary || "",
+        profileImage: null,
+      })))
+      setIsEditingEmployee(false)
+      setSelectedEmployee(null)
+      setEmployeeForm({
+        name: "",
+        jobTitle: "",
+        level: "",
+        email: "",
+        department: "",
+        team: "",
+        role: "",
+        phone: "",
+        address: "",
+        emergencyContact: "",
+        salary: "",
+        profileImage: null,
+      })
+      setSuccess("Employee updated successfully!")
+    } catch (err) {
+      setError(err.message || "Failed to update employee")
     }
   }
+
+  const handleDeleteEmployee = async (employeeId) => {
+    if (!employeeId) return
+    if (!window.confirm("Are you sure you want to delete this employee?")) return
+    try {
+      await apiFetch(`/users/${employeeId}`, { method: "DELETE" })
+      const users = await apiFetch("/users")
+      setEmployees(users.map(u => ({
+        id: u._id,
+        name: `${u.firstName} ${u.lastName}`,
+        jobTitle: u.role,
+        level: "",
+        email: u.email,
+        department: u.team?.name || "",
+        team: u.team?.name || "",
+        status: u.isActive ? "active" : "inactive",
+        dateRegistered: new Date(u.createdAt).toLocaleDateString(),
+        phone: "",
+        address: "",
+        emergencyContact: "",
+        salary: "",
+        profileImage: null,
+      })))
+      setSuccess("Employee deleted successfully!")
+    } catch (err) {
+      setError(err.message || "Failed to delete employee")
+    }
+  }
+
+  const handleViewTeam = (team) => {
+    setSelectedTeam(team)
+    setIsViewingTeam(true)
+  }
+
+  const handleEditTeam = (team) => {
+    setSelectedTeam(team)
+    setTeamForm({ id: team.id || team._id, name: team.name || "", department: team.department || "", description: team.description || "", leaderId: "" })
+    setIsEditingTeam(true)
+  }
+
+  const handleUpdateTeam = async (e) => {
+    e.preventDefault()
+    try {
+      await apiFetch(`/teams/${teamForm.id}`, { method: "PUT", body: JSON.stringify({ name: teamForm.name, department: teamForm.department, description: teamForm.description, leaderId: teamForm.leaderId || undefined }) })
+      const fetchedTeams = await apiFetch("/teams")
+      setTeams(fetchedTeams.map(t => ({ 
+        id: t._id, 
+        name: t.name, 
+        leader: t.leader ? `${t.leader.firstName} ${t.leader.lastName}` : "No leader assigned", 
+        members: t.members?.length || 0, 
+        dateCreated: new Date(t.createdAt).toISOString().slice(0,10), 
+        department: t.department || "Not specified",
+        description: t.description || ""
+      })))
+      setIsEditingTeam(false)
+      setSelectedTeam(null)
+      setSuccess("Team updated successfully!")
+    } catch (err) {
+      setError(err.message || "Failed to update team")
+    }
+  }
+
+  const handleDeleteTeam = async (teamId) => {
+    if (!teamId) return
+    if (!window.confirm("Are you sure you want to delete this team?")) return
+    try {
+      await apiFetch(`/teams/${teamId}`, { method: "DELETE" })
+      const fetchedTeams = await apiFetch("/teams")
+      setTeams(fetchedTeams.map(t => ({ 
+        id: t._id, 
+        name: t.name, 
+        leader: t.leader ? `${t.leader.firstName} ${t.leader.lastName}` : "No leader assigned", 
+        members: t.members?.length || 0, 
+        dateCreated: new Date(t.createdAt).toISOString().slice(0,10), 
+        department: t.department || "Not specified",
+        description: t.description || ""
+      })))
+      setSuccess("Team deleted successfully!")
+    } catch (err) {
+      setError(err.message || "Failed to delete team")
+    }
+  }
+
+  const exportCSV = (filename, rows) => {
+    if (!rows || rows.length === 0) return
+    const headers = Object.keys(rows[0])
+    const escape = (v) => `"${String(v ?? "").replaceAll('"', '""')}"`
+    const csv = [headers.join(","), ...rows.map((r) => headers.map((h) => escape(r[h])).join(","))].join("\n")
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const handleExportEmployees = () => {
+    const rows = employees.map((e) => ({ id: e.id, name: e.name, email: e.email, role: e.jobTitle, department: e.department, team: e.team, status: e.status, dateRegistered: e.dateRegistered }))
+    exportCSV("employees.csv", rows)
+  }
+
+  const handleExportTeams = () => {
+    const rows = teams.map((t) => ({ id: t.id, name: t.name, leader: t.leader, department: t.department, members: t.members, dateCreated: t.dateCreated }))
+    exportCSV("teams.csv", rows)
+  }
+
+  const handleExportEvaluations = async () => {
+    try {
+      const evals = await apiFetch("/evaluations")
+      const rows = evals.map((e) => ({ id: e._id, formType: e.formType, evaluatorType: e.evaluatorType, weight: e.weight, status: e.status, evaluatee: e.evaluatee, evaluator: e.evaluator, createdAt: new Date(e.createdAt).toLocaleString() }))
+      exportCSV("evaluations.csv", rows)
+    } catch (err) {
+      setError(err.message || "Failed to export evaluations")
+    }
+  }
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const users = await apiFetch("/users")
+        setEmployees(users.map(u => ({
+          id: u._id,
+          name: `${u.firstName} ${u.lastName}`,
+          jobTitle: u.jobTitle || u.role,
+          level: u.level || "",
+          email: u.email,
+          department: u.department || u.team?.name || "",
+          team: u.team?.name || "",
+          status: u.isActive ? "active" : "inactive",
+          dateRegistered: new Date(u.createdAt).toISOString().slice(0,10),
+          phone: u.phone || "",
+          address: u.address || "",
+          emergencyContact: u.emergencyContact || "",
+          salary: u.salary || "",
+          profileImage: null,
+        })))
+        const fetchedTeams = await apiFetch("/teams")
+        setTeams(fetchedTeams.map(t => ({ 
+          id: t._id, 
+          name: t.name, 
+          leader: t.leader ? `${t.leader.firstName} ${t.leader.lastName}` : "No leader assigned", 
+          members: t.members?.length || 0, 
+          dateCreated: new Date(t.createdAt).toISOString().slice(0,10), 
+          department: t.department || "Not specified",
+          description: t.description || ""
+        })))
+        setSystemStats({ totalEmployees: users.length, activeTeams: fetchedTeams.length, pendingRegistrations: 0, evaluationsThisMonth: 0 })
+      } catch (e) {
+        console.error(e)
+      }
+    }
+    load()
+  }, [])
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -782,6 +949,22 @@ const AdminDashboard = () => {
                   </div>
                   <div className={styles.formGroup}>
                     <label>
+                      Role <span className={styles.required}>*</span>
+                    </label>
+                    <select 
+                      name="role" 
+                      value={employeeForm.role} 
+                      onChange={handleEmployeeFormChange} 
+                      required
+                      style={{ color: '#1a202c' }}
+                    >
+                      <option value="">Select role</option>
+                      <option value="team_leader">Team Leader</option>
+                      <option value="team_member">Team Member</option>
+                    </select>
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>
                       Team Assignment <span className={styles.required}>*</span>
                     </label>
                     <select 
@@ -792,9 +975,11 @@ const AdminDashboard = () => {
                       style={{ color: '#1a202c' }} // Darker text color for better visibility
                     >
                       <option value="">Select team (Required)</option>
-                      <option value="Software Development">Software Development</option>
-                      <option value="Hardware Support">Hardware Support</option>
-                      <option value="Networking">Networking</option>
+                      {teams.map((t) => (
+                        <option key={t.id || t._id} value={t.name}>
+                          {t.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className={styles.formGroup}>
@@ -891,6 +1076,147 @@ const AdminDashboard = () => {
         )
 
       case "teams":
+        if (isViewingTeam && selectedTeam) {
+          return (
+            <div className={styles.employeeDetails}>
+              <div className={styles.detailsHeader}>
+                <button
+                  onClick={() => {
+                    setIsViewingTeam(false)
+                    setSelectedTeam(null)
+                  }}
+                  className={styles.backButton}
+                >
+                  ← Back to Team List
+                </button>
+                <h2>Team Details</h2>
+              </div>
+
+              <div className={styles.employeeCard}>
+                <div className={styles.employeeInfo}>
+                  <div className={styles.employeeAvatar}>
+                    <div className={styles.avatarPlaceholder}>T</div>
+                  </div>
+                  <div className={styles.employeeBasicInfo}>
+                    <h3>{selectedTeam.name}</h3>
+                    <p>{selectedTeam.department}</p>
+                    <span className={`${styles.statusBadge} ${styles.active}`}>Active</span>
+                  </div>
+                </div>
+
+                <div className={styles.employeeDetailsGrid}>
+                  <div className={styles.detailItem}>
+                    <label>Team Leader:</label>
+                    <span>{selectedTeam.leader}</span>
+                  </div>
+                  <div className={styles.detailItem}>
+                    <label>Department:</label>
+                    <span>{selectedTeam.department}</span>
+                  </div>
+                  <div className={styles.detailItem}>
+                    <label>Members:</label>
+                    <span>{selectedTeam.members}</span>
+                  </div>
+                  <div className={styles.detailItem}>
+                    <label>Date Created:</label>
+                    <span>{selectedTeam.dateCreated}</span>
+                  </div>
+                  <div className={styles.detailItem} style={{ gridColumn: "1 / -1" }}>
+                    <label>Description:</label>
+                    <span>{selectedTeam.description || "No description provided"}</span>
+                  </div>
+                </div>
+
+                <div className={styles.employeeActions}>
+                  <button onClick={() => handleEditTeam(selectedTeam)} className={styles.editButton}>
+                    Edit Team
+                  </button>
+                  <button onClick={() => handleDeleteTeam(selectedTeam.id)} className={styles.deleteButton}>
+                    Delete Team
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        if (isEditingTeam && selectedTeam) {
+          return (
+            <div className={styles.editEmployeeForm}>
+              <div className={styles.detailsHeader}>
+                <button
+                  onClick={() => {
+                    setIsEditingTeam(false)
+                    setSelectedTeam(null)
+                  }}
+                  className={styles.backButton}
+                >
+                  ← Cancel Edit
+                </button>
+                <h2>Edit Team</h2>
+              </div>
+
+              <form onSubmit={handleUpdateTeam} className={styles.registerForm}>
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label>Team Name *</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={teamForm.name}
+                      onChange={(e) => setTeamForm({...teamForm, name: e.target.value})}
+                      required
+                      style={{ color: '#1a202c' }}
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>Department *</label>
+                    <select
+                      name="department"
+                      value={teamForm.department}
+                      onChange={(e) => setTeamForm({...teamForm, department: e.target.value})}
+                      required
+                      style={{ color: '#1a202c' }}
+                    >
+                      <option value="">Select department</option>
+                      {departments.map((dept) => (
+                        <option key={dept} value={dept}>
+                          {dept}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>Team Description</label>
+                  <textarea
+                    name="description"
+                    value={teamForm.description}
+                    onChange={(e) => setTeamForm({...teamForm, description: e.target.value})}
+                    placeholder="Describe the team's purpose and responsibilities"
+                    rows="3"
+                    style={{ color: '#1a202c' }}
+                  />
+                </div>
+
+                <div className={styles.formActions}>
+                  <button type="submit" className={styles.submitButton}>
+                    Update Team
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => setActiveTab("teams")} 
+                    className={styles.cancelButton}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          )
+        }
+
         return (
           <div className={styles.usersContent}>
             <div className={styles.usersHeader}>
@@ -917,14 +1243,29 @@ const AdminDashboard = () => {
                     <tr key={team.id}>
                       <td className={styles.userName}>{team.name}</td>
                       <td>{team.leader}</td>
-                      <td>{team.department || "Not specified"}</td>
+                      <td>{team.department}</td>
                       <td>{team.members}</td>
                       <td>{team.dateCreated}</td>
                       <td>
                         <div className={styles.userActions}>
-                          <button className={styles.viewButton}>View</button>
-                          <button className={styles.editButton}>Edit</button>
-                          <button className={styles.deleteButton}>Delete</button>
+                          <button 
+                            className={styles.viewButton} 
+                            onClick={() => handleViewTeam(team)}
+                          >
+                            View
+                          </button>
+                          <button 
+                            className={styles.editButton} 
+                            onClick={() => handleEditTeam(team)}
+                          >
+                            Edit
+                          </button>
+                          <button 
+                            className={styles.deleteButton} 
+                            onClick={() => handleDeleteTeam(team.id)}
+                          >
+                            Delete
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -999,15 +1340,22 @@ const AdminDashboard = () => {
                     <label>
                       Team Leader <span className={styles.required}>*</span>
                     </label>
-                    <input
-                      type="text"
+                    <select
                       name="leader"
                       value={newTeam.leader}
                       onChange={handleTeamFormChange}
-                      placeholder="Enter team leader's name"
                       required
                       style={{ color: '#1a202c' }}
-                    />
+                    >
+                      <option value="">Select team leader</option>
+                      {employees
+                        .filter(emp => emp.jobTitle === 'team_leader' || emp.role === 'team_leader')
+                        .map((leader) => (
+                          <option key={leader.id} value={leader.id}>
+                            {leader.name}
+                          </option>
+                        ))}
+                    </select>
                   </div>
                   <div className={styles.formGroup}>
                     <label>
@@ -1270,9 +1618,11 @@ const AdminDashboard = () => {
                       style={{ color: '#1a202c' }} // Darker text color for better visibility
                     >
                       <option value="">Select team (Required)</option>
-                      <option value="Software Development">Software Development</option>
-                      <option value="Hardware Support">Hardware Support</option>
-                      <option value="Networking">Networking</option>
+                      {teams.map((t) => (
+                        <option key={t.id || t._id} value={t.name}>
+                          {t.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -1432,17 +1782,17 @@ const AdminDashboard = () => {
               <div className={styles.reportCard}>
                 <h3>Employee Performance Report</h3>
                 <p>Generate comprehensive performance reports for all employees</p>
-                <button className={styles.generateReportButton}>Generate Report</button>
+                <button className={styles.generateReportButton} onClick={handleExportEvaluations}>Export Evaluations (CSV)</button>
               </div>
               <div className={styles.reportCard}>
                 <h3>Team Analytics</h3>
                 <p>View team performance and collaboration metrics</p>
-                <button className={styles.generateReportButton}>View Analytics</button>
+                <button className={styles.generateReportButton} onClick={handleExportTeams}>Export Teams (CSV)</button>
               </div>
               <div className={styles.reportCard}>
                 <h3>System Usage</h3>
                 <p>Monitor system usage and user activity patterns</p>
-                <button className={styles.generateReportButton}>View Usage</button>
+                <button className={styles.generateReportButton} onClick={handleExportEmployees}>Export Employees (CSV)</button>
               </div>
             </div>
           </div>

@@ -7,6 +7,7 @@ import PerformanceHistory from "../components/PerformanceHistory"
 
 import styles from "./DashboardPage.module.css"
 import homeStyles from "./HomePage.module.css"
+import { apiFetch } from "../lib/api"
 
 const DashboardPage = () => {
   // Dashboard state (unchanged)
@@ -45,160 +46,31 @@ const DashboardPage = () => {
   })
 
   // Team members data
-  const [teamMembers] = useState([
-    {
-      id: 1,
-      name: "Daniel Asfaw",
-      role: "Senior Software Engineer",
-      department: "ICT",
-      status: "active",
-      lastEvaluation: "2024-02-28",
-      evaluationScore: 92.1,
-      avatar: "/placeholder.svg?height=80&width=80&text=DA",
-    },
-    {
-      id: 2,
-      name: "Banchirga Nurye",
-      role: "Project Manager",
-      department: "Computer Science",
-      status: "active",
-      lastEvaluation: "2024-03-10",
-      evaluationScore: 78.2,
-      avatar: "/placeholder.svg?height=80&width=80&text=BN",
-    },
-    {
-      id: 3,
-      name: "Meron Tesfaye",
-      role: "UI/UX Designer",
-      department: "ICT",
-      status: "active",
-      lastEvaluation: "2024-01-15",
-      evaluationScore: 88.5,
-      avatar: "/placeholder.svg?height=80&width=80&text=MT",
-    },
-  ])
+  const [teamMembers, setTeamMembers] = useState([])
 
   // Admin stats
-  const [systemStats] = useState({
-    totalUsers: 245,
-    activeEvaluations: 18,
-    completedEvaluations: 127,
-    pendingApprovals: 12,
-    totalDepartments: 8,
-    evaluationForms: 5,
+  const [systemStats, setSystemStats] = useState({
+    totalUsers: 0,
+    activeEvaluations: 0,
+    completedEvaluations: 0,
+    pendingApprovals: 0,
+    totalDepartments: 0,
+    evaluationForms: 0,
   })
 
   // User stats
-  const [dashboardStats] = useState({
-    totalEvaluations: 12,
-    pendingEvaluations: 3,
-    completedEvaluations: 9,
-    averageScore: 85.2,
-    currentQuarterScore: 87.5,
-    lastEvaluationDate: "2024-03-15",
-    nextEvaluationDue: "2024-06-15",
+  const [dashboardStats, setDashboardStats] = useState({
+    totalEvaluations: 0,
+    pendingEvaluations: 0,
+    completedEvaluations: 0,
+    averageScore: 0,
+    currentQuarterScore: 0,
+    lastEvaluationDate: "",
+    nextEvaluationDue: "",
   })
 
   // Enhanced forms data with sections and criteria
-  const [evaluationForms, setEvaluationForms] = useState([
-    {
-      id: 1,
-      title: "Work Performance Evaluation (70%)",
-      description: "Evaluation of employee work performance by manager",
-      formType: "workrate",
-      targetEvaluator: "admin",
-      weight: 70,
-      status: "active",
-      createdDate: "2024-01-15",
-      lastModified: "2024-03-10",
-      usageCount: 45,
-      sections: [
-        {
-          id: 1,
-          name: "Task Performance",
-          weight: 70,
-          criteria: [
-            { id: 1, name: "Quality of Work", weight: 40 },
-            { id: 2, name: "Timeliness", weight: 30 },
-            { id: 3, name: "Efficiency", weight: 30 },
-          ],
-        },
-      ],
-      ratingScale: {
-        min: 1,
-        max: 4,
-        labels: ["Poor", "Fair", "Good", "Excellent"],
-      },
-    },
-    {
-      id: 2,
-      title: "Behavioral Evaluation (Admin - 10%)",
-      description: "Evaluation of employee behavior by manager",
-      formType: "behavioral",
-      targetEvaluator: "admin",
-      weight: 10,
-      status: "active",
-      createdDate: "2024-01-20",
-      lastModified: "2024-02-28",
-      usageCount: 32,
-      sections: [
-        {
-          id: 1,
-          name: "Behavioral Indicators",
-          weight: 100,
-          criteria: [
-            { id: 1, name: "Anti-corruption attitude and action", weight: 25 },
-            { id: 2, name: "Effort to improve competence", weight: 20 },
-            { id: 3, name: "Respect and pride in service", weight: 15 },
-            { id: 4, name: "Effort to support others", weight: 15 },
-            { id: 5, name: "Effort to improve process", weight: 15 },
-            { id: 6, name: "Feedback acceptance", weight: 10 },
-          ],
-        },
-      ],
-      ratingScale: {
-        min: 1,
-        max: 4,
-        labels: ["Poor", "Fair", "Good", "Excellent"],
-      },
-    },
-    {
-      id: 3,
-      title: "Administrative Staff Evaluation",
-      description: "Performance evaluation for administrative personnel",
-      targetRole: "academic_worker",
-      status: "active",
-      createdDate: "2024-01-20",
-      lastModified: "2024-02-28",
-      usageCount: 32,
-      sections: [
-        {
-          id: 1,
-          name: "Task Performance",
-          weight: 70,
-          criteria: [
-            { id: 1, name: "Quality of Work", weight: 40 },
-            { id: 2, name: "Timeliness", weight: 30 },
-            { id: 3, name: "Efficiency", weight: 30 },
-          ],
-        },
-        {
-          id: 2,
-          name: "Behavioral Indicators",
-          weight: 30,
-          criteria: [
-            { id: 1, name: "Communication Skills", weight: 50 },
-            { id: 2, name: "Teamwork", weight: 50 },
-          ],
-        },
-      ],
-      ratingScale: {
-        min: 1,
-        max: 4,
-        labels: ["Poor", "Fair", "Good", "Excellent"],
-      },
-    },
-  ])
+  const [evaluationForms, setEvaluationForms] = useState([])
 
   // Form builder state
   const [formBuilder, setFormBuilder] = useState({
@@ -227,63 +99,10 @@ const DashboardPage = () => {
   })
 
   // Admin activities
-  const [recentActivities] = useState([
-    {
-      id: 1,
-      type: "form_created",
-      title: "New Evaluation Form Created",
-      description: "Leadership Performance Review form has been created",
-      user: "Dr. Bekele Tadesse",
-      time: "2 hours ago",
-      status: "info",
-    },
-    {
-      id: 2,
-      type: "evaluation_submitted",
-      title: "Evaluation Submitted",
-      description: "Samuel Hailu completed his quarterly evaluation",
-      user: "Samuel Hailu Demse",
-      time: "4 hours ago",
-      status: "success",
-    },
-    {
-      id: 3,
-      type: "approval_pending",
-      title: "Approval Required",
-      description: "5 evaluations are pending supervisor approval",
-      user: "System",
-      time: "6 hours ago",
-      status: "warning",
-    },
-  ])
+  const [recentActivities, setRecentActivities] = useState([])
 
   // User evaluations
-  const [recentEvaluations] = useState([
-    {
-      id: 1,
-      type: "Quarterly Review",
-      evaluator: "Daniel Asfaw",
-      score: 85.5,
-      status: "Completed",
-      date: "2024-03-15",
-    },
-    {
-      id: 2,
-      type: "Peer Review",
-      evaluator: "Banchirga Nurye",
-      score: 87.1,
-      status: "Completed",
-      date: "2024-02-28",
-    },
-    {
-      id: 3,
-      type: "Self Assessment",
-      evaluator: "Self",
-      score: 0,
-      status: "Pending",
-      date: "Due: 2024-06-15",
-    },
-  ])
+  const [recentEvaluations, setRecentEvaluations] = useState([])
 
   // User tasks
   const [upcomingTasks] = useState([
@@ -486,6 +305,50 @@ const DashboardPage = () => {
     checkIfMobile()
     window.addEventListener("resize", checkIfMobile)
     return () => window.removeEventListener("resize", checkIfMobile)
+  }, [])
+
+  // Load leader data from backend
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const me = await apiFetch("/users/me")
+        if (me?.team?._id) {
+          const teams = await apiFetch("/teams")
+          const myTeam = teams.find(t => (t._id === me.team._id) || (t.id === me.team._id))
+          if (myTeam) {
+            setTeamMembers((myTeam.members || []).map(m => ({
+              id: m._id,
+              name: `${m.firstName} ${m.lastName}`,
+              role: m.role,
+              department: myTeam.name || '',
+              status: m.isActive ? 'active' : 'inactive',
+              lastEvaluation: '',
+              evaluationScore: 0,
+              avatar: "/placeholder.svg",
+            })))
+          }
+        }
+        const evals = await apiFetch("/evaluations")
+        const completed = evals.filter(e => e.status === 'submitted').length
+        setDashboardStats(s => ({
+          ...s,
+          totalEvaluations: evals.length,
+          completedEvaluations: completed,
+          pendingEvaluations: Math.max(0, evals.length - completed),
+        }))
+        setRecentEvaluations(evals.slice(0, 5).map(e => ({
+          id: e._id,
+          type: e.formType === 'workrate' ? 'Work Performance' : 'Behavioral',
+          evaluator: e.evaluatorType,
+          score: e.totalScore || 0,
+          status: e.status === 'submitted' ? 'Completed' : 'Draft',
+          date: new Date(e.createdAt).toISOString().slice(0,10),
+        })))
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    load()
   }, [])
 
   const toggleSidebar = () => {
