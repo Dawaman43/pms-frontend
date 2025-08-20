@@ -351,23 +351,23 @@ const AdminDashboard = () => {
         salary: u.salary || "",
         profileImage: null,
       })))
-      setSuccess("Employee registered successfully!")
-      setEmployeeForm({
-        name: "",
-        jobTitle: "",
-        level: "",
-        email: "",
-        department: "",
-        team: "",
+    setSuccess("Employee registered successfully!")
+    setEmployeeForm({
+      name: "",
+      jobTitle: "",
+      level: "",
+      email: "",
+      department: "",
+      team: "",
         role: "",
-        phone: "",
-        address: "",
-        emergencyContact: "",
-        salary: "",
-        profileImage: null,
-      })
-      setPassword("")
-      setIsGenerated(false)
+      phone: "",
+      address: "",
+      emergencyContact: "",
+      salary: "",
+      profileImage: null,
+    })
+    setPassword("")
+    setIsGenerated(false)
     } catch (err) {
       setError(err.message || "Failed to register employee")
     }
@@ -384,9 +384,9 @@ const AdminDashboard = () => {
       await apiFetch("/teams", {
         method: "POST",
         body: JSON.stringify({
-          name: newTeam.name,
-          department: newTeam.department,
-          description: newTeam.description,
+      name: newTeam.name,
+      department: newTeam.department,
+      description: newTeam.description,
           leaderId: newTeam.leader || undefined,
         }),
       })
@@ -400,9 +400,9 @@ const AdminDashboard = () => {
         department: t.department || "Not specified",
         description: t.description || ""
       })))
-      setNewTeam({ name: "", leader: "", description: "", department: "" })
-      setSuccess("Team created successfully!")
-      setActiveTab("teams")
+    setNewTeam({ name: "", leader: "", description: "", department: "" })
+    setSuccess("Team created successfully!")
+    setActiveTab("teams")
     } catch (err) {
       setError(err.message || "Failed to create team")
     }
@@ -447,23 +447,23 @@ const AdminDashboard = () => {
         salary: u.salary || "",
         profileImage: null,
       })))
-      setIsEditingEmployee(false)
-      setSelectedEmployee(null)
-      setEmployeeForm({
-        name: "",
-        jobTitle: "",
-        level: "",
-        email: "",
-        department: "",
-        team: "",
+    setIsEditingEmployee(false)
+    setSelectedEmployee(null)
+    setEmployeeForm({
+      name: "",
+      jobTitle: "",
+      level: "",
+      email: "",
+      department: "",
+      team: "",
         role: "",
-        phone: "",
-        address: "",
-        emergencyContact: "",
-        salary: "",
-        profileImage: null,
-      })
-      setSuccess("Employee updated successfully!")
+      phone: "",
+      address: "",
+      emergencyContact: "",
+      salary: "",
+      profileImage: null,
+    })
+    setSuccess("Employee updated successfully!")
     } catch (err) {
       setError(err.message || "Failed to update employee")
     }
@@ -551,37 +551,73 @@ const AdminDashboard = () => {
     }
   }
 
-  const exportCSV = (filename, rows) => {
-    if (!rows || rows.length === 0) return
-    const headers = Object.keys(rows[0])
-    const escape = (v) => `"${String(v ?? "").replaceAll('"', '""')}"`
-    const csv = [headers.join(","), ...rows.map((r) => headers.map((h) => escape(r[h])).join(","))].join("\n")
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
+  const exportToPDF = (data, filename, title) => {
+    // Create a new window for PDF generation
+    const printWindow = window.open('', '_blank');
+    
+    // Create HTML content for PDF
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${title}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            h1 { color: #2d3748; text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: left; }
+            th { background-color: #f7fafc; font-weight: bold; }
+            tr:nth-child(even) { background-color: #f9fafb; }
+            .header { margin-bottom: 20px; }
+            .date { color: #718096; font-size: 14px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>${title}</h1>
+            <div class="date">Generated on: ${new Date().toLocaleDateString()}</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                ${Object.keys(data[0] || {}).map(key => `<th>${key}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map(row => 
+                `<tr>${Object.values(row).map(value => `<td>${value || ''}</td>`).join('')}</tr>`
+              ).join('')}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+    
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    
+    // Wait for content to load then print
+    printWindow.onload = function() {
+      printWindow.print();
+      printWindow.close();
+    };
+  };
 
   const handleExportEmployees = () => {
     const rows = employees.map((e) => ({ id: e.id, name: e.name, email: e.email, role: e.jobTitle, department: e.department, team: e.team, status: e.status, dateRegistered: e.dateRegistered }))
-    exportCSV("employees.csv", rows)
+    exportToPDF(rows, "employees", "Employee Report")
   }
 
   const handleExportTeams = () => {
     const rows = teams.map((t) => ({ id: t.id, name: t.name, leader: t.leader, department: t.department, members: t.members, dateCreated: t.dateCreated }))
-    exportCSV("teams.csv", rows)
+    exportToPDF(rows, "teams", "Team Report")
   }
 
   const handleExportEvaluations = async () => {
     try {
       const evals = await apiFetch("/evaluations")
       const rows = evals.map((e) => ({ id: e._id, formType: e.formType, evaluatorType: e.evaluatorType, weight: e.weight, status: e.status, evaluatee: e.evaluatee, evaluator: e.evaluator, createdAt: new Date(e.createdAt).toLocaleString() }))
-      exportCSV("evaluations.csv", rows)
+      exportToPDF(rows, "evaluations", "Evaluation Report")
     } catch (err) {
       setError(err.message || "Failed to export evaluations")
     }
@@ -888,6 +924,33 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
+              {/* Employee ID Section */}
+              <div className={styles.formCard}>
+                <div className={styles.cardHeader}>
+                  <h3>Employee ID</h3>
+                  <span className={styles.cardDescription}>Automatically generated unique identifier</span>
+                </div>
+                <div className={styles.formGrid}>
+                  <div className={styles.formGroup}>
+                    <label>Employee ID</label>
+                    <input
+                      type="text"
+                      value="Will be generated automatically"
+                      readOnly
+                      className={styles.readOnlyField}
+                      style={{ 
+                        color: '#718096', 
+                        backgroundColor: '#f7fafc',
+                        cursor: 'not-allowed'
+                      }}
+                    />
+                    <small className={styles.helpText}>
+                      Employee ID will be automatically generated in the format ASTU-IC-0001, ASTU-IC-0002, etc.
+                    </small>
+                  </div>
+                </div>
+              </div>
+
               {/* Professional Information Section */}
               <div className={styles.formCard}>
                 <div className={styles.cardHeader}>
@@ -1188,6 +1251,26 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label>Team Leader</label>
+                    <select
+                      name="leaderId"
+                      value={teamForm.leaderId}
+                      onChange={(e) => setTeamForm({...teamForm, leaderId: e.target.value})}
+                      style={{ color: '#1a202c' }}
+                    >
+                      <option value="">Unassigned</option>
+                      {employees.map((leader) => (
+                        <option key={leader.id} value={leader.id}>
+                          {leader.name}
+                        </option>
+                      ))}
+                    </select>
+                    <span className={styles.cardDescription}>Changing leader will reassign roles accordingly</span>
+                  </div>
+                </div>
+
                 <div className={styles.formGroup}>
                   <label>Team Description</label>
                   <textarea
@@ -1348,13 +1431,11 @@ const AdminDashboard = () => {
                       style={{ color: '#1a202c' }}
                     >
                       <option value="">Select team leader</option>
-                      {employees
-                        .filter(emp => emp.jobTitle === 'team_leader' || emp.role === 'team_leader')
-                        .map((leader) => (
-                          <option key={leader.id} value={leader.id}>
-                            {leader.name}
-                          </option>
-                        ))}
+                      {employees.map((leader) => (
+                        <option key={leader.id} value={leader.id}>
+                          {leader.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className={styles.formGroup}>
@@ -1467,6 +1548,10 @@ const AdminDashboard = () => {
 
                 <div className={styles.employeeDetailsGrid}>
                   <div className={styles.detailItem}>
+                    <label>Employee ID:</label>
+                    <span className={styles.employeeId}>{selectedEmployee.employeeId || "N/A"}</span>
+                  </div>
+                  <div className={styles.detailItem}>
                     <label>Email:</label>
                     <span>{selectedEmployee.email}</span>
                   </div>
@@ -1534,6 +1619,33 @@ const AdminDashboard = () => {
               </div>
 
               <form onSubmit={handleUpdateEmployee} className={styles.registerForm}>
+                {/* Employee ID Section */}
+                <div className={styles.formCard}>
+                  <div className={styles.cardHeader}>
+                    <h3>Employee ID</h3>
+                    <span className={styles.cardDescription}>System-generated unique identifier</span>
+                  </div>
+                  <div className={styles.formGrid}>
+                    <div className={styles.formGroup}>
+                      <label>Employee ID</label>
+                      <input
+                        type="text"
+                        value={selectedEmployee.employeeId || "N/A"}
+                        readOnly
+                        className={styles.readOnlyField}
+                        style={{ 
+                          color: '#718096', 
+                          backgroundColor: '#f7fafc',
+                          cursor: 'not-allowed'
+                        }}
+                      />
+                      <small className={styles.helpText}>
+                        Employee ID cannot be changed once assigned
+                      </small>
+                    </div>
+                  </div>
+                </div>
+
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
                     <label>Full Name *</label>
@@ -1722,6 +1834,7 @@ const AdminDashboard = () => {
               <table>
                 <thead>
                   <tr>
+                    <th>Employee ID</th>
                     <th>Name</th>
                     <th>Job Title</th>
                     <th>Department</th>
@@ -1735,6 +1848,7 @@ const AdminDashboard = () => {
                   {employees.length > 0 ? (
                     employees.map((employee) => (
                       <tr key={employee.id}>
+                        <td className={styles.employeeId}>{employee.employeeId || "N/A"}</td>
                         <td className={styles.userName}>{employee.name}</td>
                         <td>{employee.jobTitle}</td>
                         <td>{employee.department}</td>
@@ -1760,7 +1874,7 @@ const AdminDashboard = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="7" className={styles.emptyState}>
+                      <td colSpan="8" className={styles.emptyState}>
                         No employees registered yet
                       </td>
                     </tr>
@@ -1782,17 +1896,17 @@ const AdminDashboard = () => {
               <div className={styles.reportCard}>
                 <h3>Employee Performance Report</h3>
                 <p>Generate comprehensive performance reports for all employees</p>
-                <button className={styles.generateReportButton} onClick={handleExportEvaluations}>Export Evaluations (CSV)</button>
+                <button className={styles.generateReportButton} onClick={handleExportEvaluations}>Export Evaluations (PDF)</button>
               </div>
               <div className={styles.reportCard}>
                 <h3>Team Analytics</h3>
                 <p>View team performance and collaboration metrics</p>
-                <button className={styles.generateReportButton} onClick={handleExportTeams}>Export Teams (CSV)</button>
+                <button className={styles.generateReportButton} onClick={handleExportTeams}>Export Teams (PDF)</button>
               </div>
               <div className={styles.reportCard}>
                 <h3>System Usage</h3>
                 <p>Monitor system usage and user activity patterns</p>
-                <button className={styles.generateReportButton} onClick={handleExportEmployees}>Export Employees (CSV)</button>
+                <button className={styles.generateReportButton} onClick={handleExportEmployees}>Export Employees (PDF)</button>
               </div>
             </div>
           </div>

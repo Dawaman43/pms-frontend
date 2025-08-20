@@ -1671,3 +1671,168 @@
 .evaluateButton:hover {
   background-color: #314970;
 }
+
+/* Template Grid Styles */
+.templateGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.templateCard {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.templateCard:hover {
+  border-color: #314970;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.templateInfo h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+}
+
+.templateInfo p {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.5;
+}
+
+.templateType {
+  display: inline-block;
+  background-color: #f3f4f6;
+  color: #374151;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.createFromTemplateButton {
+  background-color: #314970;
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  align-self: flex-start;
+}
+
+.createFromTemplateButton:hover {
+  background-color: #1e3a8a;
+}
+
+.createFromTemplateButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.createFromTemplateButton:disabled:hover {
+  background-color: #9ca3af;
+}
+
+/* Team Setup Styles */
+.teamSetupSection {
+  padding: 1rem;
+  text-align: center;
+}
+
+.teamSetupSection p {
+  margin-bottom: 1rem;
+  color: #6b7280;
+}
+
+.teamSetupInfo {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 0.375rem;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.teamSetupInfo p {
+  margin: 0.5rem 0;
+  color: #92400e;
+  font-size: 0.875rem;
+}
+
+.teamSetupSuccess {
+  background-color: #d1fae5;
+  border: 1px solid #10b981;
+  border-radius: 0.375rem;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.teamSetupSuccess p {
+  margin: 0.5rem 0;
+  color: #065f46;
+  font-size: 0.875rem;
+}
+
+/* Evaluations List Styles */
+.evaluationsList {
+  margin-top: 1rem;
+}
+
+.evaluationItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  margin-bottom: 0.75rem;
+  background-color: #ffffff;
+}
+
+.evaluationItem:last-child {
+  margin-bottom: 0;
+}
+
+.evaluationInfo h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+}
+
+.evaluationInfo p {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 0.5rem 0;
+}
+
+.evaluationActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.noEvaluations {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.noEvaluations p {
+  margin: 0;
+  font-size: 0.875rem;
+}

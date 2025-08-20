@@ -195,7 +195,10 @@ const HomePage = () => {
     const fetchData = async () => {
       try {
         setIsLoading(true)
+        console.log("Fetching user profile...")
         const me = await apiFetch("/users/me")
+        console.log("User profile received:", me)
+        
         setUser({
           name: `${me.firstName || ''} ${me.lastName || ''}`.trim() || me.email,
           role: me.role === 'team_member' ? 'Team Member' : me.role,
@@ -203,9 +206,13 @@ const HomePage = () => {
           avatar: "/assets/avatar-placeholder.png",
           employeeId: me._id || me.id,
         })
-        const evals = await apiFetch("/evaluations")
-        const completed = evals.filter(e => e.status === 'submitted').length
-        const pending = Math.max(0, evals.length - completed)
+        
+        console.log("Fetching evaluations...")
+        const evals = await apiFetch("/evaluations/member")
+        console.log("Evaluations received:", evals)
+        
+        const completed = evals.filter(e => e.status === 'completed').length
+        const pending = evals.filter(e => e.status === 'active' || e.status === 'draft').length
         setStats({
           totalEvaluations: evals.length,
           pendingEvaluations: pending,
@@ -214,8 +221,8 @@ const HomePage = () => {
         })
         setRecentActivities([])
       } catch (err) {
-        setError("Failed to load dashboard data. Please try again.")
         console.error("Error fetching data:", err)
+        setError(`Failed to load dashboard data: ${err.message}`)
       } finally {
         setIsLoading(false)
       }

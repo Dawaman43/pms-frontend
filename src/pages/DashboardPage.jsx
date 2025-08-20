@@ -71,6 +71,7 @@ const DashboardPage = () => {
 
   // Enhanced forms data with sections and criteria
   const [evaluationForms, setEvaluationForms] = useState([])
+  const [evaluationTemplates, setEvaluationTemplates] = useState([])
 
   // Form builder state
   const [formBuilder, setFormBuilder] = useState({
@@ -181,7 +182,13 @@ const DashboardPage = () => {
     }))
   }
 
-  const saveForm = () => {
+  const saveForm = async () => {
+    // Check if user has a team before creating evaluation
+    if (teamMembers.length === 0) {
+      alert("You must be assigned to a team before you can create evaluations. Please contact an administrator to assign you to a team.")
+      return
+    }
+
     if (formBuilder.title && formBuilder.sections.length > 0) {
       if (formBuilder.formType === "behavioral") {
         const behavioralSection = formBuilder.sections[0]
@@ -199,23 +206,72 @@ const DashboardPage = () => {
         }
       }
 
-      const newForm = {
-        id: editingForm ? editingForm.id : Date.now(),
-        ...formBuilder,
-        status: editingForm ? editingForm.status : "draft",
-        createdDate: editingForm ? editingForm.createdDate : new Date().toISOString().split("T")[0],
-        lastModified: new Date().toISOString().split("T")[0],
-        usageCount: editingForm ? editingForm.usageCount : 0,
+      try {
+        // Convert form builder data to backend format
+        const evaluationData = {
+          type: formBuilder.formType === "workrate" ? "work_rate" : "behavioral",
+          evaluationPeriod: formBuilder.title,
+          startDate: new Date().toISOString(),
+          endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+          allowSelfEvaluation: formBuilder.targetEvaluator === "self",
+          allowPeerEvaluation: formBuilder.targetEvaluator === "peer",
+          requireLeaderApproval: false
+        }
+
+        // Add criteria based on form type
+        if (formBuilder.formType === "workrate") {
+          evaluationData.workRateCriteria = formBuilder.sections.map(section => ({
+            name: section.name,
+            weight: section.weight,
+            maxScore: 10
+          }))
+        } else {
+          evaluationData.behavioralCriteria = formBuilder.sections[0].criteria.map(criterion => ({
+            name: criterion.name,
+            maxScore: 5
+          }))
+        }
+
+        // Create evaluation in backend
+        const newEvaluation = await apiFetch("/evaluations", {
+          method: "POST",
+          body: JSON.stringify(evaluationData)
+        })
+
+        // Update local state
+      if (editingForm) {
+          setEvaluationForms((prev) => prev.map((f) => (f.id === editingForm.id ? { ...f, ...newEvaluation } : f)))
+      } else {
+          setEvaluationForms((prev) => [...prev, { ...formBuilder, ...newEvaluation }])
       }
 
-      if (editingForm) {
-        setEvaluationForms((prev) => prev.map((f) => (f.id === editingForm.id ? newForm : f)))
-      } else {
-        setEvaluationForms((prev) => [...prev, newForm])
-      }
       resetFormBuilder()
       setShowFormBuilder(false)
       setEditingForm(null)
+
+        // Reload evaluations from backend
+        const evals = await apiFetch("/evaluations")
+        const completed = evals.filter(e => e.status === 'completed').length
+        setDashboardStats(s => ({
+          ...s,
+          totalEvaluations: evals.length,
+          completedEvaluations: completed,
+          pendingEvaluations: Math.max(0, evals.length - completed),
+        }))
+        setRecentEvaluations(evals.slice(0, 5).map(e => ({
+          id: e._id,
+          type: e.type === 'work_rate' ? 'Work Performance' : 'Behavioral',
+          evaluator: 'Team Leader',
+          score: e.totalScore || 0,
+          status: e.status === 'completed' ? 'Completed' : 'Draft',
+          date: new Date(e.createdAt).toISOString().slice(0,10),
+        })))
+
+        alert("Evaluation created successfully!")
+      } catch (error) {
+        console.error("Error creating evaluation:", error)
+        alert(`Failed to create evaluation: ${error.message}`)
+      }
     }
   }
 
@@ -251,24 +307,159 @@ const DashboardPage = () => {
     setShowFormBuilder(true)
   }
 
-  // Distribute forms (unchanged)
-  const distributeForms = (employeeId) => {
-    createForm(employeeId, "admin", "workrate", 70)
-    createForm(employeeId, "admin", "behavioral", 10)
-    createForm(employeeId, "peer", "behavioral", 15)
-    createForm(employeeId, "self", "behavioral", 5)
-  }
+  // Distribute forms to team members
+  const distributeForms = async (employeeId) => {
+    // Check if user has a team before distributing forms
+    if (teamMembers.length === 0) {
+      alert("You must be assigned to a team before you can distribute evaluation forms. Please contact an administrator to assign you to a team.")
+      return
+    }
 
-  const createForm = (employeeId, evaluator, formType, weight) => {
-    console.log(
-      `Creating ${formType} form for employee ${employeeId} to be evaluated by ${evaluator} with weight ${weight}%`,
-    )
+    try {
+      // Get the team member's name
+      const member = teamMembers.find(m => m.id === employeeId)
+      if (!member) {
+        alert("Team member not found")
+        return
+      }
+
+      // Create a work rate evaluation for this member
+      const workRateData = {
+        type: "work_rate",
+        evaluationPeriod: `Work Rate Evaluation - ${member.name} - ${new Date().toLocaleDateString()}`,
+        startDate: new Date().toISOString(),
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        allowSelfEvaluation: false,
+        allowPeerEvaluation: false,
+        requireLeaderApproval: false,
+        workRateCriteria: [
+          { name: "Quality of Work", weight: 30, maxScore: 10 },
+          { name: "Productivity", weight: 25, maxScore: 10 },
+          { name: "Technical Skills", weight: 25, maxScore: 10 },
+          { name: "Communication", weight: 20, maxScore: 10 }
+        ]
+      }
+
+      // Create a behavioral evaluation for this member
+      const behavioralData = {
+        type: "behavioral",
+        evaluationPeriod: `Behavioral Evaluation - ${member.name} - ${new Date().toLocaleDateString()}`,
+        startDate: new Date().toISOString(),
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        allowSelfEvaluation: true,
+        allowPeerEvaluation: true,
+        requireLeaderApproval: false,
+        behavioralCriteria: [
+          { name: "Teamwork", maxScore: 5 },
+          { name: "Leadership", maxScore: 5 },
+          { name: "Problem Solving", maxScore: 5 },
+          { name: "Adaptability", maxScore: 5 },
+          { name: "Professionalism", maxScore: 5 }
+        ]
+      }
+
+      // Create both evaluations
+      await Promise.all([
+        apiFetch("/evaluations", {
+          method: "POST",
+          body: JSON.stringify(workRateData)
+        }),
+        apiFetch("/evaluations", {
+          method: "POST",
+          body: JSON.stringify(behavioralData)
+        })
+      ])
+
+      alert(`Evaluations created successfully for ${member.name}!`)
+      
+      // Reload evaluations
+      const evals = await apiFetch("/evaluations")
+      const completed = evals.filter(e => e.status === 'completed').length
+      setDashboardStats(s => ({
+        ...s,
+        totalEvaluations: evals.length,
+        completedEvaluations: completed,
+        pendingEvaluations: Math.max(0, evals.length - completed),
+      }))
+      setRecentEvaluations(evals.slice(0, 5).map(e => ({
+        id: e._id,
+        type: e.type === 'work_rate' ? 'Work Performance' : 'Behavioral',
+        evaluator: 'Team Leader',
+        score: e.totalScore || 0,
+        status: e.status === 'completed' ? 'Completed' : 'Draft',
+        date: new Date(e.createdAt).toISOString().slice(0,10),
+      })))
+    } catch (error) {
+      console.error("Error distributing forms:", error)
+      alert(`Failed to create evaluations: ${error.message}`)
+    }
   }
 
   const handleCreateForm = () => {
+    // Check if user has a team before opening form builder
+    if (teamMembers.length === 0) {
+      alert("You must be assigned to a team before you can create evaluation forms. Please contact an administrator to assign you to a team.")
+      return
+    }
+    
     resetFormBuilder()
     setShowFormBuilder(true)
     setEditingForm(null)
+  }
+
+  const createFromTemplate = async (template) => {
+    // Check if user has a team before creating evaluation
+    if (teamMembers.length === 0) {
+      alert("You must be assigned to a team before you can create evaluations. Please contact an administrator to assign you to a team.")
+      return
+    }
+
+    try {
+      const evaluationData = {
+        type: template.type,
+        evaluationPeriod: `${template.name} - ${new Date().toLocaleDateString()}`,
+        startDate: new Date().toISOString(),
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+        allowSelfEvaluation: true,
+        allowPeerEvaluation: true,
+        requireLeaderApproval: false
+      }
+
+      if (template.type === "work_rate") {
+        evaluationData.workRateCriteria = template.workRateCriteria
+      } else {
+        evaluationData.behavioralCriteria = template.behavioralCriteria
+      }
+
+      // Create evaluation in backend
+      const newEvaluation = await apiFetch("/evaluations", {
+        method: "POST",
+        body: JSON.stringify(evaluationData)
+      })
+
+      alert("Evaluation created from template successfully!")
+      
+      // Reload evaluations
+      const evals = await apiFetch("/evaluations")
+      const completed = evals.filter(e => e.status === 'completed').length
+      setDashboardStats(s => ({
+        ...s,
+        totalEvaluations: evals.length,
+        completedEvaluations: completed,
+        pendingEvaluations: Math.max(0, evals.length - completed),
+      }))
+      setRecentEvaluations(evals.slice(0, 5).map(e => ({
+        id: e._id,
+        type: e.type === 'work_rate' ? 'Work Performance' : 'Behavioral',
+        evaluator: 'Team Leader',
+        score: e.totalScore || 0,
+        status: e.status === 'completed' ? 'Completed' : 'Draft',
+        date: new Date(e.createdAt).toISOString().slice(0,10),
+      })))
+    } catch (error) {
+      console.error("Error creating evaluation from template:", error)
+      alert(`Failed to create evaluation: ${error.message}`)
+    }
   }
 
   const handleEditForm = (formId) => {
@@ -328,24 +519,47 @@ const DashboardPage = () => {
             })))
           }
         }
-        const evals = await apiFetch("/evaluations")
-        const completed = evals.filter(e => e.status === 'submitted').length
-        setDashboardStats(s => ({
-          ...s,
-          totalEvaluations: evals.length,
-          completedEvaluations: completed,
-          pendingEvaluations: Math.max(0, evals.length - completed),
-        }))
-        setRecentEvaluations(evals.slice(0, 5).map(e => ({
-          id: e._id,
-          type: e.formType === 'workrate' ? 'Work Performance' : 'Behavioral',
-          evaluator: e.evaluatorType,
-          score: e.totalScore || 0,
-          status: e.status === 'submitted' ? 'Completed' : 'Draft',
-          date: new Date(e.createdAt).toISOString().slice(0,10),
-        })))
+        
+        // Try to load evaluations (will return empty array if no team)
+        try {
+          const evals = await apiFetch("/evaluations")
+          const completed = evals.filter(e => e.status === 'completed').length
+          setDashboardStats(s => ({
+            ...s,
+            totalEvaluations: evals.length,
+            completedEvaluations: completed,
+            pendingEvaluations: Math.max(0, evals.length - completed),
+          }))
+          setRecentEvaluations(evals.slice(0, 5).map(e => ({
+            id: e._id,
+            type: e.type === 'work_rate' ? 'Work Performance' : 'Behavioral',
+            evaluator: 'Team Leader',
+            score: e.totalScore || 0,
+            status: e.status === 'completed' ? 'Completed' : 'Draft',
+            date: new Date(e.createdAt).toISOString().slice(0,10),
+          })))
+        } catch (evalError) {
+          console.log("Could not load evaluations (likely no team assigned):", evalError.message)
+          // Set empty state for evaluations
+          setDashboardStats(s => ({
+            ...s,
+            totalEvaluations: 0,
+            completedEvaluations: 0,
+            pendingEvaluations: 0,
+          }))
+          setRecentEvaluations([])
+        }
+
+        // Load evaluation templates
+        try {
+          const templates = await apiFetch("/evaluations/templates")
+          setEvaluationTemplates(templates)
+        } catch (templateError) {
+          console.log("Could not load templates:", templateError.message)
+          setEvaluationTemplates([])
+        }
       } catch (err) {
-        console.error(err)
+        console.error("Error loading user data:", err)
       }
     }
     load()
@@ -508,26 +722,144 @@ const DashboardPage = () => {
             <div className={styles.statsGrid}>
               <div className={styles.statCard}>
                 <div className={styles.statContent}>
-                  <h3>Total Users</h3>
-                  <p>{systemStats.totalUsers}</p>
+                  <h3>Team Members</h3>
+                  <p>{teamMembers.length}</p>
                 </div>
               </div>
               <div className={styles.statCard}>
                 <div className={styles.statContent}>
-                  <h3>Active Evaluations</h3>
-                  <p>{systemStats.activeEvaluations}</p>
+                  <h3>Total Evaluations</h3>
+                  <p>{dashboardStats.totalEvaluations}</p>
                 </div>
               </div>
               <div className={styles.statCard}>
                 <div className={styles.statContent}>
                   <h3>Completed</h3>
-                  <p>{systemStats.completedEvaluations}</p>
+                  <p>{dashboardStats.completedEvaluations}</p>
                 </div>
               </div>
               <div className={styles.statCard}>
                 <div className={styles.statContent}>
-                  <h3>Pending Approvals</h3>
-                  <p>{systemStats.pendingApprovals}</p>
+                  <h3>Pending</h3>
+                  <p>{dashboardStats.pendingEvaluations}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Team Setup Check */}
+            <div className={styles.contentGrid}>
+              <div className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <h3>Team Setup</h3>
+                  <p>Ensure your team is properly configured</p>
+                </div>
+                <div className={styles.teamSetupSection}>
+                  {teamMembers.length > 0 ? (
+                    <div className={styles.teamSetupSuccess}>
+                      <p><strong>Status:</strong> Team assigned ✓</p>
+                      <p><strong>Team Members:</strong> {teamMembers.length}</p>
+                      <p><strong>Ready to create evaluations!</strong></p>
+                    </div>
+                  ) : (
+                    <>
+                      <p>Before creating evaluations, you need to be assigned to a team by an administrator.</p>
+                      <div className={styles.teamSetupInfo}>
+                        <p><strong>Status:</strong> No team assigned</p>
+                        <p><strong>Action Required:</strong> Contact an administrator to assign you to a team</p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Evaluation Creation */}
+            <div className={styles.contentGrid}>
+              <div className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <h3>Quick Evaluation Creation</h3>
+                  <p>Create evaluations from templates or start from scratch</p>
+                </div>
+                {teamMembers.length > 0 ? (
+                  <div className={styles.templateGrid}>
+                    {evaluationTemplates.map((template) => (
+                      <div key={template._id} className={styles.templateCard}>
+                        <div className={styles.templateInfo}>
+                          <h4>{template.name}</h4>
+                          <p>{template.description || `${template.type === 'work_rate' ? 'Work Rate' : 'Behavioral'} evaluation template`}</p>
+                          <span className={styles.templateType}>{template.type === 'work_rate' ? 'Work Rate' : 'Behavioral'}</span>
+                        </div>
+                                                 <button 
+                           className={styles.createFromTemplateButton}
+                           onClick={() => createFromTemplate(template)}
+                           disabled={teamMembers.length === 0}
+                         >
+                           Use Template
+                         </button>
+                      </div>
+                    ))}
+                    <div className={styles.templateCard}>
+                      <div className={styles.templateInfo}>
+                        <h4>Custom Evaluation</h4>
+                        <p>Create a completely custom evaluation form</p>
+                        <span className={styles.templateType}>Custom</span>
+                      </div>
+                                           <button 
+                       className={styles.createFromTemplateButton}
+                       onClick={handleCreateForm}
+                       disabled={teamMembers.length === 0}
+                     >
+                       Create Custom
+                     </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={styles.teamSetupInfo}>
+                    <p><strong>Evaluation creation is disabled</strong></p>
+                    <p>You need to be assigned to a team before you can create evaluations.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Active Evaluations */}
+            <div className={styles.contentGrid}>
+              <div className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <h3>Active Evaluations</h3>
+                  <p>Currently running evaluations for your team</p>
+                </div>
+                <div className={styles.evaluationsList}>
+                  {teamMembers.length > 0 ? (
+                    recentEvaluations.length > 0 ? (
+                      recentEvaluations.map((evaluation) => (
+                        <div key={evaluation.id} className={styles.evaluationItem}>
+                          <div className={styles.evaluationInfo}>
+                            <h4>{evaluation.type}</h4>
+                            <p>Period: {evaluation.date}</p>
+                            <span className={`${styles.statusBadge} ${styles[evaluation.status.toLowerCase()]}`}>
+                              {evaluation.status}
+                            </span>
+                          </div>
+                          <div className={styles.evaluationActions}>
+                            <button className={styles.viewButton}>View Details</button>
+                            {evaluation.status === 'Draft' && (
+                              <button className={styles.evaluateButton}>Start Evaluation</button>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className={styles.noEvaluations}>
+                        <p>No evaluations created yet. Create your first evaluation using the templates above!</p>
+                      </div>
+                    )
+                  ) : (
+                    <div className={styles.teamSetupInfo}>
+                      <p><strong>No evaluations available</strong></p>
+                      <p>You need to be assigned to a team before you can view evaluations.</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -815,105 +1147,132 @@ const DashboardPage = () => {
               </div>
             ) : (
               <>
-                <div className={styles.formsHeader}>
-                  <h2>Evaluation Forms Management</h2>
-                  <div className={styles.formActionsRow}>
-                    <button className={styles.createButton} onClick={handleCreateForm}>
-                      Create New Form
-                    </button>
-                    <button className={styles.distributeButton} onClick={() => distributeForms("selected-employee-id")}>
-                      Distribute Evaluation Forms
-                    </button>
-                  </div>
-                </div>
-                <div className={styles.formsGrid}>
-                  {evaluationForms.map((form) => (
-                    <div key={form.id} className={styles.formCard}>
-                      <div className={styles.formHeader}>
-                        <h3>{form.title}</h3>
-                        <div className={styles.formActions}>
-                          <span className={`${styles.statusBadge} ${styles[form.status]}`}>{form.status}</span>
-                          <div className={styles.actionButtons}>
-                            <button className={styles.editButton} onClick={() => handleEditForm(form.id)}>
-                              Edit
-                            </button>
-                            <button className={styles.toggleButton} onClick={() => handleToggleFormStatus(form.id)}>
-                              {form.status === "active" ? "Deactivate" : "Activate"}
-                            </button>
-                            <button className={styles.deleteButton} onClick={() => handleDeleteForm(form.id)}>
-                              Delete
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <p className={styles.formDescription}>{form.description}</p>
-                      <div className={styles.formDetails}>
-                        <div className={styles.formMeta}>
-                          <span>
-                            Evaluator: <strong>{form.targetEvaluator}</strong>
-                          </span>
-                          <span>
-                            Type: <strong>{form.formType}</strong>
-                          </span>
-                          <span>
-                            Weight: <strong>{form.weight}%</strong>
-                          </span>
-                        </div>
-                        <div className={styles.formSections}>
-                          <h4>Form Sections:</h4>
-                          {form.sections.map((section, index) => (
-                            <div key={index} className={styles.sectionItem}>
-                              <span>{section.name}</span>
-                              <span className={styles.sectionWeight}>{section.weight}%</span>
-                            </div>
-                          ))}
-                        </div>
-                        <div className={styles.formDates}>
-                          <small>Created: {new Date(form.createdDate).toLocaleDateString()}</small>
-                          <small>Modified: {new Date(form.lastModified).toLocaleDateString()}</small>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                                 <div className={styles.formsHeader}>
+                   <h2>Evaluation Forms Management</h2>
+                   {teamMembers.length > 0 ? (
+                     <div className={styles.formActionsRow}>
+                       <button className={styles.createButton} onClick={handleCreateForm}>
+                         Create New Form
+                       </button>
+                       <button className={styles.distributeButton} onClick={() => distributeForms("selected-employee-id")}>
+                         Distribute Evaluation Forms
+                       </button>
+                     </div>
+                   ) : (
+                     <div className={styles.teamSetupInfo}>
+                       <p><strong>Forms management is disabled</strong></p>
+                       <p>You need to be assigned to a team before you can manage evaluation forms.</p>
+                     </div>
+                   )}
+                 </div>
+                                 {teamMembers.length > 0 ? (
+                   <div className={styles.formsGrid}>
+                     {evaluationForms.map((form) => (
+                       <div key={form.id} className={styles.formCard}>
+                         <div className={styles.formHeader}>
+                           <h3>{form.title}</h3>
+                           <div className={styles.formActions}>
+                             <span className={`${styles.statusBadge} ${styles[form.status]}`}>{form.status}</span>
+                             <div className={styles.actionButtons}>
+                               <button className={styles.editButton} onClick={() => handleEditForm(form.id)}>
+                                 Edit
+                               </button>
+                               <button className={styles.toggleButton} onClick={() => handleToggleFormStatus(form.id)}>
+                                 {form.status === "active" ? "Deactivate" : "Activate"}
+                               </button>
+                               <button className={styles.deleteButton} onClick={() => handleDeleteForm(form.id)}>
+                                 Delete
+                               </button>
+                             </div>
+                           </div>
+                         </div>
+                         <p className={styles.formDescription}>{form.description}</p>
+                         <div className={styles.formDetails}>
+                           <div className={styles.formMeta}>
+                             <span>
+                               Evaluator: <strong>{form.targetEvaluator}</strong>
+                             </span>
+                             <span>
+                               Type: <strong>{form.formType}</strong>
+                             </span>
+                             <span>
+                               Weight: <strong>{form.weight}%</strong>
+                             </span>
+                           </div>
+                           <div className={styles.formSections}>
+                             <h4>Form Sections:</h4>
+                             {form.sections.map((section, index) => (
+                               <div key={index} className={styles.sectionItem}>
+                                 <span>{section.name}</span>
+                                 <span className={styles.sectionWeight}>{section.weight}%</span>
+                               </div>
+                             ))}
+                           </div>
+                           <div className={styles.formDates}>
+                             <small>Created: {new Date(form.createdDate).toLocaleDateString()}</small>
+                             <small>Modified: {new Date(form.lastModified).toLocaleDateString()}</small>
+                           </div>
+                         </div>
+                       </div>
+                     ))}
+                   </div>
+                 ) : (
+                   <div className={styles.teamSetupInfo}>
+                     <p><strong>No forms available</strong></p>
+                     <p>You need to be assigned to a team before you can view or manage evaluation forms.</p>
+                   </div>
+                 )}
               </>
             )}
           </div>
         )
-      case "team":
-        return (
-          <div className={styles.teamContent}>
-            <h2>Team Members</h2>
-            <div className={styles.teamGrid}>
-              {teamMembers.map((member) => (
-                <div key={member.id} className={styles.teamCard}>
-                  <div className={styles.teamMemberHeader}>
-                    <img src={member.avatar || "/placeholder.svg"} alt={member.name} className={styles.teamAvatar} />
-                    <div className={styles.teamMemberInfo}>
-                      <h3>{member.name}</h3>
-                      <p>{member.role}</p>
-                      <span className={styles.teamDepartment}>{member.department}</span>
-                    </div>
-                  </div>
-                  <div className={styles.teamMemberStats}>
-                    <div className={styles.statItem}>
-                      <span className={styles.statLabel}>Last Evaluation</span>
-                      <span className={styles.statValue}>{new Date(member.lastEvaluation).toLocaleDateString()}</span>
-                    </div>
-                    <div className={styles.statItem}>
-                      <span className={styles.statLabel}>Score</span>
-                      <span className={styles.statValue}>{member.evaluationScore}%</span>
-                    </div>
-                  </div>
-                  <div className={styles.teamMemberActions}>
-                    <button className={styles.viewButton}>View Profile</button>
-                    <button className={styles.evaluateButton}>Evaluate</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )
+             case "team":
+         return (
+           <div className={styles.teamContent}>
+             <h2>Team Members</h2>
+             {teamMembers.length > 0 ? (
+               <div className={styles.teamGrid}>
+                 {teamMembers.map((member) => (
+                   <div key={member.id} className={styles.teamCard}>
+                     <div className={styles.teamMemberHeader}>
+                       <img src={member.avatar || "/placeholder.svg"} alt={member.name} className={styles.teamAvatar} />
+                       <div className={styles.teamMemberInfo}>
+                         <h3>{member.name}</h3>
+                         <p>{member.role}</p>
+                         <span className={styles.teamDepartment}>{member.department}</span>
+                       </div>
+                     </div>
+                     <div className={styles.teamMemberStats}>
+                       <div className={styles.statItem}>
+                         <span className={styles.statLabel}>Last Evaluation</span>
+                         <span className={styles.statValue}>{new Date(member.lastEvaluation).toLocaleDateString()}</span>
+                       </div>
+                       <div className={styles.statItem}>
+                         <span className={styles.statLabel}>Score</span>
+                         <span className={styles.statValue}>{member.evaluationScore}%</span>
+                       </div>
+                     </div>
+                     <div className={styles.teamMemberActions}>
+                       <button className={styles.viewButton}>View Profile</button>
+                       <button 
+                         className={styles.evaluateButton}
+                         onClick={() => distributeForms(member.id)}
+                       >
+                         Evaluate
+                       </button>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             ) : (
+               <div className={styles.teamSetupInfo}>
+                 <p><strong>No team assigned</strong></p>
+                 <p>You need to be assigned to a team by an administrator before you can view team members.</p>
+                 <p>Please contact an administrator to assign you to a team.</p>
+               </div>
+             )}
+           </div>
+         )
       case "reports":
         return (
           <div className={styles.reportsContent}>

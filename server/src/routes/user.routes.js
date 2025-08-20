@@ -6,6 +6,7 @@ import path from "path"
 import User, { USER_ROLES } from "../models/User.js"
 import Team from "../models/Team.js"
 import { requireAuth, requireRole } from "../middleware/auth.js"
+import { generateEmployeeId } from "../utils/employeeIdGenerator.js"
 
 const router = Router()
 
@@ -25,11 +26,15 @@ const upload = multer({ storage })
 
 // Current user profile
 router.get("/me", requireAuth, async (req, res) => {
+  console.log("User requesting profile:", req.user.id, req.user.role);
+  
   if (req.user.id === "admin") {
     return res.json({ id: "admin", email: process.env.ADMIN_EMAIL, role: USER_ROLES.ADMIN, firstName: "Admin", lastName: "User" })
   }
   const user = await User.findById(req.user.id).populate("team", "name members leader")
   if (!user) return res.status(404).json({ message: "Not found" })
+  
+  console.log("User found:", user.role, user.firstName, user.lastName);
   res.json(user)
 })
 
@@ -45,8 +50,29 @@ router.post(
     }
     const exists = await User.findOne({ email })
     if (exists) return res.status(409).json({ message: "User already exists" })
+    console.log("Creating user with email:", email, "role:", role)
     const passwordHash = await bcrypt.hash(password, 10)
-    const user = await User.create({ firstName, lastName, email, passwordHash, role, team: teamId || null, phone, address, emergencyContact, salary, jobTitle, level, department })
+    console.log("Password hashed successfully, hash length:", passwordHash.length)
+    // Generate unique employee ID
+    const employeeId = await generateEmployeeId()
+    
+    const user = await User.create({ 
+      employeeId,
+      firstName, 
+      lastName, 
+      email, 
+      passwordHash, 
+      role, 
+      team: teamId || null, 
+      phone, 
+      address, 
+      emergencyContact, 
+      salary, 
+      jobTitle, 
+      level, 
+      department 
+    })
+    console.log("User created successfully:", user._id, user.email, user.role)
     if (teamId) await Team.findByIdAndUpdate(teamId, { $addToSet: { members: user._id } })
     res.status(201).json(user)
   },

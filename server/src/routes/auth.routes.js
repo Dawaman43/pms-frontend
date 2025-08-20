@@ -22,9 +22,15 @@ router.post("/login", async (req, res) => {
   }
 
   // Regular users
+  console.log("Attempting login for email:", email)
   const user = await User.findOne({ email })
-  if (!user) return res.status(401).json({ message: "Invalid credentials" })
+  if (!user) {
+    console.log("User not found for email:", email)
+    return res.status(401).json({ message: "Invalid credentials" })
+  }
+  console.log("User found:", user.email, user.role, "Password hash exists:", !!user.passwordHash)
   const valid = await bcrypt.compare(password, user.passwordHash)
+  console.log("Password comparison result:", valid)
   if (!valid) return res.status(401).json({ message: "Invalid credentials" })
 
   const token = jwt.sign(

@@ -10,6 +10,7 @@ import authRoutes from "./src/routes/auth.routes.js"
 import userRoutes from "./src/routes/user.routes.js"
 import teamRoutes from "./src/routes/team.routes.js"
 import evaluationRoutes from "./src/routes/evaluation.routes.js"
+import teamLeaderRoutes from "./src/routes/teamLeader.routes.js"
 import reportRoutes from "./src/routes/report.routes.js"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -34,6 +35,7 @@ app.use("/api/auth", authRoutes)
 app.use("/api/users", userRoutes)
 app.use("/api/teams", teamRoutes)
 app.use("/api/evaluations", evaluationRoutes)
+app.use("/api/team-leader", teamLeaderRoutes)
 app.use("/api/reports", reportRoutes)
 
 // DB

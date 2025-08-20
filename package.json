@@ -10,7 +10,8 @@
     "dev:full": "concurrently \"npm run server:dev\" \"npm run dev\"",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed:templates": "node server/src/scripts/seedTemplates.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
