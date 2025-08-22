@@ -970,6 +970,30 @@
   font-weight: 600;
 }
 
+.employeeId {
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+  color: var(--primary-color);
+  background: var(--gray-50);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+}
+
+.readOnlyField {
+  background-color: var(--gray-100);
+  color: var(--gray-500);
+  cursor: not-allowed;
+  border: 1px solid var(--gray-200);
+}
+
+.helpText {
+  color: var(--gray-600);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
 .userActions {
   display: flex;
   gap: 0.5rem;

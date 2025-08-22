@@ -9,24 +9,16 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Simulate authentication check
-    const checkAuth = () => {
-      // In a real app, you would check localStorage, sessionStorage, or make an API call
-      const token = localStorage.getItem("authToken")
-      const role = localStorage.getItem("userRole")
-
-      if (token) {
-        setIsAuthenticated(true)
-        setUserRole(role)
-      } else {
-        setIsAuthenticated(false)
-        setUserRole(null)
-      }
-
-      setIsLoading(false)
+    const token = localStorage.getItem("authToken")
+    const role = localStorage.getItem("userRole")
+    if (token) {
+      setIsAuthenticated(true)
+      setUserRole(role)
+    } else {
+      setIsAuthenticated(false)
+      setUserRole(null)
     }
-
-    checkAuth()
+    setIsLoading(false)
   }, [])
 
   if (isLoading) {
