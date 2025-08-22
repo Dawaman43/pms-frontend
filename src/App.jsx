@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import DashboardPage from "./pages/DashboardPage";
@@ -7,31 +12,119 @@ import SelfAssessment from "./components/employee/SelfAssessment/SelfAssessment"
 import PeerEvaluation from "./components/employee/PeerEvaluation/PeerEvaluation";
 import Reports from "./components/employee/Reports/Reports";
 import Profile from "./components/employee/Profile/Profile";
+import ProtectedRoute from "./ProtectedRoute";
 import "./App.css";
 
 function App() {
+  const token = localStorage.getItem("token");
+  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+  const role = userData.role;
+
+  // Role-based redirect from root "/"
+  const getDefaultRoute = () => {
+    if (!token) return <Navigate to="/login" replace />;
+    switch (role) {
+      case "admin":
+        return <Navigate to="/admin-dashboard" replace />;
+      case "team_leader":
+        return <Navigate to="/team-leader-dashboard" replace />;
+      case "staff":
+        return <Navigate to="/home" replace />;
+      default:
+        return <Navigate to="/home" replace />;
+    }
+  };
+
   return (
     <Router>
       <div className="App">
         <Routes>
-          {/* Authentication Routes */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<LoginPage />} />
-          
-          
-          {/* Main Application Routes */}
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/admin-dashboard" element={<AdminDashboard />} />
-          
-          {/* Employee Feature Routes */}
-          <Route path="/self-assessment" element={<SelfAssessment />} />
-          <Route path="/peer-evaluation" element={<PeerEvaluation />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/profile" element={<Profile />} />
+          {/* Root route → role-based */}
+          <Route path="/" element={getDefaultRoute()} />
 
-          {/* Fallback Route */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          {/* Login → prevent access if already logged in */}
+          <Route
+            path="/login"
+            element={
+              token ? (
+                <Navigate
+                  to={
+                    role === "admin"
+                      ? "/admin-dashboard"
+                      : role === "team_leader"
+                      ? "/team-leader-dashboard"
+                      : "/home"
+                  }
+                  replace
+                />
+              ) : (
+                <LoginPage />
+              )
+            }
+          />
+
+          {/* Protected Routes */}
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute allowedRoles={["staff", "team_leader"]}>
+                <HomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["staff", "team_leader"]}>
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin-dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Employee Routes (staff/team leader only) */}
+          <Route
+            path="/self-assessment"
+            element={
+              <ProtectedRoute allowedRoles={["staff", "team_leader"]}>
+                <SelfAssessment />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/peer-evaluation"
+            element={
+              <ProtectedRoute allowedRoles={["staff", "team_leader"]}>
+                <PeerEvaluation />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute allowedRoles={["staff", "team_leader"]}>
+                <Reports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute allowedRoles={["staff", "team_leader", "admin"]}>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </Router>

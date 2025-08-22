@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
+import api from "../api"
 import styles from "./LoginPage.module.css"
 
 const LoginPage = () => {
@@ -35,25 +36,15 @@ const LoginPage = () => {
     setIsLoading(true)
     setError("")
 
-    // Simulate API call - role will be determined by backend
-    setTimeout(() => {
-      setIsLoading(false)
-
-      // In real implementation, this would come from your authentication API
-      let userRole = "staff" // default
-      if (formData.email.includes("admin")) {
-        userRole = "admin"
-      } else if (formData.email.includes("leader")) {
-        userRole = "team_leader"
-      }
-
-      // Store user data in localStorage
-      localStorage.setItem("userRole", userRole)
-      localStorage.setItem("authToken", "dummy-token")
-      localStorage.setItem("userEmail", formData.email)
+    try {
+      const response = await api.login(formData.email, formData.password);
+      localStorage.setItem("authToken", response.token);
+      localStorage.setItem("userRole", response.role);
+      localStorage.setItem("userEmail", formData.email);
+      localStorage.setItem("userData", JSON.stringify(response.user));
 
       // Redirect based on role determined by backend
-      switch (userRole) {
+      switch (response.role) {
         case "admin":
           navigate("/admin-dashboard")
           break
@@ -66,7 +57,11 @@ const LoginPage = () => {
         default:
           navigate("/home")
       }
-    }, 1500)
+    } catch (error) {
+      setError(error.message || "Login failed")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const togglePasswordVisibility = () => {

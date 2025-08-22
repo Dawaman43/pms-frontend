@@ -106,6 +106,23 @@
 }
 
 /* Error Styles */
+.errorMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: rgba(229, 62, 62, 0.1);
+  border: 1px solid rgba(229, 62, 62, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--error-color);
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+}
+
+.errorMessage svg {
+  flex-shrink: 0;
+}
+
 .errorText {
   font-size: 0.75rem;
   color: var(--error-color);
@@ -127,6 +144,48 @@
   gap: 2rem;
 }
 
+/* Profile Picture Section */
+.profilePictureSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profilePictureWrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.profilePicture {
+  width: 100px;
+  height: 100px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  border: 1px solid var(--gray-200);
+}
+
+.fileInput {
+  display: none;
+}
+
+.uploadButton {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--white);
+  background-color: var(--primary-color);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.uploadButton:hover {
+  background-color: var(--primary-light);
+}
+
+/* Form Grid */
 .formGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -324,6 +383,20 @@
   
   .cancelButton,
   .submitButton {
+    width: 100%;
+  }
+  
+  .profilePictureWrapper {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .profilePicture {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .uploadButton {
     width: 100%;
   }
 }

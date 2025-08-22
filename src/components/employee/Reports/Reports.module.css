@@ -55,7 +55,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Content Section */
@@ -84,6 +86,36 @@
   font-size: 1rem;
   color: var(--gray-600);
   margin: 0;
+}
+
+/* Tab Styles */
+.tabContainer {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--gray-200);
+}
+
+.tabButton {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gray-600);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tabButton:hover {
+  color: var(--primary-color);
+}
+
+.activeTab {
+  color: var(--primary-color);
+  border-bottom: 2px solid var(--primary-color);
+  font-weight: 600;
 }
 
 /* Empty State */
@@ -420,21 +452,90 @@
   background-color: var(--gray-100);
 }
 
+/* Form Actions */
+.formActions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.submitButton {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--white);
+  background-color: var(--primary-color);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.submitButton:hover {
+  background-color: var(--primary-dark);
+}
+
+.cancelButton {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gray-700);
+  background-color: var(--white);
+  border: 1px solid var(--gray-300);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.cancelButton:hover {
+  background-color: var(--gray-100);
+}
+
+.errorMessage {
+  color: #E53E3E;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.successMessage {
+  color: var(--success-color);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
 /* Responsive Styles */
 @media (max-width: 768px) {
   .contentSection {
     padding: 1.5rem;
   }
-  
+
   .reportMeta {
     grid-template-columns: 1fr;
   }
-  
+
   .tableCell {
     padding: 0.75rem 0.5rem;
   }
-  
+
   .modalContent {
     max-height: 80vh;
+  }
+
+  .tabContainer {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .tabButton {
+    padding: 0.75rem;
+    border-bottom: none;
+    border-radius: var(--radius-md);
+    background-color: var(--gray-50);
+  }
+
+  .activeTab {
+    background-color: var(--primary-color);
+    color: var(--white);
+    border-bottom: none;
   }
 }
