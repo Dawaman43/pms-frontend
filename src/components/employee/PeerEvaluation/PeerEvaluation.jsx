@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import styles from "./peerEvaluation.module.css";
+import styles from "./PeerEvaluation.module.css";
 import HomePageStyles from "../../../pages/HomePage.module.css";
 import Sidebar from "../sidebar";
 import api from "../../../api";
@@ -13,8 +13,6 @@ const PeerEvaluation = () => {
   const [user, setUser] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  const [activePopout, setActivePopout] = useState(null);
-  const location = useLocation();
   const [selectedPeers, setSelectedPeers] = useState([]);
   const [availablePeers, setAvailablePeers] = useState([]);
   const [activePeerIndex, setActivePeerIndex] = useState(null);
@@ -23,7 +21,12 @@ const PeerEvaluation = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [allEvaluations, setAllEvaluations] = useState([]);
+  const [showEvaluations, setShowEvaluations] = useState(false);
 
+  const location = useLocation();
+
+  // Use the same navLinks as in sidebar.jsx to ensure consistency
   const navLinks = [
     {
       title: "Dashboard",
@@ -52,7 +55,7 @@ const PeerEvaluation = () => {
         </svg>
       ),
       link: "/home",
-      active: location.pathname === "/home",
+      active: location.pathname === "/home" || location.pathname === "/",
     },
     {
       title: "Self Assessment",
@@ -223,14 +226,21 @@ const PeerEvaluation = () => {
             strokeLinejoin="round"
           />
           <path
-            d="M19.4 15C19.2669 15.3016 19.227 15.6363 19.2849 15.9606C19.3427 16.2849 19.4962 16.5836 19.725 16.8175C19.9538 17.0514 20.2473 17.2095 20.566 17.2709C20.8847 17.3323 21.2181 17.2943 21.52 17.16C22.3806 16.7591 23.1054 16.1044 23.5992 15.2836C24.0931 14.4628 24.3331 13.5124 24.29 12.555C24.3331 11.5976 24.0931 10.6472 23.5992 9.82639C23.1054 9.00555 22.3806 8.35093 21.52 7.95C21.2181 7.81567 20.8847 7.77774 20.566 7.83911C20.2473 7.90048 19.9538 8.05862 19.725 8.29251C19.4962 8.5264 19.3427 8.82514 19.2849 9.14944C19.227 9.47374 19.2669 9.80843 19.4 10.11"
+            d="M19.4 15C19.2669 15.3016 19.227 15.6363 19.2849 15.9606C19.3427 16.2849 19.4962 16.5836 19.725 16.8175C19.9538 17.0514 20.2473 17.2095 20.566 17.2709C20.8847 17.3323 21.2181 17.2943 21.52 17.16C22.3806 16.7591 23.1054 16.1044 23.5992 15.2836C24.0931 14.4628 24.3331 13.5124 24.29 12.555C24.3331 11.5976 24.0931 10.6472 23.5992 9.82639C23.1054 9.00555 22.3806 8.35093 21.52 7.95C21.2181 7.81567 20.8847 7.77774 20.566 7.83911C20.2473 7.90048 19.9538 8.05864 19.725 8.29254C19.4962 8.52643 19.3427 8.82515 19.2849 9.14944C19.227 9.47374 19.2669 9.80843 19.4 10.11"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
           <path
-            d="M4.6 8.85C4.73309 8.54843 4.77297 8.21374 4.71513 7.88944C4.65729 7.56514 4.50383 7.2664 4.27504 7.03251C4.04624 6.79862 3.75275 6.64048 3.43402 6.57911C3.11529 6.51774 2.78192 6.55567 2.48 6.69C1.61943 7.09094 0.894552 7.74556 0.400795 8.56639C-0.0930599 9.38723 -0.333065 10.3376 -0.29 11.295C-0.333065 12.2524 -0.0930599 13.2028 0.400795 14.0236C0.894552 14.8444 1.61943 15.4991 2.48 15.9C2.78192 16.0343 3.11529 16.0723 3.43402 16.0109C3.75275 15.9495 4.04624 15.7914 4.27504 15.5575C4.50383 15.3236 4.65729 15.0249 4.71513 14.7006C4.77297 14.3763 4.73309 14.0416 4.6 13.74"
+            d="M4.6 15C4.73309 15.3016 4.773 15.6363 4.71511 15.9606C4.6573 16.2849 4.50381 16.5836 4.275 16.8175C4.04619 17.0514 3.75266 17.2095 3.434 17.2709C3.11534 17.3323 2.78191 17.2943 2.48 17.16C1.6194 16.7591 0.894564 16.1044 0.400785 15.2836C-0.093094 14.4628 -0.333109 13.5124 -0.290002 12.555C-0.333109 11.5976 -0.093094 10.6472 0.400785 9.82639C0.894564 9.00555 1.6194 8.35093 2.48 7.95C2.78191 7.81567 3.11534 7.77774 3.434 7.83911C3.75266 7.90048 4.04619 8.05864 4.275 8.29254C4.50381 8.52643 4.6573 8.82515 4.71511 9.14944C4.773 9.47374 4.73309 9.80843 4.6 10.11"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M19.4 9C19.2669 8.6984 19.227 8.3637 19.2849 8.0394C19.3427 7.7151 19.4962 7.4164 19.725 7.1825C19.9538 6.9486 20.2473 6.7905 20.566 6.7291C20.8847 6.6677 21.2181 6.7056 21.52 6.84C22.3806 7.2409 23.1054 7.8956 23.5992 8.7164C24.0931 9.5372 24.3331 10.4876 24.29 11.445C24.3331 12.4024 24.0931 13.3528 23.5992 14.1736C23.1054 14.9944 22.3806 15.6491 21.52 16.05C21.2181 16.1843 20.8847 16.2223 20.566 16.1609C20.2473 16.0995 19.9538 15.9414 19.725 15.7075C19.4962 15.4736 19.3427 15.1749 19.2849 14.8506C19.227 14.5263 19.2669 14.1916 19.4 13.89"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
@@ -244,500 +254,324 @@ const PeerEvaluation = () => {
   ];
 
   useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-      setIsSidebarOpen(window.innerWidth >= 768);
-    };
-
-    checkIfMobile();
-    window.addEventListener("resize", checkIfMobile);
-    return () => window.removeEventListener("resize", checkIfMobile);
-  }, []);
-
-  useEffect(() => {
-    const fetchUserAndData = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        setError("");
+        const userData = JSON.parse(localStorage.getItem("userData"));
+        setUser(userData);
 
-        const tokenData = localStorage.getItem("userData");
-        if (!tokenData) throw new Error("User not logged in");
-        const userData = JSON.parse(tokenData);
+        // Fetch universal peer evaluation forms
+        const formsData = await api.getTeamPeerEvaluationForms(null);
+        setAllForms(formsData.forms || formsData);
 
-        // Get fresh user data
-        const userResponse = await api.getUserById(userData.id);
-        setUser({
-          id: userResponse.id,
-          name: userResponse.name,
-          email: userResponse.email,
-          role: userResponse.role,
-          department:
-            userResponse.department || "Information Communication Technology",
-          position: userResponse.jobTitle || "Employee",
-          avatar: userResponse.profileImage
-            ? `${userResponse.profileImage}?t=${new Date().getTime()}`
-            : "/assets/avatar-placeholder.png",
-          employeeId:
-            userResponse.employeeId ||
-            `ASTU-ICT-${String(userResponse.id).padStart(3, "0")}`,
-          phone: userResponse.phone || "",
-        });
+        // Fetch all peers
+        const peersData = await api.getAllUsersExceptCurrent();
+        setAvailablePeers(peersData.map((p) => ({ ...p, ratings: {} })));
 
-        // Fetch active peer evaluation forms + peers from same team
-        const { forms, peers } = await api.getTeamPeerEvaluationForms(
-          userData.id
-        );
+        // Fetch all evaluations
+        const evaluationsData = await api.getAllEvaluations();
+        setAllEvaluations(evaluationsData);
 
-        if (!forms || forms.length === 0) {
-          setError("No active peer evaluation forms found.");
-          setFormConfig(null);
-          setAllForms([]);
-          setAvailablePeers([]);
-          return;
-        }
-
-        // Validate all forms
-        const validForms = forms.filter((form) => {
-          const hasValidRatingScale =
-            Array.isArray(form.ratingScale) &&
-            form.ratingScale.length > 0 &&
-            form.ratingScale.every(
-              (scale) => typeof scale === "object" && scale.value && scale.label
-            );
-          const hasValidSections =
-            Array.isArray(form.sections) &&
-            form.sections.length > 0 &&
-            form.sections.every(
-              (section) =>
-                Array.isArray(section.criteria) &&
-                section.criteria.length > 0 &&
-                section.criteria.every(
-                  (criterion) =>
-                    criterion.id && criterion.name && criterion.weight
-                )
-            );
-          return hasValidRatingScale && hasValidSections;
-        });
-
-        if (validForms.length === 0) {
-          console.warn("No valid forms found:", forms);
-          setError("No valid evaluation forms available.");
-          setFormConfig(null);
-          setAllForms([]);
-          setAvailablePeers([]);
-          return;
-        }
-
-        setFormConfig(validForms[0]);
-        setAllForms(validForms);
-        setAvailablePeers(peers);
-
-        console.log("User:", userResponse);
-        console.log("Valid peer evaluation forms:", validForms);
-        console.log("Available peers:", peers);
+        setLoading(false);
       } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to fetch data. Please try again.");
-      } finally {
+        setError(err.message || "Failed to fetch data");
         setLoading(false);
       }
     };
 
-    fetchUserAndData();
+    fetchData();
+
+    // Handle mobile view
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      if (window.innerWidth <= 768) {
+        setIsSidebarOpen(false); // Close sidebar by default on mobile
+      } else {
+        setIsSidebarOpen(true); // Open sidebar by default on desktop
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-    setActivePopout(null);
+  const handleRatingChange = (peerIndex, criterionId, value) => {
+    setSelectedPeers((prev) => {
+      const newPeers = [...prev];
+      newPeers[peerIndex].ratings = {
+        ...newPeers[peerIndex].ratings,
+        [criterionId]: value,
+      };
+      return newPeers;
+    });
   };
 
-  const togglePopout = (item) => {
-    setActivePopout(activePopout === item ? null : item);
-  };
-
-  const handleSelectPeer = (peer) => {
-    if (selectedPeers.some((selected) => selected.id === peer.id)) {
-      alert("This peer is already selected for evaluation.");
-      return;
+  const handlePeerSelect = (peer) => {
+    if (!selectedPeers.find((p) => p.id === peer.id)) {
+      setSelectedPeers((prev) => [...prev, { ...peer, ratings: {} }]);
+      setActivePeerIndex(selectedPeers.length);
     }
-
-    setSelectedPeers([...selectedPeers, { ...peer, ratings: {} }]);
   };
 
   const handleRemovePeer = (index) => {
-    const newSelectedPeers = selectedPeers.filter((_, i) => i !== index);
-    setSelectedPeers(newSelectedPeers);
-    if (activePeerIndex === index || selectedPeers.length <= 1) {
-      setActivePeerIndex(null);
-    } else if (activePeerIndex > index && activePeerIndex > 0) {
+    setSelectedPeers((prev) => prev.filter((_, i) => i !== index));
+    if (activePeerIndex >= index && activePeerIndex > 0) {
       setActivePeerIndex(activePeerIndex - 1);
+    } else if (selectedPeers.length === 1) {
+      setActivePeerIndex(null);
     }
   };
 
-  const handleRatingChange = (peerIndex, criterionId, value) => {
-    const newSelectedPeers = [...selectedPeers];
-    newSelectedPeers[peerIndex].ratings[criterionId] = parseInt(value) || 0;
-    setSelectedPeers(newSelectedPeers);
-  };
-
-  const handleSubmit = async () => {
-    if (!formConfig) {
-      alert("Evaluation form not loaded.");
-      return;
-    }
-
-    if (activePeerIndex === null || !selectedPeers[activePeerIndex]) {
-      alert("Please select a peer to evaluate.");
-      return;
-    }
-
-    const peerId = selectedPeers[activePeerIndex].id;
-    const ratings = selectedPeers[activePeerIndex].ratings;
-    if (!ratings || Object.keys(ratings).length === 0) {
-      alert("Please provide ratings for all questions.");
-      return;
-    }
-
-    const evaluationData = {
-      user_id: peerId,
-      form_id: formConfig.id,
-      scores: ratings,
-    };
-
-    setIsSubmitting(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const response = await api.submitEvaluation(evaluationData);
-      setSuccess("Evaluation submitted successfully!");
-      setError("");
-      console.log("Submitted:", response);
+      setIsSubmitting(true);
+      const form = allForms[selectedFormIndex];
+      const peer = selectedPeers[activePeerIndex];
 
-      if (activePeerIndex + 1 < selectedPeers.length) {
-        setActivePeerIndex(activePeerIndex + 1);
-      }
-    } catch (error) {
-      console.error("Error submitting evaluation:", error);
-      setError("Failed to submit evaluation.");
+      const evaluationData = {
+        form_id: form.id,
+        user_id: peer.id,
+        scores: selectedPeers[activePeerIndex].ratings,
+        comments: "", // Add comments input if needed
+      };
+
+      await api.submitEvaluation(evaluationData);
+      setSuccess("Evaluation submitted successfully");
+
+      // Update evaluations list
+      const evaluationsData = await api.getAllEvaluations();
+      setAllEvaluations(evaluationsData);
+
+      // Reset ratings for the peer
+      setSelectedPeers((prev) =>
+        prev.map((p, i) => (i === activePeerIndex ? { ...p, ratings: {} } : p))
+      );
+    } catch (err) {
+      setError(err.message || "Failed to submit evaluation");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (loading || !user) {
-    return (
-      <div className={HomePageStyles.homeContainer}>
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingSpinner}></div>
-          <p>Loading peer evaluation...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={HomePageStyles.homeContainer}>
       <Sidebar
-        isSidebarOpen={isSidebarOpen}
-        toggleSidebar={toggleSidebar}
-        user={user}
+        isOpen={isSidebarOpen}
+        toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         navLinks={navLinks}
-        activePopout={activePopout}
-        togglePopout={togglePopout}
-        location={location}
+        user={user}
+        isMobile={isMobile}
       />
-
       <div
         className={`${HomePageStyles.mainWrapper} ${
-          !isSidebarOpen ? HomePageStyles.mainWrapperFull : ""
+          isSidebarOpen ? "" : HomePageStyles.mainWrapperFull
         }`}
       >
-        <header className={HomePageStyles.header}>
-          <div className={HomePageStyles.headerContent}>
-            <div className={HomePageStyles.headerLeft}>
-              {isMobile && (
-                <button
-                  className={HomePageStyles.mobileMenuButton}
-                  onClick={toggleSidebar}
-                >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
+        <main className={HomePageStyles.mainContent}>
+          <section className={HomePageStyles.section}>
+            <div className={styles.contentSection}>
+              {loading ? (
+                <div className={styles.loadingContainer}>
+                  <div className={styles.loadingSpinner}></div>
+                  <p>Loading peer evaluation data...</p>
+                </div>
+              ) : error ? (
+                <div className={styles.errorMessage}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                     <path
-                      d="M3 12H21M3 6H21M3 18H21"
+                      d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M15 9L9 15"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M9 9L15 15"
                       stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
                   </svg>
-                </button>
+                  {error}
+                </div>
+              ) : success ? (
+                <div className={styles.successMessage}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9788C18.7182 19.7028 16.9033 20.9729 14.8354 21.5839C12.7674 22.195 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.7649 14.1003 1.98232 16.07 2.85999"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M22 4L12 14.01L9 11.01"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  {success}
+                </div>
+              ) : null}
+
+              {showEvaluations && allEvaluations.length > 0 && (
+                <div className={styles.evaluationTableContainer}>
+                  <table className={styles.evaluationTable}>
+                    <thead>
+                      <tr>
+                        <th className={styles.tableHeader}>ID</th>
+                        <th className={styles.tableHeader}>Form ID</th>
+                        <th className={styles.tableHeader}>User ID</th>
+                        <th className={styles.tableHeader}>Evaluator ID</th>
+                        <th className={styles.tableHeader}>Scores</th>
+                        <th className={styles.tableHeader}>Comments</th>
+                        <th className={styles.tableHeader}>Submitted At</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allEvaluations.map((evaluation) => (
+                        <tr key={evaluation.id} className={styles.tableRow}>
+                          <td className={styles.tableCell}>{evaluation.id}</td>
+                          <td className={styles.tableCell}>
+                            {evaluation.form_id}
+                          </td>
+                          <td className={styles.tableCell}>
+                            {evaluation.user_id}
+                          </td>
+                          <td className={styles.tableCell}>
+                            {evaluation.evaluator_id}
+                          </td>
+                          <td className={styles.tableCell}>
+                            {JSON.stringify(evaluation.scores)}
+                          </td>
+                          <td className={styles.tableCell}>
+                            {evaluation.comments || "None"}
+                          </td>
+                          <td className={styles.tableCell}>
+                            {new Date(evaluation.submitted_at).toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
-              <div className={HomePageStyles.systemTitle}>
-                <h1>Performance Management System</h1>
-                <p>Adama Science & Technology University</p>
-              </div>
-            </div>
 
-            <div className={HomePageStyles.userSection}>
-              <div className={HomePageStyles.userInfo}>
-                <span className={HomePageStyles.userName}>{user.name}</span>
-                <span className={HomePageStyles.userRole}>{user.role}</span>
-              </div>
-              <div className={HomePageStyles.avatarContainer}>
-                <img
-                  src={user.avatar}
-                  alt="User Avatar"
-                  className={HomePageStyles.userAvatar}
-                  onError={(e) => {
-                    console.error("Header avatar failed to load:", user.avatar);
-                    e.target.src = "/assets/avatar-placeholder.png";
-                  }}
-                />
-                <div className={HomePageStyles.statusIndicator}></div>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <main className={HomePageStyles.mainContent}>
-          <section className={styles.contentSection}>
-            <div className={styles.headerSection}>
-              <h2 className={styles.pageTitle}>Peer Evaluation</h2>
-              <p className={styles.pageSubtitle}>
-                Select and evaluate your peers
-              </p>
-            </div>
-
-            {success && (
-              <div className={styles.successMessage}>
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.709 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.7649 14.1003 1.98232 16.07 2.85999"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M22 4L12 14.01L9 11.01"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <span>{success}</span>
-              </div>
-            )}
-
-            {error && (
-              <div className={styles.errorMessage}>
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z"
-                    fill="currentColor"
-                  />
-                </svg>
-                <span>{error}</span>
-              </div>
-            )}
-
-            {allForms.length > 0 && (
               <div className={styles.formSelector}>
-                <label htmlFor="formSelect" className={styles.panelTitle}>
-                  Select Evaluation Form:
-                </label>
+                <label htmlFor="formSelect">Select Evaluation Form</label>
                 <select
                   id="formSelect"
+                  className={styles.formSelect}
                   value={selectedFormIndex}
-                  onChange={(e) => {
-                    const index = parseInt(e.target.value);
-                    setSelectedFormIndex(index);
-                    setFormConfig(allForms[index]);
-                    setSelectedPeers([]);
-                    setActivePeerIndex(null);
-                    console.log("Selected form:", allForms[index]);
-                  }}
-                  className={`${styles.ratingSelect} ${styles.formSelect}`}
+                  onChange={(e) => setSelectedFormIndex(Number(e.target.value))}
                 >
-                  {allForms.map((form, idx) => (
-                    <option key={form.id} value={idx}>
-                      {form.title}{" "}
-                      {form.description
-                        ? `(${form.description})`
-                        : `(${idx + 1})`}
+                  {allForms.map((form, index) => (
+                    <option key={form.id} value={index}>
+                      {form.title} ({form.formType})
                     </option>
                   ))}
                 </select>
               </div>
-            )}
 
-            <div className={styles.peerEvaluationContainer}>
-              <div className={styles.peerSelectionPanel}>
-                <h3 className={styles.panelTitle}>Select Peers to Evaluate</h3>
-                <div className={styles.peerList}>
-                  {availablePeers.map((peer) => (
-                    <div
-                      key={peer.id}
-                      className={styles.peerCard}
-                      onClick={() => handleSelectPeer(peer)}
-                    >
-                      <div className={styles.peerAvatar}>
-                        <span>{peer.name.charAt(0)}</span>
-                      </div>
-                      <div className={styles.peerInfo}>
-                        <h4>{peer.name}</h4>
-                        <p>{peer.role}</p>
-                        <span className={styles.peerDepartment}>
-                          {peer.department}
-                        </span>
-                      </div>
-                      <button className={styles.addPeerButton}>
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M12 5V19M5 12H19"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className={styles.evaluationPanel}>
-                <h3 className={styles.panelTitle}>Selected Peers</h3>
-
-                {selectedPeers.length === 0 ? (
-                  <div className={styles.emptyState}>
-                    <svg
-                      width="48"
-                      height="48"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 19V21"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M16 3.13C16.8604 3.3503 17.623 3.8507 18.1676 4.55231C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89317 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <p>
-                      No peers selected yet. Please select peers from the list
-                      to evaluate.
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div className={styles.selectedPeerTabs}>
-                      {selectedPeers.map((peer, index) => (
-                        <div
-                          key={peer.id}
-                          className={`${styles.peerTab} ${
-                            activePeerIndex === index ? styles.activeTab : ""
-                          }`}
-                          onClick={() => setActivePeerIndex(index)}
-                        >
-                          <span>{peer.name}</span>
-                          <button
-                            className={styles.removePeerButton}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemovePeer(index);
-                            }}
-                          >
-                            <svg
-                              width="14"
-                              height="14"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M18 6L6 18M6 6L18 18"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </button>
+              <div className={styles.peerEvaluationContainer}>
+                <div className={styles.peerSelectionPanel}>
+                  <h3 className={styles.panelTitle}>
+                    Select Peers to Evaluate
+                  </h3>
+                  <div className={styles.peerList}>
+                    {availablePeers.map((peer) => (
+                      <div
+                        key={peer.id}
+                        className={styles.peerCard}
+                        onClick={() => handlePeerSelect(peer)}
+                      >
+                        <div className={styles.peerAvatar}>
+                          {peer.name.charAt(0)}
                         </div>
-                      ))}
-                    </div>
+                        <div className={styles.peerInfo}>
+                          <h4 className={styles.peerName}>{peer.name}</h4>
+                          <p className={styles.peerRole}>{peer.role}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-                    {activePeerIndex !== null &&
-                      allForms.length > 0 &&
-                      allForms.map((form) => (
-                        <div key={form.id} className={styles.evaluationForm}>
-                          <div className={styles.activePeerHeader}>
-                            <h4>
-                              Evaluating: {selectedPeers[activePeerIndex].name}
-                            </h4>
-                            <p>
-                              {selectedPeers[activePeerIndex].role} |{" "}
-                              {selectedPeers[activePeerIndex].department}
-                            </p>
-                          </div>
+                <div className={styles.evaluationPanel}>
+                  <h3 className={styles.panelTitle}>Evaluation</h3>
+                  <div className={styles.selectedPeerTabs}>
+                    {selectedPeers.map((peer, index) => (
+                      <div
+                        key={peer.id}
+                        className={`${styles.peerTab} ${
+                          activePeerIndex === index ? styles.activeTab : ""
+                        }`}
+                        onClick={() => setActivePeerIndex(index)}
+                      >
+                        {peer.name}
+                        <button
+                          className={styles.removePeerButton}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemovePeer(index);
+                          }}
+                        >
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M18 6L6 18"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M6 6L18 18"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
 
+                  {activePeerIndex !== null && allForms.length > 0 && (
+                    <div className={styles.evaluationForm}>
+                      <div className={styles.activePeerHeader}>
+                        <h4>
+                          Evaluating: {selectedPeers[activePeerIndex].name}
+                        </h4>
+                        <p>
+                          {selectedPeers[activePeerIndex].role} | Department ID:{" "}
+                          {selectedPeers[activePeerIndex].department_id}
+                        </p>
+                      </div>
+
+                      {allForms.map((form) => (
+                        <div key={form.id}>
                           <h5>
                             {form.title} – {form.description}
                           </h5>
-
-                          <form
-                            onSubmit={(e) => {
-                              e.preventDefault();
-                              handleSubmit();
-                            }}
-                          >
+                          <form onSubmit={handleSubmit}>
                             <div className={styles.evaluationTableContainer}>
                               <table className={styles.evaluationTable}>
                                 <thead>
@@ -841,8 +675,9 @@ const PeerEvaluation = () => {
                           </form>
                         </div>
                       ))}
-                  </>
-                )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </section>
