@@ -18,7 +18,6 @@ const Profile = () => {
     name: "",
     email: "",
     employeeId: "",
-    department: "",
     position: "",
     phone: "",
     currentPassword: "",
@@ -280,26 +279,18 @@ const Profile = () => {
           name: response.name,
           email: response.email,
           role: response.role,
-          department:
-            response.department || "Information Communication Technology",
           position: response.jobTitle || "Employee",
           avatar: response.profileImage
-            ? `${response.profileImage}?t=${new Date().getTime()}`
+            ? `${response.profileImage}`
             : "/assets/avatar-placeholder.png",
-          employeeId:
-            response.employeeId ||
-            `ASTU-ICT-${String(response.id).padStart(3, "0")}`,
+          employeeId: response.id || "",
           phone: response.phone || "",
         });
         setProfileData({
           name: response.name || "",
           email: response.email || "",
-          employeeId:
-            response.employeeId ||
-            `ASTU-ICT-${String(response.id).padStart(3, "0")}`,
-          department:
-            response.department || "Information Communication Technology",
-          position: response.jobTitle || "Employee",
+          employeeId: response.id || "",
+          position: response.jobTitle || "",
           phone: response.phone || "",
           currentPassword: "",
           newPassword: "",
@@ -308,26 +299,35 @@ const Profile = () => {
         });
         setImagePreview(
           response.profileImage
-            ? `${response.profileImage}?t=${new Date().getTime()}`
+            ? `${response.profileImage}`
             : "/assets/avatar-placeholder.png"
         );
-      } catch (err) {
-        console.error("Error fetching user:", err);
-        setErrors({ general: "Failed to fetch user data. Please try again." });
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        setErrors({ general: error.message });
       } finally {
         setLoading(false);
       }
     };
+
     fetchUser();
   }, []);
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-    setActivePopout(null);
-  };
-
-  const togglePopout = (item) => {
-    setActivePopout(activePopout === item ? null : item);
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === "profilePicture") {
+      const file = files[0];
+      setProfileData((prev) => ({ ...prev, profilePicture: file }));
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => setImagePreview(reader.result);
+        reader.readAsDataURL(file);
+      } else {
+        setImagePreview("/assets/avatar-placeholder.png");
+      }
+    } else {
+      setProfileData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const togglePasswordVisibility = (field) => {
@@ -337,145 +337,57 @@ const Profile = () => {
     }));
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setProfileData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const validTypes = ["image/jpeg", "image/png"];
-      if (!validTypes.includes(file.type)) {
-        setErrors((prev) => ({
-          ...prev,
-          profilePicture: "Please upload a JPEG or PNG image",
-        }));
-        return;
-      }
-      const maxSize = 5 * 1024 * 1024;
-      if (file.size > maxSize) {
-        setErrors((prev) => ({
-          ...prev,
-          profilePicture: "Image size must not exceed 5MB",
-        }));
-        return;
-      }
-      setProfileData((prev) => ({ ...prev, profilePicture: file }));
-      setErrors((prev) => ({ ...prev, profilePicture: "" }));
-      setImagePreview(URL.createObjectURL(file));
-    }
-  };
-
   const validateForm = () => {
     const newErrors = {};
     if (!profileData.name) newErrors.name = "Name is required";
-    if (
-      !profileData.email ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profileData.email)
-    )
-      newErrors.email = "Valid email is required";
-    if (
-      profileData.newPassword ||
-      profileData.currentPassword ||
-      profileData.confirmPassword
-    ) {
-      if (!profileData.currentPassword)
+    if (!profileData.email) newErrors.email = "Email is required";
+    if (profileData.newPassword || profileData.confirmPassword) {
+      if (profileData.newPassword.length < 8) {
+        newErrors.newPassword = "New password must be at least 8 characters";
+      }
+      if (profileData.newPassword !== profileData.confirmPassword) {
+        newErrors.confirmPassword = "Passwords do not match";
+      }
+      if (!profileData.currentPassword) {
         newErrors.currentPassword =
           "Current password is required to change password";
-      if (profileData.newPassword && profileData.newPassword.length < 8)
-        newErrors.newPassword = "New password must be at least 8 characters";
-      if (profileData.newPassword !== profileData.confirmPassword)
-        newErrors.confirmPassword = "Passwords do not match";
+      }
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const withTimeout = (promise, timeoutMs = 10000) => {
-    return Promise.race([
-      promise,
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Request timed out")), timeoutMs)
-      ),
-    ]);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) {
-      console.log("Validation errors:", errors);
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
+    setSuccess("");
     setErrors({});
+
     try {
       const userData = {
         name: profileData.name,
         email: profileData.email,
-        department: profileData.department,
         jobTitle: profileData.position,
         phone: profileData.phone,
       };
 
-      console.log("Updating user with data:", userData);
-      try {
-        await withTimeout(api.updateUser(user.id, userData));
-      } catch (err) {
-        throw new Error(`Failed to update user: ${err.message}`);
-      }
+      await api.updateUser(user.id, userData);
 
-      if (
-        profileData.currentPassword &&
-        profileData.newPassword &&
-        profileData.confirmPassword
-      ) {
-        console.log("Updating password...");
-        try {
-          await withTimeout(
-            api.updateUserPassword(
-              user.id,
-              profileData.currentPassword,
-              profileData.newPassword
-            )
-          );
-        } catch (err) {
-          throw new Error(`Failed to update password: ${err.message}`);
-        }
-      }
-
-      let newProfileImage = user.avatar;
       if (profileData.profilePicture) {
-        console.log("Uploading profile picture...");
-        try {
-          const uploadResponse = await withTimeout(
-            api.uploadProfilePicture(user.id, profileData.profilePicture)
-          );
-          newProfileImage = uploadResponse.profileImage
-            ? `${uploadResponse.profileImage}?t=${new Date().getTime()}`
-            : URL.createObjectURL(profileData.profilePicture);
-        } catch (err) {
-          throw new Error(`Failed to upload profile picture: ${err.message}`);
-        }
+        await api.uploadProfilePicture(user.id, profileData.profilePicture);
       }
 
-      console.log("Fetching updated user data...");
-      const updatedUser = await withTimeout(api.getUserById(user.id));
-      console.log("Updated user data:", updatedUser);
+      if (profileData.newPassword && profileData.currentPassword) {
+        await api.updateUserPassword(
+          user.id,
+          profileData.currentPassword,
+          profileData.newPassword
+        );
+      }
 
-      setUser({
-        ...user,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        department: updatedUser.department,
-        jobTitle: updatedUser.jobTitle,
-        phone: updatedUser.phone,
-        avatar: updatedUser.profileImage
-          ? `${updatedUser.profileImage}?t=${new Date().getTime()}`
-          : newProfileImage,
-      });
+      setSuccess("Profile updated successfully");
       setProfileData((prev) => ({
         ...prev,
         currentPassword: "",
@@ -483,111 +395,105 @@ const Profile = () => {
         confirmPassword: "",
         profilePicture: null,
       }));
-      setImagePreview(
-        updatedUser.profileImage
-          ? `${updatedUser.profileImage}?t=${new Date().getTime()}`
-          : newProfileImage
-      );
-      setSuccess("Profile updated successfully!");
-    } catch (err) {
-      console.error("Error updating profile:", err);
-      setErrors({
-        general: err.message || "Failed to update profile. Please try again.",
+      setImagePreview("/assets/avatar-placeholder.png");
+
+      // Refresh user data
+      const response = await api.getUserById(user.id);
+      setUser({
+        id: response.id,
+        name: response.name,
+        email: response.email,
+        role: response.role,
+        position: response.jobTitle || "Employee",
+        avatar: response.profileImage
+          ? `${response.profileImage}`
+          : "/assets/avatar-placeholder.png",
+        employeeId: response.id || "",
+        phone: response.phone || "",
       });
+    } catch (error) {
+      setErrors({ general: error.message });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (loading || !user) {
+  if (loading) {
     return (
-      <div className={HomePageStyles.homeContainer}>
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingSpinner}></div>
-          <p>Loading profile...</p>
-        </div>
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <span>Loading...</span>
       </div>
     );
   }
 
   return (
-    <div className={HomePageStyles.homeContainer}>
+    <div className={styles.container}>
       <Sidebar
-        isSidebarOpen={isSidebarOpen}
-        toggleSidebar={toggleSidebar}
-        user={user}
         navLinks={navLinks}
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+        isMobile={isMobile}
         activePopout={activePopout}
-        togglePopout={togglePopout}
-        location={location}
+        setActivePopout={setActivePopout}
       />
-
       <div
-        className={`${HomePageStyles.mainWrapper} ${
-          !isSidebarOpen ? HomePageStyles.mainWrapperFull : ""
+        className={`${styles.mainContent} ${
+          isSidebarOpen && !isMobile ? styles.sidebarOpen : ""
         }`}
       >
-        <header className={HomePageStyles.header}>
-          <div className={HomePageStyles.headerContent}>
-            <div className={HomePageStyles.headerLeft}>
-              {isMobile && (
-                <button
-                  className={HomePageStyles.mobileMenuButton}
-                  onClick={toggleSidebar}
+        <header className={styles.header}>
+          <div className={styles.headerContent}>
+            {isMobile && (
+              <button
+                className={styles.menuToggle}
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
                 >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M3 12H21M3 6H21M3 18H21"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-              )}
-              <div className={HomePageStyles.systemTitle}>
-                <h1>Performance Management System</h1>
-                <p>Adama Science & Technology University</p>
-              </div>
-            </div>
-
-            <div className={HomePageStyles.userSection}>
-              <div className={HomePageStyles.userInfo}>
-                <span className={HomePageStyles.userName}>{user.name}</span>
-                <span className={HomePageStyles.userRole}>{user.role}</span>
-              </div>
-              <div className={HomePageStyles.avatarContainer}>
-                <img
-                  src={user.avatar}
-                  alt="User Avatar"
-                  className={HomePageStyles.userAvatar}
-                  onError={(e) => {
-                    console.error("Header avatar failed to load:", user.avatar);
-                    e.target.src = "/assets/avatar-placeholder.png";
-                  }}
-                />
-                <div className={HomePageStyles.statusIndicator}></div>
-              </div>
+                  <path
+                    d="M3 6H21"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M3 12H21"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M3 18H21"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
+            <h1 className={styles.pageTitle}>Profile</h1>
+            <div className={styles.userInfo}>
+              <span>{user?.name}</span>
+              <img
+                src={user?.avatar || "/assets/avatar-placeholder.png"}
+                alt="User avatar"
+                className={styles.avatar}
+              />
             </div>
           </div>
         </header>
 
-        <main className={HomePageStyles.mainContent}>
-          <section className={styles.contentSection}>
-            <div className={styles.headerSection}>
-              <h2 className={styles.pageTitle}>User Profile</h2>
-              <p className={styles.pageSubtitle}>
-                Manage your personal information
-              </p>
-            </div>
-
+        <main className={styles.main}>
+          <section className={styles.profileSection}>
             {success && (
               <div className={styles.successMessage}>
                 <svg
@@ -598,24 +504,16 @@ const Profile = () => {
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
-                    d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.709 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.7649 14.1003 1.98232 16.07 2.85999"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M22 4L12 14.01L9 11.01"
+                    d="M20 6L9 17L4 12"
                     stroke="currentColor"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span>{success}</span>
+                {success}
               </div>
             )}
-
             {errors.general && (
               <div className={styles.errorMessage}>
                 <svg
@@ -626,372 +524,384 @@ const Profile = () => {
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
-                    d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z"
-                    fill="currentColor"
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M12 8V12"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M12 16H12.01"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                 </svg>
-                <span>{errors.general}</span>
+                {errors.general}
               </div>
             )}
-
             <form onSubmit={handleSubmit} className={styles.profileForm}>
-              <div className={styles.profilePictureSection}>
-                <label className={styles.formLabel}>Profile Picture</label>
-                <div className={styles.profilePictureWrapper}>
-                  <img
-                    src={imagePreview}
-                    alt="Profile Preview"
-                    className={styles.profilePicture}
-                    onError={(e) => {
-                      console.error(
-                        "Profile picture failed to load:",
-                        imagePreview
-                      );
-                      e.target.src = "/assets/avatar-placeholder.png";
-                    }}
-                  />
-                  <input
-                    type="file"
-                    id="profilePicture"
-                    accept="image/jpeg,image/png"
-                    onChange={handleImageChange}
-                    className={styles.fileInput}
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      document.getElementById("profilePicture").click()
-                    }
-                    className={styles.uploadButton}
-                  >
-                    Upload New Picture
-                  </button>
-                </div>
-                {errors.profilePicture && (
-                  <span className={styles.errorText}>
-                    {errors.profilePicture}
-                  </span>
-                )}
-              </div>
-
               <div className={styles.formGrid}>
-                <div className={styles.formGroup}>
-                  <label className={`${styles.formLabel} ${styles.required}`}>
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={profileData.name}
-                    onChange={handleChange}
-                    className={`${styles.formInput} ${
-                      errors.name ? styles.errorInput : ""
-                    }`}
-                    placeholder="Enter your full name"
-                    required
-                  />
-                  {errors.name && (
-                    <span className={styles.errorText}>{errors.name}</span>
-                  )}
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={`${styles.formLabel} ${styles.required}`}>
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={profileData.email}
-                    onChange={handleChange}
-                    className={`${styles.formInput} ${
-                      errors.email ? styles.errorInput : ""
-                    }`}
-                    placeholder="Enter your email"
-                    required
-                  />
-                  {errors.email && (
-                    <span className={styles.errorText}>{errors.email}</span>
-                  )}
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Employee ID</label>
-                  <input
-                    type="text"
-                    name="employeeId"
-                    value={profileData.employeeId}
-                    className={styles.formInput}
-                    disabled
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Department</label>
-                  <input
-                    type="text"
-                    name="department"
-                    value={profileData.department}
-                    onChange={handleChange}
-                    className={styles.formInput}
-                    placeholder="Enter your department"
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Position</label>
-                  <input
-                    type="text"
-                    name="position"
-                    value={profileData.position}
-                    onChange={handleChange}
-                    className={styles.formInput}
-                    placeholder="Enter your position"
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Phone Number</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={profileData.phone}
-                    onChange={handleChange}
-                    className={styles.formInput}
-                    placeholder="Enter your phone number"
-                  />
-                </div>
-              </div>
-
-              <div className={styles.passwordSection}>
-                <h3 className={styles.sectionTitle}>Change Password</h3>
-                <p className={styles.sectionSubtitle}>
-                  Leave blank if you don’t want to change your password
-                </p>
-
-                <div className={styles.formGrid}>
+                <div className={styles.formColumn}>
                   <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Current Password</label>
-                    <div className={styles.passwordInputWrapper}>
-                      <input
-                        type={showPassword.current ? "text" : "password"}
-                        name="currentPassword"
-                        value={profileData.currentPassword || ""}
-                        onChange={handleChange}
-                        className={`${styles.formInput} ${
-                          errors.currentPassword ? styles.errorInput : ""
-                        }`}
-                        placeholder="Enter current password"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => togglePasswordVisibility("current")}
-                        className={styles.passwordToggle}
-                      >
-                        {showPassword.current ? (
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        ) : (
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M14.12 14.12C13.8454 14.4147 13.5141 14.6512 13.1462 14.8151C12.7782 14.9791 12.3809 15.0673 11.9781 15.0744C11.5753 15.0815 11.1752 15.0074 10.8016 14.8565C10.4281 14.7056 10.0887 14.481 9.80385 14.1962C9.51897 13.9113 9.29439 13.5719 9.14351 13.1984C8.99262 12.8248 8.91853 12.4247 8.92563 12.0219C8.93274 11.6191 9.02091 11.2218 9.18488 10.8538C9.34884 10.4859 9.58525 10.1546 9.88 9.88M17.94 17.94C16.2306 19.243 14.1491 19.9649 12 20C5 20 1 12 1 12C2.24389 9.6819 3.96914 7.65661 6.06 6.06L17.94 17.94ZM9.9 4.24C10.5883 4.07888 11.2931 3.99834 12 4C19 4 23 12 23 12C22.393 13.1356 21.6691 14.2047 20.84 15.19L9.9 4.24Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M1 1L23 23"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        )}
-                      </button>
-                    </div>
-                    {errors.currentPassword && (
-                      <span className={styles.errorText}>
-                        {errors.currentPassword}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>New Password</label>
-                    <div className={styles.passwordInputWrapper}>
-                      <input
-                        type={showPassword.new ? "text" : "password"}
-                        name="newPassword"
-                        value={profileData.newPassword || ""}
-                        onChange={handleChange}
-                        className={`${styles.formInput} ${
-                          errors.newPassword ? styles.errorInput : ""
-                        }`}
-                        placeholder="Enter new password"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => togglePasswordVisibility("new")}
-                        className={styles.passwordToggle}
-                      >
-                        {showPassword.new ? (
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        ) : (
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M14.12 14.12C13.8454 14.4147 13.5141 14.6512 13.1462 14.8151C12.7782 14.9791 12.3809 15.0673 11.9781 15.0744C11.5753 15.0815 11.1752 15.0074 10.8016 14.8565C10.4281 14.7056 10.0887 14.481 9.80385 14.1962C9.51897 13.9113 9.29439 13.5719 9.14351 13.1984C8.99262 12.8248 8.91853 12.4247 8.92563 12.0219C8.93274 11.6191 9.02091 11.2218 9.18488 10.8538C9.34884 10.4859 9.58525 10.1546 9.88 9.88M17.94 17.94C16.2306 19.243 14.1491 19.9649 12 20C5 20 1 12 1 12C2.24389 9.6819 3.96914 7.65661 6.06 6.06L17.94 17.94ZM9.9 4.24C10.5883 4.07888 11.2931 3.99834 12 4C19 4 23 12 23 12C22.393 13.1356 21.6691 14.2047 20.84 15.19L9.9 4.24Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M1 1L23 23"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        )}
-                      </button>
-                    </div>
-                    {errors.newPassword && (
-                      <span className={styles.errorText}>
-                        {errors.newPassword}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>
-                      Confirm New Password
+                    <label className={`${styles.formLabel} ${styles.required}`}>
+                      Profile Picture
                     </label>
-                    <div className={styles.passwordInputWrapper}>
-                      <input
-                        type={showPassword.confirm ? "text" : "password"}
-                        name="confirmPassword"
-                        value={profileData.confirmPassword || ""}
-                        onChange={handleChange}
-                        className={`${styles.formInput} ${
-                          errors.confirmPassword ? styles.errorInput : ""
-                        }`}
-                        placeholder="Confirm new password"
+                    <div className={styles.profilePictureWrapper}>
+                      <img
+                        src={
+                          imagePreview ||
+                          user?.avatar ||
+                          "/assets/avatar-placeholder.png"
+                        }
+                        alt="Profile preview"
+                        className={styles.profilePicture}
                       />
-                      <button
-                        type="button"
-                        onClick={() => togglePasswordVisibility("confirm")}
-                        className={styles.passwordToggle}
-                      >
-                        {showPassword.confirm ? (
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        ) : (
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M14.12 14.12C13.8454 14.4147 13.5141 14.6512 13.1462 14.8151C12.7782 14.9791 12.3809 15.0673 11.9781 15.0744C11.5753 15.0815 11.1752 15.0074 10.8016 14.8565C10.4281 14.7056 10.0887 14.481 9.80385 14.1962C9.51897 13.9113 9.29439 13.5719 9.14351 13.1984C8.99262 12.8248 8.91853 12.4247 8.92563 12.0219C8.93274 11.6191 9.02091 11.2218 9.18488 10.8538C9.34884 10.4859 9.58525 10.1546 9.88 9.88M17.94 17.94C16.2306 19.243 14.1491 19.9649 12 20C5 20 1 12 1 12C2.24389 9.6819 3.96914 7.65661 6.06 6.06L17.94 17.94ZM9.9 4.24C10.5883 4.07888 11.2931 3.99834 12 4C19 4 23 12 23 12C22.393 13.1356 21.6691 14.2047 20.84 15.19L9.9 4.24Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M1 1L23 23"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
+                      <div className={styles.uploadWrapper}>
+                        <input
+                          type="file"
+                          id="profilePicture"
+                          name="profilePicture"
+                          accept="image/*"
+                          onChange={handleChange}
+                          className={styles.fileInput}
+                        />
+                        <label
+                          htmlFor="profilePicture"
+                          className={styles.uploadButton}
+                        >
+                          Upload New Image
+                        </label>
+                        {profileData.profilePicture && (
+                          <span className={styles.fileName}>
+                            {profileData.profilePicture.name}
+                          </span>
                         )}
-                      </button>
+                      </div>
                     </div>
-                    {errors.confirmPassword && (
+                    {errors.profilePicture && (
                       <span className={styles.errorText}>
-                        {errors.confirmPassword}
+                        {errors.profilePicture}
                       </span>
                     )}
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={`${styles.formLabel} ${styles.required}`}>
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={profileData.name || ""}
+                      onChange={handleChange}
+                      className={`${styles.formInput} ${
+                        errors.name ? styles.errorInput : ""
+                      }`}
+                      placeholder="Enter your full name"
+                    />
+                    {errors.name && (
+                      <span className={styles.errorText}>{errors.name}</span>
+                    )}
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={`${styles.formLabel} ${styles.required}`}>
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={profileData.email || ""}
+                      onChange={handleChange}
+                      className={`${styles.formInput} ${
+                        errors.email ? styles.errorInput : ""
+                      }`}
+                      placeholder="Enter your email"
+                    />
+                    {errors.email && (
+                      <span className={styles.errorText}>{errors.email}</span>
+                    )}
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Employee ID</label>
+                    <input
+                      type="text"
+                      name="employeeId"
+                      value={profileData.employeeId || ""}
+                      onChange={handleChange}
+                      className={styles.formInput}
+                      disabled
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Position</label>
+                    <input
+                      type="text"
+                      name="position"
+                      value={profileData.position || ""}
+                      onChange={handleChange}
+                      className={styles.formInput}
+                      placeholder="Enter your position"
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Phone</label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={profileData.phone || ""}
+                      onChange={handleChange}
+                      className={styles.formInput}
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.formColumn}>
+                  <div className={styles.passwordSection}>
+                    <h2 className={styles.sectionTitle}>Change Password</h2>
+                    <p className={styles.sectionSubtitle}>
+                      Update your password for enhanced security
+                    </p>
+                    <div className={styles.formGroup}>
+                      <label
+                        className={`${styles.formLabel} ${styles.required}`}
+                      >
+                        Current Password
+                      </label>
+                      <div className={styles.passwordInputWrapper}>
+                        <input
+                          type={showPassword.current ? "text" : "password"}
+                          name="currentPassword"
+                          value={profileData.currentPassword || ""}
+                          onChange={handleChange}
+                          className={`${styles.formInput} ${
+                            errors.currentPassword ? styles.errorInput : ""
+                          }`}
+                          placeholder="Enter current password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => togglePasswordVisibility("current")}
+                          className={styles.passwordToggle}
+                        >
+                          {showPassword.current ? (
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          ) : (
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M14.12 14.12C13.8454 14.4147 13.5141 14.6512 13.1462 14.8151C12.7782 14.9791 12.3809 15.0673 11.9781 15.0744C11.5753 15.0815 11.1752 15.0074 10.8016 14.8565C10.4281 14.7056 10.0887 14.481 9.80385 14.1962C9.51897 13.9113 9.29439 13.5719 9.14351 13.1984C8.99262 12.8248 8.91853 12.4247 8.92563 12.0219C8.93274 11.6191 9.02091 11.2218 9.18488 10.8538C9.34884 10.4859 9.58525 10.1546 9.88 9.88M17.94 17.94C16.2306 19.243 14.1491 19.9649 12 20C5 20 1 12 1 12C2.24389 9.6819 3.96914 7.65661 6.06 6.06L17.94 17.94ZM9.9 4.24C10.5883 4.07888 11.2931 3.99834 12 4C19 4 23 12 23 12C22.393 13.1356 21.6691 14.2047 20.84 15.19L9.9 4.24Z"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M1 1L23 23"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                      {errors.currentPassword && (
+                        <span className={styles.errorText}>
+                          {errors.currentPassword}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>New Password</label>
+                      <div className={styles.passwordInputWrapper}>
+                        <input
+                          type={showPassword.new ? "text" : "password"}
+                          name="newPassword"
+                          value={profileData.newPassword || ""}
+                          onChange={handleChange}
+                          className={`${styles.formInput} ${
+                            errors.newPassword ? styles.errorInput : ""
+                          }`}
+                          placeholder="Enter new password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => togglePasswordVisibility("new")}
+                          className={styles.passwordToggle}
+                        >
+                          {showPassword.new ? (
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          ) : (
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M14.12 14.12C13.8454 14.4147 13.5141 14.6512 13.1462 14.8151C12.7782 14.9791 12.3809 15.0673 11.9781 15.0744C11.5753 15.0815 11.1752 15.0074 10.8016 14.8565C10.4281 14.7056 10.0887 14.481 9.80385 14.1962C9.51897 13.9113 9.29439 13.5719 9.14351 13.1984C8.99262 12.8248 8.91853 12.4247 8.92563 12.0219C8.93274 11.6191 9.02091 11.2218 9.18488 10.8538C9.34884 10.4859 9.58525 10.1546 9.88 9.88M17.94 17.94C16.2306 19.243 14.1491 19.9649 12 20C5 20 1 12 1 12C2.24389 9.6819 3.96914 7.65661 6.06 6.06L17.94 17.94ZM9.9 4.24C10.5883 4.07888 11.2931 3.99834 12 4C19 4 23 12 23 12C22.393 13.1356 21.6691 14.2047 20.84 15.19L9.9 4.24Z"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M1 1L23 23"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                      {errors.newPassword && (
+                        <span className={styles.errorText}>
+                          {errors.newPassword}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>
+                        Confirm New Password
+                      </label>
+                      <div className={styles.passwordInputWrapper}>
+                        <input
+                          type={showPassword.confirm ? "text" : "password"}
+                          name="confirmPassword"
+                          value={profileData.confirmPassword || ""}
+                          onChange={handleChange}
+                          className={`${styles.formInput} ${
+                            errors.confirmPassword ? styles.errorInput : ""
+                          }`}
+                          placeholder="Confirm new password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => togglePasswordVisibility("confirm")}
+                          className={styles.passwordToggle}
+                        >
+                          {showPassword.confirm ? (
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          ) : (
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M14.12 14.12C13.8454 14.4147 13.5141 14.6512 13.1462 14.8151C12.7782 14.9791 12.3809 15.0673 11.9781 15.0744C11.5753 15.0815 11.1752 15.0074 10.8016 14.8565C10.4281 14.7056 10.0887 14.481 9.80385 14.1962C9.51897 13.9113 9.29439 13.5719 9.14351 13.1984C8.99262 12.8248 8.91853 12.4247 8.92563 12.0219C8.93274 11.6191 9.02091 11.2218 9.18488 10.8538C9.34884 10.4859 9.58525 10.1546 9.88 9.88M17.94 17.94C16.2306 19.243 14.1491 19.9649 12 20C5 20 1 12 1 12C2.24389 9.6819 3.96914 7.65661 6.06 6.06L17.94 17.94ZM9.9 4.24C10.5883 4.07888 11.2931 3.99834 12 4C19 4 23 12 23 12C22.393 13.1356 21.6691 14.2047 20.84 15.19L9.9 4.24Z"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M1 1L23 23"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                      {errors.confirmPassword && (
+                        <span className={styles.errorText}>
+                          {errors.confirmPassword}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

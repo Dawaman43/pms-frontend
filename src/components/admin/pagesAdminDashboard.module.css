@@ -247,6 +247,12 @@
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .cardHeader {
@@ -260,9 +266,9 @@
 }
 
 /* Form Styles */
-.registerForm {
+.registerForm, .teamForm {
   display: grid;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .formRow {
@@ -291,6 +297,7 @@
   font-size: 0.9rem;
   color: var(--secondary-color);
   background-color: var(--white);
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .formInput:focus,
@@ -317,6 +324,7 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
+  transition: background-color 0.2s;
 }
 
 .generateButton:hover {
@@ -337,6 +345,7 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
+  transition: background-color 0.2s;
 }
 
 .submitButton:hover {
@@ -351,6 +360,7 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
+  transition: background-color 0.2s;
 }
 
 .cancelButton:hover {
@@ -361,10 +371,61 @@
   padding: 0.75rem 1.5rem;
   background-color: var(--error-color);
   color: var(--white);
+  transition: background-color 0.2s;
 }
 
 .closeButton:hover {
   background-color: #c53030;
+}
+
+/* Team Management Specific Styles */
+.teamsHeader {
+  margin-bottom: 1.5rem;
+}
+
+.teamsHeader h2 {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+}
+
+.teamsHeader p {
+  font-size: 1rem;
+  color: var(--secondary-color);
+}
+
+.checkboxGroup {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--gray-300);
+  border-radius: 4px;
+  padding: 0.5rem;
+  background-color: var(--white);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--secondary-color);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.checkboxLabel:hover {
+  background-color: var(--gray-100);
+}
+
+.checkboxLabel input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary-color);
+}
+
+.checkboxLabel input[type="checkbox"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Table Styles */
@@ -395,6 +456,38 @@
   color: var(--secondary-color);
 }
 
+.actionCell {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actionButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.actionButton:first-child {
+  background-color: var(--primary-color);
+  color: var(--white);
+}
+
+.actionButton:first-child:hover {
+  background-color: var(--primary-light);
+}
+
+.actionButton:last-child {
+  background-color: var(--error-color);
+  color: var(--white);
+}
+
+.actionButton:last-child:hover {
+  background-color: #c53030;
+}
+
 /* Pagination */
 .pagination {
   display: flex;
@@ -408,9 +501,14 @@
   padding: 0.5rem 1rem;
   border: 1px solid var(--gray-300);
   border-radius: 4px;
-  background-color: var(--white);
+  background79-color: var(--white);
   cursor: pointer;
   font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.paginationButton:hover {
+  background-color: var(--gray-100);
 }
 
 .paginationButton:disabled {
@@ -542,7 +640,7 @@
     margin-top: 1rem;
   }
 
-  .statsGrid {
+  .stats Gra {
     grid-template-columns: 1fr;
   }
 
@@ -550,15 +648,15 @@
     grid-template-columns: 1fr;
   }
 
-  .registerContent {
+  .registerContent, .teamsContent {
     padding: 1rem;
   }
 
-  .registerHeader h2 {
+  .registerHeader h2, .teamsHeader h2 {
     font-size: 1.25rem;
   }
 
-  .registerHeader p {
+  .registerHeader p, .teamsHeader p {
     font-size: 0.85rem;
   }
 
@@ -568,9 +666,14 @@
   }
 
   .submitButton,
-  .generateButton {
+  .generateButton,
+  .actionButton {
     padding: 0.5rem 1rem;
     font-size: 0.85rem;
+  }
+
+  .checkboxGroup {
+    max-height: 150px;
   }
 }
 
@@ -598,7 +701,16 @@
   }
 
   .submitButton,
-  .generateButton {
+  .generateButton,
+  .actionButton {
     width: 100%;
+  }
+
+  .checkboxGroup {
+    max-height: 120px;
+  }
+
+  .actionCell {
+    flex-direction: column;
   }
 }

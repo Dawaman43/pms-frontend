@@ -71,17 +71,15 @@ const api = {
   updateEmployee: (id, data) => send(`/users/${id}`, "PUT", data),
   deleteEmployee: (id) => send(`/users/${id}`, "DELETE"),
   updateUser: (id, data) => send(`/users/${id}`, "PUT", data),
-  updateUserPassword: (id, oldPassword, newPassword) =>
-    send(`/users/${id}/password`, "PUT", { oldPassword, newPassword }),
+  updateUserPassword: (id, oldPassword, newPassword) => {
+    const data = oldPassword ? { oldPassword, newPassword } : { newPassword };
+    return send(`/users/${id}/password`, "PUT", data);
+  },
   uploadProfilePicture: (id, file) => {
     const formData = new FormData();
     formData.append("profilePicture", file);
     return send(`/users/${id}/profile-picture`, "POST", formData, true);
   },
-  getTeamLeadersByDepartment: (department_id) =>
-    get(`/users?department_id=${department_id}&role=team_leader`),
-  getStaffByDepartment: (department_id) =>
-    get(`/users?department_id=${department_id}&role=staff`),
 
   // ================= TEAMS =================
   getAllTeams: () => get("/teams"),
@@ -138,13 +136,6 @@ const api = {
   },
 
   deleteTeam: (teamId) => send(`/teams/${teamId}`, "DELETE"),
-
-  // ================= DEPARTMENTS =================
-  getAllDepartments: () => get("/departments"),
-  getDepartmentById: (id) => get(`/departments/${id}`),
-  createDepartment: (data) => send("/departments", "POST", data),
-  updateDepartment: (id, data) => send(`/departments/${id}`, "PUT", data),
-  deleteDepartment: (id) => send(`/departments/${id}`, "DELETE"),
 
   // ================= EVALUATION FORMS =================
   getEvaluationForms: () => get("/forms"),
