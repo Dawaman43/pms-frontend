@@ -288,6 +288,42 @@ const Sidebar = ({
       tabKey: "createForm",
       active: activeTab === "createForm",
     },
+    {
+      title: "Create Department",
+      icon: (
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 2L2 7H22L12 2Z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M2 17H22V22H2V17Z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M9 17V12H15V17"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+      tabKey: "departments", // Changed from "createDepartment" to match MainContent.jsx
+      active: activeTab === "departments",
+    },
   ];
 
   return (

@@ -1,11 +1,12 @@
-import Overview from "./Overview"
-import RegisterEmployee from "./RegisterEmployee"
-import TeamManagement from "./TeamManagement"
-import EmployeeList from "./EmployeeList"
-import Reports from "./Reports"
-import EditAdminProfile from "./EditAdminProfile"
-import CreateEvaluationForm from "./CreateEvaluationForm"
-import styles from "../../pages/AdminDashboard.module.css"
+import Overview from "./Overview";
+import RegisterEmployee from "./RegisterEmployee";
+import TeamManagement from "./TeamManagement";
+import EmployeeList from "./EmployeeList";
+import Reports from "./Reports";
+import EditAdminProfile from "./EditAdminProfile";
+import CreateEvaluationForm from "./CreateEvaluationForm";
+import CreateDepartment from "./CreateDepartment"; // New import
+import styles from "../../pages/AdminDashboard.module.css";
 
 const MainContent = ({
   activeTab,
@@ -43,6 +44,7 @@ const MainContent = ({
   recentActivities,
   systemStats,
   departments,
+  setDepartments, // Add setDepartments prop
   jobLevels,
   error,
   success,
@@ -67,7 +69,10 @@ const MainContent = ({
   return (
     <main className={styles.mainContent}>
       {activeTab === "overview" && (
-        <Overview systemStats={systemStats} recentActivities={recentActivities} />
+        <Overview
+          systemStats={systemStats}
+          recentActivities={recentActivities}
+        />
       )}
       {activeTab === "register" && (
         <RegisterEmployee
@@ -98,6 +103,7 @@ const MainContent = ({
           handleTeamDelete={handleTeamDelete}
           error={error}
           success={success}
+          departments={departments} // Pass departments prop
         />
       )}
       {activeTab === "employees" && (
@@ -127,7 +133,11 @@ const MainContent = ({
         />
       )}
       {activeTab === "reports" && (
-        <Reports handleGenerateReport={handleGenerateReport} error={error} success={success} />
+        <Reports
+          handleGenerateReport={handleGenerateReport}
+          error={error}
+          success={success}
+        />
       )}
       {activeTab === "editProfile" && (
         <EditAdminProfile
@@ -159,8 +169,15 @@ const MainContent = ({
           departments={departments}
         />
       )}
+      {activeTab === "departments" && (
+        <CreateDepartment
+          error={error}
+          success={success}
+          setDepartments={setDepartments}
+        />
+      )}
     </main>
-  )
-}
+  );
+};
 
-export default MainContent
+export default MainContent;

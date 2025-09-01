@@ -1,48 +1,56 @@
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "https://pms-api.astu.edu.et/api";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
+/** Get authorization headers if token exists */
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
-  return {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
+  return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
+/** Handle API response and errors */
 const handleResponse = async (response) => {
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-
-    // Auto-logout if 401 Unauthorized
+    let errorData = {};
+    try {
+      errorData = await response.json();
+    } catch {}
     if (response.status === 401) {
-      console.warn("Token expired or invalid. Logging out...");
+      console.warn("Unauthorized. Logging out...");
       localStorage.removeItem("token");
       localStorage.removeItem("userData");
       localStorage.removeItem("userRole");
-
-      // Redirect to login
       window.location.href = "/login";
-
-      return; // stop further processing
+      return;
     }
-
     throw new Error(
       errorData.message || `HTTP error! Status: ${response.status}`
     );
   }
-
   return response.json();
 };
 
-const api = {
-  // ================== AUTH ==================
-  login: async (email, password) => {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await handleResponse(response);
+/** Helper function for GET requests */
+const get = (url) =>
+  fetch(`${API_BASE_URL}${url}`, { headers: getAuthHeaders() }).then(
+    handleResponse
+  );
 
+/** Helper function for POST/PUT requests */
+const send = (url, method, data, isFormData = false) => {
+  const headers = isFormData
+    ? getAuthHeaders()
+    : { "Content-Type": "application/json", ...getAuthHeaders() };
+  const body = isFormData ? data : JSON.stringify(data);
+  return fetch(`${API_BASE_URL}${url}`, { method, headers, body }).then(
+    handleResponse
+  );
+};
+
+/** API object */
+const api = {
+  // ================= AUTH =================
+  login: async (email, password) => {
+    const data = await send("/auth/login", "POST", { email, password });
     localStorage.setItem("token", data.token);
     localStorage.setItem(
       "userData",
@@ -56,314 +64,113 @@ const api = {
     return data;
   },
 
-  // ================== USERS ==================
-  getUserById: async (userId) => {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
-    return handleResponse(response);
-  },
-
-  getAllUsers: async () => {
-    const response = await fetch(`${API_BASE_URL}/users`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
-    return handleResponse(response);
-  },
-
-  updateUser: async (userId, userData) => {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify(userData),
-    });
-    return handleResponse(response);
-  },
-
-  updateUserPassword: async (userId, oldPassword, newPassword) => {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}/password`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify({ oldPassword, newPassword }),
-    });
-    return handleResponse(response);
-  },
-
-  uploadProfilePicture: async (userId, file) => {
+  // ================= USERS =================
+  getUserById: (id) => get(`/users/${id}`),
+  getAllUsers: () => get("/users"),
+  createEmployee: (data) => send("/users", "POST", data),
+  updateEmployee: (id, data) => send(`/users/${id}`, "PUT", data),
+  deleteEmployee: (id) => send(`/users/${id}`, "DELETE"),
+  updateUser: (id, data) => send(`/users/${id}`, "PUT", data),
+  updateUserPassword: (id, oldPassword, newPassword) =>
+    send(`/users/${id}/password`, "PUT", { oldPassword, newPassword }),
+  uploadProfilePicture: (id, file) => {
     const formData = new FormData();
     formData.append("profilePicture", file);
-    const response = await fetch(
-      `${API_BASE_URL}/users/${userId}/profile-picture`,
-      {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: formData,
-      }
-    );
-    return handleResponse(response);
+    return send(`/users/${id}/profile-picture`, "POST", formData, true);
   },
+  getTeamLeadersByDepartment: (department_id) =>
+    get(`/users?department_id=${department_id}&role=team_leader`),
+  getStaffByDepartment: (department_id) =>
+    get(`/users?department_id=${department_id}&role=staff`),
 
-  // ================== TEAMS ==================
-  getTeamMembers: async (userId) => {
-    const response = await fetch(`${API_BASE_URL}/teams/members/${userId}`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
-    return handleResponse(response);
-  },
-
-  getAllTeams: async () => {
-    const response = await fetch(`${API_BASE_URL}/teams`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
-    return handleResponse(response);
-  },
+  // ================= TEAMS =================
+  getAllTeams: () => get("/teams"),
+  getTeamMembers: (teamId) => get(`/teams/members/${teamId}`),
 
   createTeam: async (teamData) => {
-    const response = await fetch(`${API_BASE_URL}/teams`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify(teamData),
-    });
-    return handleResponse(response);
+    const { memberIds, ...teamCore } = teamData;
+    // 1. Create team
+    const teamResult = await send("/teams", "POST", teamCore);
+    const teamId = teamResult.id || teamResult.teamId;
+
+    // 2. Assign members if any
+    if (memberIds?.length) {
+      await Promise.all(
+        memberIds.map((id) => api.updateUser(id, { team_id: teamId }))
+      );
+    }
+
+    // 3. Return full team object with members
+    const updatedMembers = memberIds?.length
+      ? await Promise.all(memberIds.map(api.getUserById))
+      : [];
+    return { ...teamResult, members: updatedMembers };
   },
 
   updateTeam: async (teamId, teamData) => {
-    const response = await fetch(`${API_BASE_URL}/teams/${teamId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify(teamData),
-    });
-    return handleResponse(response);
+    const { memberIds, ...teamCore } = teamData;
+
+    // 1. Update team info
+    const teamResult = await send(`/teams/${teamId}`, "PUT", teamCore);
+
+    // 2. Update members
+    if (memberIds) {
+      const currentMembers = await api.getTeamMembers(teamId);
+      const currentIds = currentMembers.map((m) => m.id);
+
+      // Remove members not in new list
+      const removeIds = currentIds.filter((id) => !memberIds.includes(id));
+      await Promise.all(
+        removeIds.map((id) => api.updateUser(id, { team_id: null }))
+      );
+
+      // Add new members
+      const addIds = memberIds.filter((id) => !currentIds.includes(id));
+      await Promise.all(
+        addIds.map((id) => api.updateUser(id, { team_id: teamId }))
+      );
+    }
+
+    const updatedMembers = memberIds?.length
+      ? await Promise.all(memberIds.map(api.getUserById))
+      : [];
+    return { ...teamResult, members: updatedMembers };
   },
 
-  deleteTeam: async (teamId) => {
-    const response = await fetch(`${API_BASE_URL}/teams/${teamId}`, {
-      method: "DELETE",
-      headers: getAuthHeaders(),
-    });
-    return handleResponse(response);
+  deleteTeam: (teamId) => send(`/teams/${teamId}`, "DELETE"),
+
+  // ================= DEPARTMENTS =================
+  getAllDepartments: () => get("/departments"),
+  getDepartmentById: (id) => get(`/departments/${id}`),
+  createDepartment: (data) => send("/departments", "POST", data),
+  updateDepartment: (id, data) => send(`/departments/${id}`, "PUT", data),
+  deleteDepartment: (id) => send(`/departments/${id}`, "DELETE"),
+
+  // ================= EVALUATION FORMS =================
+  getEvaluationForms: () => get("/forms"),
+  createEvaluationForm: (data) => send("/forms", "POST", data),
+  updateEvaluationForm: (id, data) => send(`/forms/${id}`, "PUT", data),
+  deleteEvaluationForm: (id) => send(`/forms/${id}`, "DELETE"),
+
+  // ================= REPORTS =================
+  generatePerformanceReport: () => get("/reports/performance"),
+  generateEmployeeReport: (userId) => {
+    if (!userId) throw new Error("User ID required");
+    return get(`/reports/employee/${userId}`);
   },
 
-  // ================== EMPLOYEES ==================
-  getEmployees: async () => {
-    const response = await fetch(`${API_BASE_URL}/users`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
-    return handleResponse(response);
+  // ================= TASKS =================
+  getUpcomingTasks: (userId) => get(`/tasks?userId=${userId}`),
+
+  // ================= EVALUATIONS =================
+  getAllEvaluations: () => get("/evaluations"),
+  getEvaluatesByUser: (userId) => {
+    if (!userId) throw new Error("User ID required");
+    return get(`/evaluations/user/${userId}`);
   },
-
-  createEmployee: async (employeeData) => {
-    const response = await fetch(`${API_BASE_URL}/users`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify(employeeData),
-    });
-    return handleResponse(response);
-  },
-
-  updateEmployee: async (employeeId, employeeData) => {
-    const response = await fetch(`${API_BASE_URL}/users/${employeeId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify(employeeData),
-    });
-    return handleResponse(response);
-  },
-
-  deleteEmployee: async (employeeId) => {
-    const response = await fetch(`${API_BASE_URL}/users/${employeeId}`, {
-      method: "DELETE",
-      headers: getAuthHeaders(),
-    });
-    return handleResponse(response);
-  },
-
-  // ================== EVALUATION FORMS ==================
-  getEvaluationForms: async () => {
-    const response = await fetch(`${API_BASE_URL}/forms`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
-    return handleResponse(response);
-  },
-
-  createEvaluationForm: async (formData) => {
-    const response = await fetch(`${API_BASE_URL}/forms`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify(formData),
-    });
-    return handleResponse(response);
-  },
-
-  updateEvaluationForm: async (formId, formData) => {
-    const response = await fetch(`${API_BASE_URL}/forms/${formId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify(formData),
-    });
-    return handleResponse(response);
-  },
-
-  deleteEvaluationForm: async (formId) => {
-    const response = await fetch(`${API_BASE_URL}/forms/${formId}`, {
-      method: "DELETE",
-      headers: getAuthHeaders(),
-    });
-    return handleResponse(response);
-  },
-
-  // 🔹 Form helpers
-  getPeerEvaluationForms: async () => {
-    const forms = await api.getEvaluationForms();
-    return forms.filter((form) => form.formType === "peer_evaluation");
-  },
-
-  getSelfAssessmentForms: async () => {
-    const forms = await api.getEvaluationForms();
-    return forms.filter((form) => form.formType === "self_assessment");
-  },
-
-  getFormsGroupedByType: async () => {
-    const forms = await api.getEvaluationForms();
-    return forms.reduce((acc, form) => {
-      if (!acc[form.formType]) acc[form.formType] = [];
-      acc[form.formType].push(form);
-      return acc;
-    }, {});
-  },
-
-  // 🔹 Extended helpers
-  getTeamPeerEvaluationForms: async (userId) => {
-    const [forms, peers] = await Promise.all([
-      api.getPeerEvaluationForms(),
-      api.getTeamMembers(userId),
-    ]);
-
-    // Get all active peer evaluation forms
-    const activeForms = forms.filter((f) => f.status === "active");
-
-    // Map peers, excluding current user
-    const filteredPeers = peers
-      .filter((p) => p.id !== userId)
-      .map((p) => ({
-        id: p.id,
-        name: p.name,
-        department: p.department || "N/A",
-        role: p.role || "Employee",
-      }));
-
-    return { forms: activeForms, peers: filteredPeers };
-  },
-
-  getUserSelfAssessmentForms: async (userId) => {
-    const forms = await api.getSelfAssessmentForms();
-    const validForms = forms.filter((form) => {
-      const isValidRatingScale =
-        Array.isArray(form.ratingScale) &&
-        form.ratingScale.every(
-          (scale) => typeof scale === "object" && scale.value && scale.label
-        );
-      if (!isValidRatingScale) {
-        console.warn(
-          `Invalid self-assessment form filtered out: ID ${form.id}`
-        );
-        return false;
-      }
-      return true;
-    });
-    const activeForm = validForms.find((f) => f.status === "active") || null;
-    return { form: activeForm, userId };
-  },
-
-  // ================== EVALUATIONS ==================
-  distributeForms: async (employeeId, formAssignments) => {
-    const response = await fetch(`${API_BASE_URL}/evaluations/distribute`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify({ employeeId, formAssignments }),
-    });
-    return handleResponse(response);
-  },
-
-  getEvaluatesByUser: async (userId) => {
-    const response = await fetch(`${API_BASE_URL}/evaluations/user/${userId}`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
-    return handleResponse(response);
-  },
-
-  submitEvaluation: async (evaluationData) => {
-    const response = await fetch(`${API_BASE_URL}/evaluations`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify(evaluationData),
-    });
-    return handleResponse(response);
-  },
-
-  // ================== REPORTS ==================
-  generatePerformanceReport: async () => {
-    const response = await fetch(`${API_BASE_URL}/reports/performance`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
-    return handleResponse(response);
-  },
-
-  generateEmployeeReport: async (userId) => {
-    if (!userId) throw new Error("User ID is required to generate report");
-    const response = await fetch(`${API_BASE_URL}/reports/employee/${userId}`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
-    return handleResponse(response);
-  },
-
-  // ================== TASKS ==================
-  getUpcomingTasks: async (userId) => {
-    const response = await fetch(`${API_BASE_URL}/tasks?userId=${userId}`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
-    return handleResponse(response);
-  },
+  createEvaluation: (data) => send("/evaluations", "POST", data),
+  updateEvaluation: (id, data) => send(`/evaluations/${id}`, "PUT", data),
+  deleteEvaluation: (id) => send(`/evaluations/${id}`, "DELETE"),
 };
 
 export default api;

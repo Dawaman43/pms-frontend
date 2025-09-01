@@ -1,4 +1,6 @@
-import styles from "./pagesAdminDashboard.module.css"
+import { useState } from "react";
+import styles from "./pagesAdminDashboard.module.css";
+import api from "../../api";
 
 const RegisterEmployee = ({
   employeeForm,
@@ -6,148 +8,296 @@ const RegisterEmployee = ({
   password,
   isGenerated,
   generatePassword,
-  handleEmployeeFormChange,
   handleImageUpload,
-  validateEmail,
-  handleEmployeeRegistration,
-  teams,
-  departments,
-  jobLevels,
+  departments = [],
+  jobLevels = [],
   error,
   success,
 }) => {
+  const [localError, setLocalError] = useState("");
+  const [localSuccess, setLocalSuccess] = useState("");
+
+  const isTeamLeader = employeeForm.role === "team_leader";
+
+  const handleEmployeeFormChange = (e) => {
+    const { name, value } = e.target;
+    console.log(`Field changed: ${name} = ${value}`); // Debug
+    setEmployeeForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEmployeeRegistration = async (e) => {
+    e.preventDefault();
+    setLocalError("");
+    setLocalSuccess("");
+
+    // Validation
+    if (!isTeamLeader) {
+      if (
+        !employeeForm.name ||
+        !employeeForm.email ||
+        !employeeForm.phone ||
+        !employeeForm.salary ||
+        !employeeForm.address ||
+        !employeeForm.emergencyContact ||
+        !employeeForm.jobTitle ||
+        !employeeForm.level ||
+        !employeeForm.department ||
+        !employeeForm.role
+      ) {
+        setLocalError("Please fill out all required fields for staff.");
+        return;
+      }
+    } else {
+      if (
+        !employeeForm.name ||
+        !employeeForm.email ||
+        !employeeForm.phone ||
+        !employeeForm.salary ||
+        !employeeForm.address ||
+        !employeeForm.emergencyContact ||
+        !employeeForm.role ||
+        !employeeForm.department
+      ) {
+        setLocalError("Please fill out all required fields for Team Leader.");
+        return;
+      }
+    }
+
+    const dataToSubmit = {
+      name: employeeForm.name,
+      email: employeeForm.email,
+      phone: employeeForm.phone,
+      salary: employeeForm.salary,
+      address: employeeForm.address,
+      emergencyContact: employeeForm.emergencyContact,
+      department_id: employeeForm.department, // Send department_id
+      role: employeeForm.role,
+      password,
+    };
+
+    if (!isTeamLeader) {
+      dataToSubmit.jobTitle = employeeForm.jobTitle;
+      dataToSubmit.level = employeeForm.level;
+    }
+
+    console.log("Form data to submit:", dataToSubmit); // Debug
+
+    try {
+      await api.createEmployee(dataToSubmit);
+      setLocalSuccess("Employee registered successfully!");
+      setEmployeeForm({
+        name: "",
+        jobTitle: "",
+        level: "",
+        email: "",
+        department: "",
+        role: "",
+        phone: "",
+        salary: "",
+        address: "",
+        emergencyContact: "",
+      });
+    } catch (err) {
+      setLocalError(`Registration failed: ${err.message || "Unknown error"}`);
+    }
+  };
+
   return (
     <div className={styles.registerContent}>
       <div className={styles.registerHeader}>
         <h2>Register New Employee</h2>
         <p>Add a new employee to the system</p>
+        <p className={styles.requiredNote}>
+          {isTeamLeader
+            ? "Fields marked with * are required. Job Title and Job Level are not required for Team Leaders."
+            : "All fields marked with * are required."}
+        </p>
       </div>
-      {error && <div className={styles.errorMessage}>{error}</div>}
-      {success && <div className={styles.successMessage}>{success}</div>}
-      <form onSubmit={handleEmployeeRegistration} className={styles.registerForm}>
+
+      {(error || localError) && (
+        <div className={styles.errorMessage}>{error || localError}</div>
+      )}
+      {(success || localSuccess) && (
+        <div className={styles.successMessage}>{success || localSuccess}</div>
+      )}
+
+      <form
+        onSubmit={handleEmployeeRegistration}
+        className={styles.registerForm}
+      >
         <div className={styles.formRow}>
           <div className={styles.formGroup}>
-            <label>Full Name *</label>
+            <label htmlFor="name">Full Name *</label>
             <input
+              id="name"
               type="text"
               name="name"
               value={employeeForm.name}
               onChange={handleEmployeeFormChange}
               required
-              style={{ color: '#1a202c' }}
+              className={styles.formInput}
             />
           </div>
           <div className={styles.formGroup}>
-            <label>Profile Image</label>
-            <input type="file" accept="image/*" onChange={handleImageUpload} />
-          </div>
-        </div>
-        <div className={styles.formRow}>
-          <div className={styles.formGroup}>
-            <label>Job Title *</label>
+            <label htmlFor="email">Email Address *</label>
             <input
-              type="text"
-              name="jobTitle"
-              value={employeeForm.jobTitle}
-              onChange={handleEmployeeFormChange}
-              required
-              style={{ color: '#1a202c' }}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Job Level *</label>
-            <select name="level" value={employeeForm.level} onChange={handleEmployeeFormChange} required style={{ color: '#1a202c' }}>
-              <option value="">Select job level</option>
-              {jobLevels.map((level) => (
-                <option key={level} value={level}>
-                  {level}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <div className={styles.formRow}>
-          <div className={styles.formGroup}>
-            <label>Email Address *</label>
-            <input
+              id="email"
               type="email"
               name="email"
               value={employeeForm.email}
               onChange={handleEmployeeFormChange}
               required
-              style={{ color: '#1a202c' }}
+              className={styles.formInput}
             />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Department *</label>
-            <select name="department" value={employeeForm.department} onChange={handleEmployeeFormChange} required style={{ color: '#1a202c' }}>
-              <option value="">Select department</option>
-              {departments.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
         <div className={styles.formRow}>
           <div className={styles.formGroup}>
-            <label>Team Assignment *</label>
-            <select name="team" value={employeeForm.team} onChange={handleEmployeeFormChange} required style={{ color: '#1a202c' }}>
-              <option value="">Select team</option>
-              {teams.map((team) => (
-                <option key={team.id} value={team.name}>
-                  {team.name}
+            <label htmlFor="department">Department *</label>
+            <select
+              id="department"
+              name="department"
+              value={employeeForm.department}
+              onChange={handleEmployeeFormChange}
+              required
+              className={styles.formSelect}
+            >
+              <option value="">Select department</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
                 </option>
               ))}
             </select>
           </div>
           <div className={styles.formGroup}>
-            <label>Phone Number *</label>
+            <label htmlFor="role">Role *</label>
+            <select
+              id="role"
+              name="role"
+              value={employeeForm.role}
+              onChange={handleEmployeeFormChange}
+              required
+              className={styles.formSelect}
+            >
+              <option value="">Select role</option>
+              <option value="staff">Staff</option>
+              <option value="team_leader">Team Leader</option>
+            </select>
+          </div>
+        </div>
+        {!isTeamLeader && (
+          <div className={styles.formRow}>
+            <div className={styles.formGroup}>
+              <label htmlFor="jobTitle">Job Title *</label>
+              <input
+                id="jobTitle"
+                type="text"
+                name="jobTitle"
+                value={employeeForm.jobTitle}
+                onChange={handleEmployeeFormChange}
+                required
+                className={styles.formInput}
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label htmlFor="level">Job Level *</label>
+              <select
+                id="level"
+                name="level"
+                value={employeeForm.level}
+                onChange={handleEmployeeFormChange}
+                required
+                className={styles.formSelect}
+              >
+                <option value="">Select job level</option>
+                {jobLevels.map((level, index) => (
+                  <option key={index} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+        <div className={styles.formRow}>
+          <div className={styles.formGroup}>
+            <label htmlFor="phone">Phone Number *</label>
             <input
+              id="phone"
               type="tel"
               name="phone"
               value={employeeForm.phone}
               onChange={handleEmployeeFormChange}
               required
-              style={{ color: '#1a202c' }}
+              className={styles.formInput}
             />
           </div>
-        </div>
-        <div className={styles.formRow}>
           <div className={styles.formGroup}>
-            <label>Salary *</label>
+            <label htmlFor="salary">Salary *</label>
             <input
-              type="text"
+              id="salary"
+              type="number"
               name="salary"
               value={employeeForm.salary}
               onChange={handleEmployeeFormChange}
               required
-              style={{ color: '#1a202c' }}
+              className={styles.formInput}
             />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Address *</label>
-            <textarea name="address" value={employeeForm.address} onChange={handleEmployeeFormChange} rows="2" required style={{ color: '#1a202c' }} />
           </div>
         </div>
         <div className={styles.formRow}>
           <div className={styles.formGroup}>
-            <label>Emergency Contact *</label>
+            <label htmlFor="address">Address *</label>
             <input
+              id="address"
+              type="text"
+              name="address"
+              value={employeeForm.address}
+              onChange={handleEmployeeFormChange}
+              required
+              className={styles.formInput}
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label htmlFor="emergencyContact">Emergency Contact *</label>
+            <input
+              id="emergencyContact"
               type="text"
               name="emergencyContact"
               value={employeeForm.emergencyContact}
               onChange={handleEmployeeFormChange}
               required
-              style={{ color: '#1a202c' }}
+              className={styles.formInput}
+            />
+          </div>
+        </div>
+        <div className={styles.formRow}>
+          <div className={styles.formGroup}>
+            <label htmlFor="profileImage">Profile Image</label>
+            <input
+              id="profileImage"
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className={styles.formInput}
             />
           </div>
           <div className={styles.formGroup}>
-            <label>Password *</label>
+            <label htmlFor="password">Password *</label>
             <div className={styles.passwordGroup}>
-              <input type="text" value={password} readOnly style={{ color: '#1a202c' }} />
-              <button type="button" onClick={generatePassword} className={styles.generateButton}>
+              <input
+                id="password"
+                type="text"
+                value={password}
+                readOnly
+                className={styles.formInput}
+              />
+              <button
+                type="button"
+                onClick={generatePassword}
+                className={styles.generateButton}
+              >
                 {isGenerated ? "Regenerate" : "Generate"} Password
               </button>
             </div>
@@ -159,8 +309,12 @@ const RegisterEmployee = ({
           </button>
         </div>
       </form>
-    </div>
-  )
-}
 
-export default RegisterEmployee
+      <footer className={styles.footer}>
+        © 2025 Adama Science & Technology Univ
+      </footer>
+    </div>
+  );
+};
+
+export default RegisterEmployee;
