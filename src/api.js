@@ -80,6 +80,9 @@ const api = {
 
   // 👥 TEAMS
   getAllTeams: () => get("/teams"),
+
+  getMyTeamMembers: () => get("/teams/my-team"),
+
   getTeamMembers: (teamId) => get(`/teams/members/${teamId}`),
   createTeam: async (teamData) => {
     const { memberIds, ...teamCore } = teamData;
