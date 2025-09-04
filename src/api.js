@@ -42,7 +42,6 @@ const send = (url, method, data, isFormData = false) => {
     handleResponse
   );
 };
-
 /** ================= API OBJECT ================= */
 const api = {
   // 🔐 AUTH
@@ -51,6 +50,12 @@ const api = {
     localStorage.setItem("token", data.token);
     localStorage.setItem("userData", JSON.stringify(data.user));
     return data;
+  },
+
+  logout: () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userData");
+    window.location.href = "/login";
   },
 
   // 👤 USERS
@@ -159,5 +164,4 @@ const api = {
   updateEvaluation: (id, data) => send(`/evaluations/${id}`, "PUT", data),
   deleteEvaluation: (id) => send(`/evaluations/${id}`, "DELETE"),
 };
-
 export default api;
