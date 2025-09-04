@@ -1,0 +1,313 @@
+
+:root {
+  --primary-color: #1A365D;
+  --primary-light: #2C5282;
+  --primary-dark: #0F1A2F;
+  --secondary-color: #4A5568;
+  --accent-color: #718096;
+  --white: #FFFFFF;
+  --gray-50: #F7FAFC;
+  --gray-100: #EDF2F7;
+  --gray-200: #E2E8F0;
+  --gray-300: #CBD5E0;
+  --gray-400: #A0AEC0;
+  --gray-500: #718096;
+  --gray-600: #4A5568;
+  --gray-700: #2D3748;
+  --gray-800: #1A202C;
+  --gray-900: #171923;
+  --success-color: #38A169;
+  --warning-color: #DD6B20;
+  --error-color: #E53E3E;
+  --info-color: #3182CE;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+}
+
+/* Container */
+.container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--gray-50);
+}
+
+/* Main Content */
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.3s ease;
+}
+
+/* Header */
+.header {
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  padding: 1rem 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.pageTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin: 0;
+}
+
+/* Avatar */
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  border: 1px solid var(--gray-200);
+}
+
+.memberAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  border: 1px solid var(--gray-200);
+  margin-right: 0.5rem;
+}
+
+.memberInfo {
+  display: flex;
+  align-items: center;
+}
+
+/* Main Section */
+.main {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Loading State */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+  min-height: 100vh;
+}
+
+.loadingSpinner {
+  width: 3rem;
+  height: 3rem;
+  border: 4px solid var(--gray-200);
+  border-top-color: var(--primary-color);
+  border-radius: var(--radius-full);
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error Container */
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+  min-height: 100vh;
+  text-align: center;
+  gap: 1.5rem;
+}
+
+.loginButton {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--white);
+  background-color: var(--primary-color);
+  border: none;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loginButton:hover {
+  background-color: var(--primary-light);
+  transform: translateY(-1px);
+}
+
+.loginButton:active {
+  transform: translateY(0);
+}
+
+/* Content Section */
+.contentSection {
+  background: var(--white);
+  padding: 2rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+}
+
+/* Success Message */
+.successMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: rgba( 56, 161, 105, 0.1);
+  border: 1px solid rgba(56, 161, 105, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--success-color);
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+}
+
+.successMessage svg {
+  flex-shrink: 0;
+}
+
+/* Error Message */
+.errorMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: rgba(229, 62, 62, 0.1);
+  border: 1px solid rgba(229, 62, 62, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--error-color);
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+}
+
+.errorMessage svg {
+  flex-shrink: 0;
+}
+
+/* Team Table */
+.tableWrapper {
+  overflow-x: auto;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.teamTable {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--white);
+}
+
+.tableHeader {
+  padding: 1rem;
+  text-align: left;
+  background-color: var(--gray-50);
+  color: var(--gray-800);
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.tableRow {
+  border-bottom: 1px solid var(--gray-200);
+  transition: background-color 0.2s ease;
+}
+
+.tableRow:hover {
+  background-color: var(--gray-50);
+  cursor: pointer;
+}
+
+.tableCell {
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: var(--gray-700);
+  vertical-align: middle;
+}
+
+/* Member Details */
+.memberDetails {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background-color: var(--gray-50);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-200);
+}
+
+.panelTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin: 0 0 1rem 0;
+}
+
+/* Cancel Button */
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gray-700);
+  background-color: var(--white);
+  border: 1px solid var(--gray-300);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background-color: var(--gray-50);
+  border-color: var(--gray-400);
+  transform: translateY(-1px);
+}
+
+.cancelButton:active {
+  transform: translateY(0);
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .main {
+    padding: 1.5rem;
+  }
+
+  .contentSection {
+    padding: 1.5rem;
+  }
+
+  .tableCell {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .memberAvatar {
+    width: 20px;
+    height: 20px;
+  }
+
+  .cancelButton {
+    width: 100%;
+  }
+}

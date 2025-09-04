@@ -15,6 +15,7 @@ import Reports from "./components/employee/Reports/Reports";
 import Profile from "./components/employee/Profile/Profile";
 import ProtectedRoute from "./ProtectedRoute";
 import "./App.css";
+import MyTeam from "./components/employee/Team/MyTeam";
 
 function App() {
   const token = localStorage.getItem("token");
@@ -119,6 +120,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["staff", "team_leader"]}>
                 <Reports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/team"
+            element={
+              <ProtectedRoute allowedRoles={["staff", "team_leader"]}>
+                <MyTeam />
               </ProtectedRoute>
             }
           />
