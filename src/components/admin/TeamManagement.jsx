@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import styles from "./pagesAdminDashboard.module.css";
 import api from "../../api";
 
-const TeamManagement = ({ departments }) => {
+const TeamManagement = () => {
+  const [departments, setDepartments] = useState([]);
   const [teams, setTeams] = useState([]);
   const [newTeam, setNewTeam] = useState({
     id: "",
@@ -16,6 +17,19 @@ const TeamManagement = ({ departments }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // Fetch departments on mount
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const data = await api.getAllDepartments();
+        setDepartments(data);
+      } catch (err) {
+        console.error("Failed to fetch departments:", err);
+      }
+    };
+    fetchDepartments();
+  }, []);
 
   // Fetch all teams
   const refreshTeams = async () => {
@@ -161,6 +175,7 @@ const TeamManagement = ({ departments }) => {
         </div>
         <form onSubmit={handleSubmit} className={styles.teamForm}>
           <div className={styles.formRow}>
+            {/* Department */}
             <div className={styles.formGroup}>
               <label htmlFor="department_id">Department *</label>
               <select
@@ -172,7 +187,9 @@ const TeamManagement = ({ departments }) => {
                 className={styles.formSelect}
                 disabled={isLoading}
               >
-                <option value="">Select department</option>
+                <option value="">
+                  {isLoading ? "Loading departments..." : "Select department"}
+                </option>
                 {departments.map((dept) => (
                   <option key={dept.id} value={dept.id}>
                     {dept.name}
@@ -181,6 +198,7 @@ const TeamManagement = ({ departments }) => {
               </select>
             </div>
 
+            {/* Team Name */}
             <div className={styles.formGroup}>
               <label htmlFor="name">Team Name *</label>
               <input

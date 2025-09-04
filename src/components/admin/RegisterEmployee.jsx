@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "./pagesAdminDashboard.module.css";
 import api from "../../api";
 
@@ -9,19 +9,38 @@ const RegisterEmployee = ({
   isGenerated,
   generatePassword,
   handleImageUpload,
-  departments = [],
-  jobLevels = [],
   error,
   success,
 }) => {
   const [localError, setLocalError] = useState("");
   const [localSuccess, setLocalSuccess] = useState("");
+  const [departments, setDepartments] = useState([]);
+  const [jobLevels, setJobLevels] = useState([
+    "Junior",
+    "Mid-level",
+    "Senior",
+    "Lead",
+    "Manager",
+  ]);
 
   const isTeamLeader = employeeForm.role === "team_leader";
 
+  // Fetch departments on mount
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const data = await api.getAllDepartments();
+        setDepartments(data);
+      } catch (err) {
+        console.error("Failed to fetch departments:", err);
+        setLocalError("Failed to load departments");
+      }
+    };
+    fetchDepartments();
+  }, []);
+
   const handleEmployeeFormChange = (e) => {
     const { name, value } = e.target;
-    console.log(`Field changed: ${name} = ${value}`); // Debug
     setEmployeeForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -70,7 +89,7 @@ const RegisterEmployee = ({
       salary: employeeForm.salary,
       address: employeeForm.address,
       emergencyContact: employeeForm.emergencyContact,
-      department_id: employeeForm.department, // Send department_id
+      department_id: employeeForm.department,
       role: employeeForm.role,
       password,
     };
@@ -79,8 +98,6 @@ const RegisterEmployee = ({
       dataToSubmit.jobTitle = employeeForm.jobTitle;
       dataToSubmit.level = employeeForm.level;
     }
-
-    console.log("Form data to submit:", dataToSubmit); // Debug
 
     try {
       await api.createEmployee(dataToSubmit);
@@ -125,6 +142,7 @@ const RegisterEmployee = ({
         onSubmit={handleEmployeeRegistration}
         className={styles.registerForm}
       >
+        {/* Name and Email */}
         <div className={styles.formRow}>
           <div className={styles.formGroup}>
             <label htmlFor="name">Full Name *</label>
@@ -151,6 +169,8 @@ const RegisterEmployee = ({
             />
           </div>
         </div>
+
+        {/* Department and Role */}
         <div className={styles.formRow}>
           <div className={styles.formGroup}>
             <label htmlFor="department">Department *</label>
@@ -186,6 +206,8 @@ const RegisterEmployee = ({
             </select>
           </div>
         </div>
+
+        {/* Job Title and Level */}
         {!isTeamLeader && (
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
@@ -220,6 +242,8 @@ const RegisterEmployee = ({
             </div>
           </div>
         )}
+
+        {/* Phone, Salary, Address, Emergency Contact */}
         <div className={styles.formRow}>
           <div className={styles.formGroup}>
             <label htmlFor="phone">Phone Number *</label>
@@ -246,6 +270,7 @@ const RegisterEmployee = ({
             />
           </div>
         </div>
+
         <div className={styles.formRow}>
           <div className={styles.formGroup}>
             <label htmlFor="address">Address *</label>
@@ -272,6 +297,8 @@ const RegisterEmployee = ({
             />
           </div>
         </div>
+
+        {/* Profile Image & Password */}
         <div className={styles.formRow}>
           <div className={styles.formGroup}>
             <label htmlFor="profileImage">Profile Image</label>
@@ -303,6 +330,7 @@ const RegisterEmployee = ({
             </div>
           </div>
         </div>
+
         <div className={styles.formActions}>
           <button type="submit" className={styles.submitButton}>
             Register Employee
