@@ -40,13 +40,7 @@ const Profile = () => {
     {
       title: "Dashboard",
       icon: (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
           <path
             d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z"
             stroke="currentColor"
@@ -64,18 +58,12 @@ const Profile = () => {
         </svg>
       ),
       link: "/home",
-      active: location.pathname === "/",
+      active: location.pathname === "/home" || location.pathname === "/",
     },
     {
       title: "Self Assessment",
       icon: (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
           <path
             d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
             stroke="currentColor"
@@ -98,13 +86,7 @@ const Profile = () => {
     {
       title: "Peer Evaluation",
       icon: (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
           <path
             d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 19V21"
             stroke="currentColor"
@@ -141,13 +123,7 @@ const Profile = () => {
     {
       title: "Reports",
       icon: (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
           <path
             d="M21 3H3V21H21V3Z"
             stroke="currentColor"
@@ -191,13 +167,7 @@ const Profile = () => {
     {
       title: "Profile",
       icon: (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
           <path
             d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z"
             stroke="currentColor"
@@ -220,13 +190,7 @@ const Profile = () => {
     {
       title: "Settings",
       icon: (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
           <path
             d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
             stroke="currentColor"
@@ -271,21 +235,28 @@ const Profile = () => {
       try {
         setLoading(true);
         const tokenData = localStorage.getItem("userData");
-        if (!tokenData) throw new Error("User not logged in");
+        if (!tokenData) {
+          setErrors({ general: "User not logged in. Please log in again." });
+          return;
+        }
         const userData = JSON.parse(tokenData);
         const response = await api.getUserById(userData.id);
-        setUser({
+        if (!response || !response.id) {
+          throw new Error("Invalid user data received from server");
+        }
+        const userInfo = {
           id: response.id,
-          name: response.name,
-          email: response.email,
-          role: response.role,
+          name: response.name || "Unknown User",
+          email: response.email || "",
+          role: response.role || "User",
           position: response.jobTitle || "Employee",
           avatar: response.profileImage
             ? `${response.profileImage}`
             : "/assets/avatar-placeholder.png",
           employeeId: response.id || "",
           phone: response.phone || "",
-        });
+        };
+        setUser(userInfo);
         setProfileData({
           name: response.name || "",
           email: response.email || "",
@@ -304,7 +275,7 @@ const Profile = () => {
         );
       } catch (error) {
         console.error("Error fetching user:", error);
-        setErrors({ general: error.message });
+        setErrors({ general: error.message || "Failed to fetch user data" });
       } finally {
         setLoading(false);
       }
@@ -323,7 +294,7 @@ const Profile = () => {
         reader.onloadend = () => setImagePreview(reader.result);
         reader.readAsDataURL(file);
       } else {
-        setImagePreview("/assets/avatar-placeholder.png");
+        setImagePreview(user?.avatar || "/assets/avatar-placeholder.png");
       }
     } else {
       setProfileData((prev) => ({ ...prev, [name]: value }));
@@ -395,27 +366,32 @@ const Profile = () => {
         confirmPassword: "",
         profilePicture: null,
       }));
-      setImagePreview("/assets/avatar-placeholder.png");
+      setImagePreview(user?.avatar || "/assets/avatar-placeholder.png");
 
       // Refresh user data
       const response = await api.getUserById(user.id);
-      setUser({
+      const updatedUser = {
         id: response.id,
-        name: response.name,
-        email: response.email,
-        role: response.role,
+        name: response.name || "Unknown User",
+        email: response.email || "",
+        role: response.role || "User",
         position: response.jobTitle || "Employee",
         avatar: response.profileImage
           ? `${response.profileImage}`
           : "/assets/avatar-placeholder.png",
         employeeId: response.id || "",
         phone: response.phone || "",
-      });
+      };
+      setUser(updatedUser);
     } catch (error) {
-      setErrors({ general: error.message });
+      setErrors({ general: error.message || "Failed to update profile" });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
   };
 
   if (loading) {
@@ -427,35 +403,51 @@ const Profile = () => {
     );
   }
 
+  if (errors.general) {
+    return (
+      <div className={styles.errorContainer}>
+        <div className={styles.errorMessage}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z"
+              fill="currentColor"
+            />
+          </svg>
+          {errors.general}
+        </div>
+        <Link to="/login" className={styles.loginButton}>
+          Go to Login
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       <Sidebar
-        navLinks={navLinks}
+        user={user}
         isSidebarOpen={isSidebarOpen}
-        setIsSidebarOpen={setIsSidebarOpen}
+        toggleSidebar={toggleSidebar}
         isMobile={isMobile}
+        navLinks={navLinks}
         activePopout={activePopout}
         setActivePopout={setActivePopout}
       />
       <div
         className={`${styles.mainContent} ${
-          isSidebarOpen && !isMobile ? styles.sidebarOpen : ""
+          isSidebarOpen && !isMobile
+            ? HomePageStyles.mainWrapper
+            : HomePageStyles.mainWrapperFull
         }`}
       >
         <header className={styles.header}>
-          <div className={styles.headerContent}>
+          <div className={HomePageStyles.headerContent}>
             {isMobile && (
               <button
-                className={styles.menuToggle}
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className={HomePageStyles.mobileMenuButton}
+                onClick={toggleSidebar}
               >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M3 6H21"
                     stroke="currentColor"
@@ -481,13 +473,19 @@ const Profile = () => {
               </button>
             )}
             <h1 className={styles.pageTitle}>Profile</h1>
-            <div className={styles.userInfo}>
-              <span>{user?.name}</span>
-              <img
-                src={user?.avatar || "/assets/avatar-placeholder.png"}
-                alt="User avatar"
-                className={styles.avatar}
-              />
+            <div className={HomePageStyles.userSection}>
+              <div className={HomePageStyles.userInfo}>
+                <span className={HomePageStyles.userName}>{user?.name}</span>
+                <span className={HomePageStyles.userRole}>{user?.role}</span>
+              </div>
+              <div className={HomePageStyles.avatarContainer}>
+                <img
+                  src={user?.avatar || "/assets/avatar-placeholder.png"}
+                  alt="User avatar"
+                  className={HomePageStyles.userAvatar}
+                />
+                <span className={HomePageStyles.statusIndicator}></span>
+              </div>
             </div>
           </div>
         </header>
@@ -496,13 +494,7 @@ const Profile = () => {
           <section className={styles.profileSection}>
             {success && (
               <div className={styles.successMessage}>
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M20 6L9 17L4 12"
                     stroke="currentColor"
@@ -516,82 +508,43 @@ const Profile = () => {
             )}
             {errors.general && (
               <div className={styles.errorMessage}>
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M12 8V12"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M12 16H12.01"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                    d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z"
+                    fill="currentColor"
                   />
                 </svg>
                 {errors.general}
               </div>
             )}
             <form onSubmit={handleSubmit} className={styles.profileForm}>
-              <div className={styles.formGrid}>
+              <div className={styles.formHeader}>
+                <h2 className={styles.sectionTitle}>Personal Information</h2>
+                <p className={styles.sectionSubtitle}>
+                  Update your personal details below
+                </p>
+              </div>
+
+              <div className={styles.formRow}>
                 <div className={styles.formColumn}>
                   <div className={styles.formGroup}>
-                    <label className={`${styles.formLabel} ${styles.required}`}>
+                    <label className={styles.formLabel}>
                       Profile Picture
-                    </label>
-                    <div className={styles.profilePictureWrapper}>
-                      <img
-                        src={
-                          imagePreview ||
-                          user?.avatar ||
-                          "/assets/avatar-placeholder.png"
-                        }
-                        alt="Profile preview"
-                        className={styles.profilePicture}
+                      <input
+                        type="file"
+                        name="profilePicture"
+                        accept="image/*"
+                        onChange={handleChange}
+                        className={styles.fileInput}
                       />
-                      <div className={styles.uploadWrapper}>
-                        <input
-                          type="file"
-                          id="profilePicture"
-                          name="profilePicture"
-                          accept="image/*"
-                          onChange={handleChange}
-                          className={styles.fileInput}
-                        />
-                        <label
-                          htmlFor="profilePicture"
-                          className={styles.uploadButton}
-                        >
-                          Upload New Image
-                        </label>
-                        {profileData.profilePicture && (
-                          <span className={styles.fileName}>
-                            {profileData.profilePicture.name}
-                          </span>
-                        )}
-                      </div>
+                    </label>
+                    <div className={styles.avatarPreview}>
+                      <img
+                        src={imagePreview || "/assets/avatar-placeholder.png"}
+                        alt="Profile preview"
+                        className={styles.avatarImage}
+                      />
                     </div>
-                    {errors.profilePicture && (
-                      <span className={styles.errorText}>
-                        {errors.profilePicture}
-                      </span>
-                    )}
                   </div>
 
                   <div className={styles.formGroup}>
@@ -703,7 +656,6 @@ const Profile = () => {
                               height="18"
                               viewBox="0 0 24 24"
                               fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
                                 d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z"
@@ -726,7 +678,6 @@ const Profile = () => {
                               height="18"
                               viewBox="0 0 24 24"
                               fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
                                 d="M14.12 14.12C13.8454 14.4147 13.5141 14.6512 13.1462 14.8151C12.7782 14.9791 12.3809 15.0673 11.9781 15.0744C11.5753 15.0815 11.1752 15.0074 10.8016 14.8565C10.4281 14.7056 10.0887 14.481 9.80385 14.1962C9.51897 13.9113 9.29439 13.5719 9.14351 13.1984C8.99262 12.8248 8.91853 12.4247 8.92563 12.0219C8.93274 11.6191 9.02091 11.2218 9.18488 10.8538C9.34884 10.4859 9.58525 10.1546 9.88 9.88M17.94 17.94C16.2306 19.243 14.1491 19.9649 12 20C5 20 1 12 1 12C2.24389 9.6819 3.96914 7.65661 6.06 6.06L17.94 17.94ZM9.9 4.24C10.5883 4.07888 11.2931 3.99834 12 4C19 4 23 12 23 12C22.393 13.1356 21.6691 14.2047 20.84 15.19L9.9 4.24Z"
@@ -777,7 +728,6 @@ const Profile = () => {
                               height="18"
                               viewBox="0 0 24 24"
                               fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
                                 d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z"
@@ -800,7 +750,6 @@ const Profile = () => {
                               height="18"
                               viewBox="0 0 24 24"
                               fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
                                 d="M14.12 14.12C13.8454 14.4147 13.5141 14.6512 13.1462 14.8151C12.7782 14.9791 12.3809 15.0673 11.9781 15.0744C11.5753 15.0815 11.1752 15.0074 10.8016 14.8565C10.4281 14.7056 10.0887 14.481 9.80385 14.1962C9.51897 13.9113 9.29439 13.5719 9.14351 13.1984C8.99262 12.8248 8.91853 12.4247 8.92563 12.0219C8.93274 11.6191 9.02091 11.2218 9.18488 10.8538C9.34884 10.4859 9.58525 10.1546 9.88 9.88M17.94 17.94C16.2306 19.243 14.1491 19.9649 12 20C5 20 1 12 1 12C2.24389 9.6819 3.96914 7.65661 6.06 6.06L17.94 17.94ZM9.9 4.24C10.5883 4.07888 11.2931 3.99834 12 4C19 4 23 12 23 12C22.393 13.1356 21.6691 14.2047 20.84 15.19L9.9 4.24Z"
@@ -853,7 +802,6 @@ const Profile = () => {
                               height="18"
                               viewBox="0 0 24 24"
                               fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
                                 d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z"
@@ -876,7 +824,6 @@ const Profile = () => {
                               height="18"
                               viewBox="0 0 24 24"
                               fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
                             >
                               <path
                                 d="M14.12 14.12C13.8454 14.4147 13.5141 14.6512 13.1462 14.8151C12.7782 14.9791 12.3809 15.0673 11.9781 15.0744C11.5753 15.0815 11.1752 15.0074 10.8016 14.8565C10.4281 14.7056 10.0887 14.481 9.80385 14.1962C9.51897 13.9113 9.29439 13.5719 9.14351 13.1984C8.99262 12.8248 8.91853 12.4247 8.92563 12.0219C8.93274 11.6191 9.02091 11.2218 9.18488 10.8538C9.34884 10.4859 9.58525 10.1546 9.88 9.88M17.94 17.94C16.2306 19.243 14.1491 19.9649 12 20C5 20 1 12 1 12C2.24389 9.6819 3.96914 7.65661 6.06 6.06L17.94 17.94ZM9.9 4.24C10.5883 4.07888 11.2931 3.99834 12 4C19 4 23 12 23 12C22.393 13.1356 21.6691 14.2047 20.84 15.19L9.9 4.24Z"
@@ -907,7 +854,7 @@ const Profile = () => {
               </div>
 
               <div className={styles.formActions}>
-                <Link to="/" className={styles.cancelButton}>
+                <Link to="/home" className={styles.cancelButton}>
                   Cancel
                 </Link>
                 <button

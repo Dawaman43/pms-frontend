@@ -43,6 +43,7 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--gray-200);
+  min-height: 100vh;
 }
 
 .loadingSpinner {
@@ -57,6 +58,46 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Error Container */
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+  min-height: 100vh;
+  text-align: center;
+  gap: 1.5rem;
+}
+
+.loginButton {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--white);
+  background-color: var(--primary-color);
+  border: none;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loginButton:hover {
+  background-color: var(--primary-light);
+  transform: translateY(-1px);
+}
+
+.loginButton:active {
+  transform: translateY(0);
 }
 
 /* Container */
@@ -74,16 +115,6 @@
   transition: margin-left 0.3s ease;
 }
 
-.mainContent.sidebarOpen {
-  margin-left: 250px;
-}
-
-@media (max-width: 768px) {
-  .mainContent.sidebarOpen {
-    margin-left: 0;
-  }
-}
-
 /* Header */
 .header {
   background: var(--white);
@@ -92,43 +123,11 @@
   box-shadow: var(--shadow-sm);
 }
 
-.headerContent {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.menuToggle {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--gray-700);
-  padding: 0.5rem;
-}
-
-.menuToggle svg {
-  display: block;
-}
-
 .pageTitle {
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--gray-800);
   margin: 0;
-}
-
-.userInfo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.userInfo span {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--gray-700);
 }
 
 .avatar {
@@ -175,7 +174,7 @@
   flex-shrink: 0;
 }
 
-/* Error Styles */
+/* Error Message */
 .errorMessage {
   display: flex;
   align-items: center;
@@ -214,14 +213,16 @@
   gap: 2rem;
 }
 
-/* Form Grid */
-.formGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+/* Form Row */
+.formRow {
+  display: flex;
+  flex-wrap: wrap;
   gap: 1.5rem;
 }
 
 .formColumn {
+  flex: 1;
+  min-width: 300px;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -269,14 +270,14 @@
 }
 
 /* Profile Picture Section */
-.profilePictureWrapper {
+.avatarPreview {
   display: flex;
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
 }
 
-.profilePicture {
+.avatarImage {
   width: 120px;
   height: 120px;
   border-radius: var(--radius-full);
@@ -285,48 +286,12 @@
   transition: border-color 0.2s ease;
 }
 
-.profilePicture:hover {
+.avatarImage:hover {
   border-color: var(--primary-light);
-}
-
-.uploadWrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  flex: 1;
-  min-width: 150px;
 }
 
 .fileInput {
   display: none;
-}
-
-.uploadButton {
-  padding: 0.75rem 1.5rem;
-  border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--white);
-  background-color: var(--primary-color);
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
-  text-align: center;
-}
-
-.uploadButton:hover {
-  background-color: var(--primary-light);
-  transform: translateY(-1px);
-}
-
-.uploadButton:active {
-  transform: translateY(0);
-}
-
-.fileName {
-  font-size: 0.75rem;
-  color: var(--gray-600);
-  word-break: break-all;
 }
 
 /* Password Section */
@@ -480,8 +445,12 @@
     padding: 1.5rem;
   }
 
-  .formGrid {
-    grid-template-columns: 1fr;
+  .formRow {
+    flex-direction: column;
+  }
+
+  .formColumn {
+    min-width: 100%;
   }
 
   .formActions {
@@ -489,25 +458,18 @@
   }
 
   .cancelButton,
-  .submitButton {
+  .submitButton,
+  .loginButton {
     width: 100%;
   }
 
-  .profilePictureWrapper {
+  .avatarPreview {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .profilePicture {
+  .avatarImage {
     width: 80px;
     height: 80px;
-  }
-
-  .uploadWrapper {
-    width: 100%;
-  }
-
-  .uploadButton {
-    width: 100%;
   }
 }
