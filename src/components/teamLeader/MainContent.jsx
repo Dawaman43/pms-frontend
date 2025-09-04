@@ -1,4 +1,3 @@
-import TeamManagement from "./TeamManagement";
 import TeamMembers from "./TeamMembers";
 import EvaluationForms from "./EvaluationForms";
 import Reports from "./Reports";
@@ -45,15 +44,6 @@ const MainContent = ({
             </div>
           </div>
         </section>
-      )}
-
-      {activeTab === "team-management" && (
-        <TeamManagement
-          teams={teams}
-          departments={departments}
-          setError={setError}
-          setSuccess={setSuccess}
-        />
       )}
 
       {activeTab === "team-members" && (

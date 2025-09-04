@@ -81,9 +81,15 @@ const api = {
   // 👥 TEAMS
   getAllTeams: () => get("/teams"),
 
+  // Logged-in user's peers (excluding self)
   getMyTeamMembers: () => get("/teams/my-team"),
 
-  getTeamMembers: (teamId) => get(`/teams/members/${teamId}`),
+  // Logged-in leader/admin's full team (including self)
+  getMyFullTeam: () => get("/teams/my-team/full"), // ✅ added
+
+  // Get team members by userId
+  getTeamMembersByUserId: (userId) => get(`/teams/members/${userId}`), // ✅ added
+
   createTeam: async (teamData) => {
     const { memberIds, ...teamCore } = teamData;
     const teamResult = await send("/teams", "POST", teamCore);
@@ -100,6 +106,7 @@ const api = {
       : [];
     return { ...teamResult, members: updatedMembers };
   },
+
   updateTeam: async (teamId, teamData) => {
     const { memberIds, ...teamCore } = teamData;
     const teamResult = await send(`/teams/${teamId}`, "PUT", teamCore);
@@ -124,6 +131,7 @@ const api = {
       : [];
     return { ...teamResult, members: updatedMembers };
   },
+
   deleteTeam: (teamId) => send(`/teams/${teamId}`, "DELETE"),
 
   // 🏢 DEPARTMENTS

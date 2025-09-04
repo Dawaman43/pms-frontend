@@ -71,15 +71,15 @@ const TeamLeaderDashboard = () => {
           Array.isArray(departmentsResponse) ? departmentsResponse : []
         );
 
-        // Fetch team members
-        const teamResponse = await api.getTeamMembersByUserId(userId);
+        // Fetch full team members (leader + peers)
+        const teamResponse = await api.getMyFullTeam();
         const members = Array.isArray(teamResponse.members)
           ? teamResponse.members
           : [];
         setTeamMembers(members);
 
-        // Fetch evaluations
-        const teamId = teamResponse.teamId;
+        // Fetch evaluations (by teamId from response)
+        const teamId = teamResponse.id || teamResponse.teamId;
         const teamEvaluations = await api.getTeamPeerEvaluationForms(teamId);
         const evaluations = Array.isArray(teamEvaluations)
           ? teamEvaluations
