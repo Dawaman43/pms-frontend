@@ -51,12 +51,13 @@ const AdminDashboard = () => {
     jobTitle: "",
     level: "",
     email: "",
-    department: "",
-    team: "",
+    department_id: "",
+    team_id: "",
     phone: "",
     address: "",
     emergencyContact: "",
     salary: "",
+    role: "",
     profileImage: null,
   });
   const [password, setPassword] = useState("");
@@ -100,7 +101,7 @@ const AdminDashboard = () => {
           setAdmin({
             name: adminResponse.name || "Unknown Admin",
             role: "System Administrator",
-            department: adminResponse.department || "N/A",
+            department: adminResponse.department_name || "N/A",
             avatar:
               adminResponse.profileImage ||
               "/placeholder.svg?height=80&width=80&text=Admin",
@@ -108,7 +109,7 @@ const AdminDashboard = () => {
           setAdminForm({
             name: adminResponse.name || "",
             email: adminResponse.email || "",
-            department: adminResponse.department || "",
+            department: adminResponse.department_name || "",
             profileImage: null,
           });
         } catch (adminError) {
@@ -129,8 +130,10 @@ const AdminDashboard = () => {
           jobTitle: user.jobTitle || "N/A",
           level: user.level || "N/A",
           email: user.email,
-          department: user.department || "N/A",
-          team: user.teamName || "N/A",
+          department_id: user.department_id,
+          team_id: user.team_id,
+          department_name: user.department_name || "N/A",
+          teamName: user.teamName || "N/A",
           status: user.status,
           dateRegistered: user.dateRegistered,
           phone: user.phone || "N/A",
@@ -138,6 +141,7 @@ const AdminDashboard = () => {
           emergencyContact: user.emergencyContact || "N/A",
           salary: user.salary || "N/A",
           profileImage: user.profileImage || null,
+          role: user.role || "staff",
         }));
         setEmployees(mappedEmployees);
 
@@ -234,7 +238,7 @@ const AdminDashboard = () => {
     if (employeeForm.role === "team_leader") {
       delete dataToSubmit.jobTitle;
       delete dataToSubmit.level;
-      delete dataToSubmit.team;
+      delete dataToSubmit.team_id;
     }
 
     try {
@@ -245,8 +249,8 @@ const AdminDashboard = () => {
         jobTitle: "",
         level: "",
         email: "",
-        department: "",
-        team: "",
+        department_id: "",
+        team_id: "",
         role: "",
         phone: "",
         salary: "",
@@ -265,8 +269,10 @@ const AdminDashboard = () => {
           jobTitle: user.jobTitle || "N/A",
           level: user.level || "N/A",
           email: user.email,
-          department: user.department || "N/A",
-          team: user.teamName || "N/A",
+          department_id: user.department_id,
+          team_id: user.team_id,
+          department_name: user.department_name || "N/A",
+          teamName: user.teamName || "N/A",
           status: user.status,
           dateRegistered: user.dateRegistered,
           phone: user.phone || "N/A",
@@ -274,6 +280,7 @@ const AdminDashboard = () => {
           emergencyContact: user.emergencyContact || "N/A",
           salary: user.salary || "N/A",
           profileImage: user.profileImage || null,
+          role: user.role || "staff",
         }))
       );
     } catch (error) {
@@ -377,17 +384,17 @@ const AdminDashboard = () => {
   const handleEditEmployee = (employee) => {
     setSelectedEmployee(employee);
     setEmployeeForm({
-      name: employee.name,
-      jobTitle: employee.jobTitle,
-      level: employee.level,
-      email: employee.email,
-      department: employee.department,
-      team: employee.team,
+      name: employee.name || "",
+      jobTitle: employee.jobTitle || "",
+      level: employee.level || "",
+      email: employee.email || "",
+      department_id: employee.department_id || "",
+      team_id: employee.team_id || "",
       role: employee.role || "staff",
-      phone: employee.phone,
-      address: employee.address,
-      emergencyContact: employee.emergencyContact,
-      salary: employee.salary,
+      phone: employee.phone || "",
+      address: employee.address || "",
+      emergencyContact: employee.emergencyContact || "",
+      salary: employee.salary || "",
       profileImage: null,
     });
     setIsEditingEmployee(true);
@@ -405,8 +412,10 @@ const AdminDashboard = () => {
           jobTitle: user.jobTitle || "N/A",
           level: user.level || "N/A",
           email: user.email,
-          department: user.department || "N/A",
-          team: user.teamName || "N/A",
+          department_id: user.department_id,
+          team_id: user.team_id,
+          department_name: user.department_name || "N/A",
+          teamName: user.teamName || "N/A",
           status: user.status,
           dateRegistered: user.dateRegistered,
           phone: user.phone || "N/A",
@@ -414,6 +423,7 @@ const AdminDashboard = () => {
           emergencyContact: user.emergencyContact || "N/A",
           salary: user.salary || "N/A",
           profileImage: user.profileImage || null,
+          role: user.role || "staff",
         }))
       );
 
@@ -424,8 +434,8 @@ const AdminDashboard = () => {
         jobTitle: "",
         level: "",
         email: "",
-        department: "",
-        team: "",
+        department_id: "",
+        team_id: "",
         role: "",
         phone: "",
         address: "",
@@ -452,8 +462,10 @@ const AdminDashboard = () => {
             jobTitle: user.jobTitle || "N/A",
             level: user.level || "N/A",
             email: user.email,
-            department: user.department || "N/A",
-            team: user.teamName || "N/A",
+            department_id: user.department_id,
+            team_id: user.team_id,
+            department_name: user.department_name || "N/A",
+            teamName: user.teamName || "N/A",
             status: user.status,
             dateRegistered: user.dateRegistered,
             phone: user.phone || "N/A",
@@ -461,6 +473,7 @@ const AdminDashboard = () => {
             emergencyContact: user.emergencyContact || "N/A",
             salary: user.salary || "N/A",
             profileImage: user.profileImage || null,
+            role: user.role || "staff",
           }))
         );
         setSuccess("Employee deleted successfully!");
@@ -525,7 +538,7 @@ const AdminDashboard = () => {
       setAdmin({
         name: adminResponse.name || "Unknown Admin",
         role: "System Administrator",
-        department: adminResponse.department || "N/A",
+        department: adminResponse.department_name || "N/A",
         avatar:
           adminResponse.profileImage ||
           "/placeholder.svg?height=80&width=80&text=Admin",
