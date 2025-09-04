@@ -166,8 +166,8 @@ const Sidebar = ({ user, isSidebarOpen, toggleSidebar }) => {
           />
         </svg>
       ),
-      link: "/settings",
-      active: location.pathname === "/settings",
+      link: "/profile",
+      active: location.pathname === "/profile",
     },
   ];
 

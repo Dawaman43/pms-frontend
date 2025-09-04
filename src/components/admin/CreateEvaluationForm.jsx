@@ -275,16 +275,30 @@ const CreateEvaluationForm = ({ departments }) => {
           </div>
 
           <div className={styles.formGroup}>
-            <label>
-              Rating Scale (comma-separated, e.g., Poor,Average,Good) *
-            </label>
-            <input
-              type="text"
-              value={formData.ratingScale.map((s) => s.label).join(",")}
-              onChange={handleRatingScaleChange}
-              placeholder="Enter rating scale"
+            <label>Rating Scale *</label>
+            <select
+              name="ratingScale"
+              value={
+                formData.ratingScale.length ? formData.ratingScale[0].label : ""
+              }
+              onChange={(e) => {
+                const value = e.target.value;
+                const scale = [
+                  { label: "Bad", value: 1 },
+                  { label: "Good", value: 2 },
+                  { label: "Very Good", value: 3 },
+                  { label: "Excellent", value: 4 },
+                ].filter((item) => item.label === value);
+                setFormData((prev) => ({ ...prev, ratingScale: scale }));
+              }}
               required
-            />
+            >
+              <option value="">Select rating</option>
+              <option value="Bad">1 - Bad</option>
+              <option value="Good">2 - Good</option>
+              <option value="Very Good">3 - Very Good</option>
+              <option value="Excellent">4 - Excellent</option>
+            </select>
           </div>
 
           {/* Sections */}
