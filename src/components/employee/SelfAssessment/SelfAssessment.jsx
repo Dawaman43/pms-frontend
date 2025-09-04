@@ -296,11 +296,10 @@ const SelfAssessment = () => {
         // Fetch evaluation forms
         const evaluationForms = await api.getEvaluationForms();
         const defaultRatingScale = [
-          { value: 1, label: "Poor" },
-          { value: 2, label: "Fair" },
-          { value: 3, label: "Good" },
-          { value: 4, label: "Very Good" },
-          { value: 5, label: "Excellent" },
+          { value: 1, label: "Bad" },
+          { value: 2, label: "Good" },
+          { value: 3, label: "Very Good" },
+          { value: 4, label: "Excellent" },
         ];
 
         const selfAssessmentForms = evaluationForms
@@ -331,34 +330,8 @@ const SelfAssessment = () => {
               parsedForm.sections = [];
             }
 
-            try {
-              if (typeof form.ratingScale === "string") {
-                parsedForm.ratingScale = JSON.parse(form.ratingScale);
-              }
-              if (
-                !Array.isArray(parsedForm.ratingScale) ||
-                !parsedForm.ratingScale.length ||
-                !parsedForm.ratingScale.every(
-                  (scale) =>
-                    scale &&
-                    typeof scale === "object" &&
-                    scale.value != null &&
-                    scale.label
-                )
-              ) {
-                console.warn(
-                  `Invalid ratingScale for form ${form.id}:`,
-                  parsedForm.ratingScale
-                );
-                parsedForm.ratingScale = defaultRatingScale;
-              }
-            } catch (e) {
-              console.error(
-                `Failed to parse ratingScale for form ${form.id}:`,
-                e
-              );
-              parsedForm.ratingScale = defaultRatingScale;
-            }
+            // Assign fixed rating scale
+            parsedForm.ratingScale = defaultRatingScale;
 
             const initialRatings = {};
             parsedForm.sections.forEach((section, sIndex) => {

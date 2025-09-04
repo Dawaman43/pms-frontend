@@ -17,6 +17,7 @@ const PeerEvaluation = () => {
   const [availablePeers, setAvailablePeers] = useState([]);
   const [activePeerIndex, setActivePeerIndex] = useState(null);
   const [formConfig, setFormConfig] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -285,9 +286,47 @@ const PeerEvaluation = () => {
           phone: userResponse.phone || "",
         });
 
+        // Define hardcoded 4-point rating scale
+        const defaultRatingScale = [
+          { value: 1, label: "Bad" },
+          { value: 2, label: "Good" },
+          { value: 3, label: "Very Good" },
+          { value: 4, label: "Excellent" },
+        ];
+
         // Fetch universal peer evaluation forms
         const formsData = await api.getTeamPeerEvaluationForms(null);
-        setAllForms(formsData.forms || formsData);
+        const forms = (formsData.forms || formsData).map((form) => {
+          let parsedForm = { ...form };
+          try {
+            if (typeof form.sections === "string") {
+              parsedForm.sections = JSON.parse(form.sections);
+            }
+            if (
+              !Array.isArray(parsedForm.sections) ||
+              !parsedForm.sections.every(
+                (section) =>
+                  Array.isArray(section.criteria) && section.criteria.length
+              )
+            ) {
+              console.warn(
+                `Invalid sections for form ${form.id}:`,
+                parsedForm.sections
+              );
+              parsedForm.sections = [];
+            }
+          } catch (e) {
+            console.error(`Failed to parse sections for form ${form.id}:`, e);
+            parsedForm.sections = [];
+          }
+
+          // Assign fixed rating scale
+          parsedForm.ratingScale = defaultRatingScale;
+
+          return parsedForm;
+        });
+
+        setAllForms(forms);
 
         // Fetch all peers
         const peersData = await api.getAllUsersExceptCurrent();

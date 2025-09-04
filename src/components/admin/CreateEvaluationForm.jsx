@@ -16,7 +16,6 @@ const CreateEvaluationForm = ({ departments }) => {
         criteria: [{ id: Date.now(), name: "", weight: 0 }],
       },
     ],
-    ratingScale: [], // [{label, value}]
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -106,16 +105,6 @@ const CreateEvaluationForm = ({ departments }) => {
     });
   };
 
-  // Handle rating scale
-  const handleRatingScaleChange = (e) => {
-    const value = e.target.value;
-    const scale = value
-      .split(",")
-      .map((item, index) => ({ label: item.trim(), value: index + 1 }))
-      .filter((s) => s.label); // remove empty strings
-    setFormData((prev) => ({ ...prev, ratingScale: scale }));
-  };
-
   // Submit form
   const handleCreateForm = async (e) => {
     e.preventDefault();
@@ -151,10 +140,6 @@ const CreateEvaluationForm = ({ departments }) => {
       setError("All criteria must have a name and weight greater than 0");
       return;
     }
-    if (formData.ratingScale.length === 0) {
-      setError("Rating scale is required");
-      return;
-    }
 
     try {
       const payload = {
@@ -164,7 +149,6 @@ const CreateEvaluationForm = ({ departments }) => {
         targetEvaluator: formData.targetEvaluator,
         weight: parseInt(formData.weight, 10),
         sections: formData.sections,
-        ratingScale: formData.ratingScale,
       };
 
       const response = await api.createEvaluationForm(payload);
@@ -182,7 +166,6 @@ const CreateEvaluationForm = ({ departments }) => {
             criteria: [{ id: Date.now() + 1, name: "", weight: 0 }],
           },
         ],
-        ratingScale: [],
       });
     } catch (err) {
       setError(err.message || "Failed to create form");
@@ -272,33 +255,6 @@ const CreateEvaluationForm = ({ departments }) => {
               placeholder="Enter form description"
               style={{ color: "#1a202c" }}
             />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label>Rating Scale *</label>
-            <select
-              name="ratingScale"
-              value={
-                formData.ratingScale.length ? formData.ratingScale[0].label : ""
-              }
-              onChange={(e) => {
-                const value = e.target.value;
-                const scale = [
-                  { label: "Bad", value: 1 },
-                  { label: "Good", value: 2 },
-                  { label: "Very Good", value: 3 },
-                  { label: "Excellent", value: 4 },
-                ].filter((item) => item.label === value);
-                setFormData((prev) => ({ ...prev, ratingScale: scale }));
-              }}
-              required
-            >
-              <option value="">Select rating</option>
-              <option value="Bad">1 - Bad</option>
-              <option value="Good">2 - Good</option>
-              <option value="Very Good">3 - Very Good</option>
-              <option value="Excellent">4 - Excellent</option>
-            </select>
           </div>
 
           {/* Sections */}
