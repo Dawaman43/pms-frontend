@@ -1,4 +1,5 @@
-import styles from "../../pages/AdminDashboard.module.css";
+import { useNavigate } from "react-router-dom";
+import styles from "./Sidebar.module.css";
 
 const Sidebar = ({
   isSidebarOpen,
@@ -7,6 +8,8 @@ const Sidebar = ({
   setActiveTab,
   admin,
 }) => {
+  const navigate = useNavigate();
+
   const navLinks = [
     {
       title: "Overview",
@@ -321,32 +324,43 @@ const Sidebar = ({
           />
         </svg>
       ),
-      tabKey: "departments", // Changed from "createDepartment" to match MainContent.jsx
+      tabKey: "departments",
       active: activeTab === "departments",
     },
   ];
 
+  const handleLogout = () => {
+    try {
+      localStorage.clear();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
   return (
     <aside
-      className={`${styles.sidebar} ${
-        isSidebarOpen ? styles.sidebarOpen : styles.sidebarClosed
-      }`}
+      className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarOpen : ""}`}
     >
       <div className={styles.sidebarHeader}>
-        <div className={styles.sidebarLogo}>
-          <img
-            src="/astu_logo.svg"
-            alt="ASTU Logo"
-            className={styles.sidebarLogoImage}
-          />
-          {isSidebarOpen && (
+        {isSidebarOpen && (
+          <div className={styles.sidebarLogo}>
+            <img
+              src="/astu_logo.svg"
+              alt="ASTU Logo"
+              className={styles.sidebarLogoImage}
+            />
             <div className={styles.sidebarTitle}>
               <h3>Admin PMS</h3>
               <p>ASTU</p>
             </div>
-          )}
-        </div>
-        <button className={styles.sidebarToggle} onClick={toggleSidebar}>
+          </div>
+        )}
+        <button
+          className={styles.sidebarToggle}
+          onClick={toggleSidebar}
+          aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+        >
           {isSidebarOpen ? (
             <svg
               width="24"
@@ -372,7 +386,7 @@ const Sidebar = ({
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                d="M4 12H20M20 12L13 5M20 12L13 19"
+                d="M3 12H21M3 6H21M3 18H21"
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
@@ -392,6 +406,7 @@ const Sidebar = ({
                 }`}
                 onClick={() => setActiveTab(link.tabKey)}
                 title={isSidebarOpen ? "" : link.title}
+                aria-label={link.title}
               >
                 <div className={styles.navIcon}>{link.icon}</div>
                 {isSidebarOpen && (
@@ -403,26 +418,76 @@ const Sidebar = ({
         </ul>
       </nav>
       <div className={styles.sidebarFooter}>
-        {isSidebarOpen && (
+        {isSidebarOpen ? (
           <div className={styles.userInfo}>
             <img
-              src={admin.avatar || "/placeholder.svg"}
+              src={admin.avatar || "/assets/avatar-placeholder.png"}
               alt="Admin Avatar"
               className={styles.userAvatar}
+              onError={(e) => {
+                e.target.src = "/assets/avatar-placeholder.png";
+              }}
             />
             <div className={styles.userDetails}>
               <h4>{admin.name.split(" ")[0]}</h4>
               <p>{admin.role}</p>
             </div>
+            <button
+              className={styles.logoutButton}
+              onClick={handleLogout}
+              title="Log out"
+              aria-label="Log out"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9M16 17L21 12M21 12L16 7M21 12H9"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span>Log out</span>
+            </button>
           </div>
-        )}
-        {!isSidebarOpen && (
+        ) : (
           <div className={styles.userInfoCollapsed}>
             <img
-              src={admin.avatar || "/placeholder.svg"}
+              src={admin.avatar || "/assets/avatar-placeholder.png"}
               alt="Admin Avatar"
               className={styles.userAvatar}
+              onError={(e) => {
+                e.target.src = "/assets/avatar-placeholder.png";
+              }}
             />
+            <button
+              className={styles.logoutButton}
+              onClick={handleLogout}
+              title="Log out"
+              aria-label="Log out"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9M16 17L21 12M21 12L16 7M21 12H9"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
           </div>
         )}
       </div>
