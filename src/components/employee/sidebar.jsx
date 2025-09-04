@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import HomePageStyles from "../../pages/HomePage.module.css";
-import api from "../../api";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import styles from "./Sidebar.module.css";
 
 const Sidebar = ({ user, isSidebarOpen, toggleSidebar }) => {
   const [activePopout, setActivePopout] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Detect screen size
   useEffect(() => {
@@ -20,6 +20,15 @@ const Sidebar = ({ user, isSidebarOpen, toggleSidebar }) => {
 
   const togglePopout = (item) => {
     setActivePopout(activePopout === item ? null : item);
+  };
+
+  const handleLogout = () => {
+    try {
+      localStorage.clear();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   const navLinks = [
@@ -80,22 +89,10 @@ const Sidebar = ({ user, isSidebarOpen, toggleSidebar }) => {
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          <path
-            d="M9 11C11.21 11 13 9.21 13 7C13 4.79 11.21 3 9 3C6.79 3 5 4.79 5 7C5 9.21 6.79 11 9 11Z"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M23 21V19C23 18.11 22.7 17.25 22.16 16.55C21.62 15.85 20.86 15.35 20 15.13"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M16 3.13C16.86 3.35 17.62 3.85 18.17 4.55C18.71 5.25 19.01 6.12 19.01 7C19.01 7.89 18.71 8.76 18.17 9.46C17.62 10.16 16.86 10.66 16 10.88"
+          <circle
+            cx="9"
+            cy="7"
+            r="4"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
@@ -107,39 +104,36 @@ const Sidebar = ({ user, isSidebarOpen, toggleSidebar }) => {
       active: location.pathname === "/peer-evaluation",
     },
     {
-      title: "Reports",
+      title: "Team",
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
           <path
-            d="M21 3H3V21H21V3Z"
+            d="M17 21V19C17 17.94 16.58 16.92 15.83 16.17C15.08 15.42 14.06 15 13 15H5C3.94 15 2.92 15.42 2.17 16.17C1.42 16.92 1 17.94 1 19V21"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <circle
+            cx="9"
+            cy="7"
+            r="4"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
           <path
-            d="M9 8H15V12H9V8Z"
+            d="M23 21V19C22.99 18.12 22.62 17.27 21.95 16.65C21.28 16.03 20.37 15.66 19.5 15.66"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          <path
-            d="M17 16H7"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M17 12H15"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M7 12H9"
+          <circle
+            cx="17"
+            cy="7"
+            r="4"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
@@ -147,22 +141,24 @@ const Sidebar = ({ user, isSidebarOpen, toggleSidebar }) => {
           />
         </svg>
       ),
-      link: "/reports",
-      active: location.pathname === "/reports",
+      link: "/team",
+      active: location.pathname === "/team",
     },
     {
-      title: "Profile",
+      title: "Settings",
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
           <path
-            d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z"
+            d="M12.22 2C12.84 2.67 13.29 3.62 14.05 4.18C14.46 4.49 14.95 4.66 15.44 4.67C16.67 4.7 17.84 5.23 18.76 5.99C19.47 6.57 19.95 7.33 20.18 8.18C20.38 8.92 20.38 9.7 20.38 10.47C20.38 11.76 20.84 12.99 21 14.24C21.14 15.18 21.05 16.13 20.73 17.02C20.37 18.04 19.75 18.94 19.02 19.67C18.29 20.4 17.39 21.02 16.37 21.38C15.45 21.7 14.5 21.79 13.56 21.65C12.31 21.49 11.08 21.03 9.83 20.88C9.05 20.78 8.27 20.78 7.5 20.97C6.65 21.2 5.89 21.68 5.31 22.39C4.55 23.31 4.02 24.48 3.99 25.71C3.98 25.85 3.97 26 3.94 26.14"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          <path
-            d="M6 20C6 17.79 7.79 16 10 16H14C16.21 16 18 17.79 18 20"
+          <circle
+            cx="12"
+            cy="12"
+            r="3"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
@@ -170,80 +166,91 @@ const Sidebar = ({ user, isSidebarOpen, toggleSidebar }) => {
           />
         </svg>
       ),
-      link: "/profile",
-      active: location.pathname === "/profile",
+      link: "/settings",
+      active: location.pathname === "/settings",
     },
   ];
 
   return (
     <aside
-      className={`${HomePageStyles.sidebar} ${
-        isSidebarOpen ? HomePageStyles.sidebarOpen : ""
-      }`}
-      style={{
-        transition: isMobile ? "transform 0.3s ease" : "width 0.3s ease",
-      }}
+      className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarOpen : ""}`}
     >
-      {/* Sidebar Header */}
-      <div className={HomePageStyles.sidebarHeader}>
+      <div className={styles.sidebarHeader}>
         {isSidebarOpen && (
-          <div className={HomePageStyles.sidebarLogo}>
+          <div className={styles.sidebarLogo}>
             <img
               src="/astu_logo.svg"
               alt="ASTU Logo"
-              className={HomePageStyles.sidebarLogoImage}
+              className={styles.sidebarLogoImage}
             />
-            <div className={HomePageStyles.sidebarTitle}>
-              <h3>ASTU Portal</h3>
-              <p>Management System</p>
+            <div className={styles.sidebarTitle}>
+              <h3>Employee PMS</h3>
+              <p>ASTU</p>
             </div>
           </div>
         )}
         <button
-          className={HomePageStyles.sidebarToggle}
+          className={styles.sidebarToggle}
           onClick={toggleSidebar}
           aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
         >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            {isSidebarOpen ? (
-              <path d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            )}
-          </svg>
+          {isSidebarOpen ? (
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19 12H5M5 12L12 19M5 12L12 5"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          ) : (
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3 12H21M3 6H21M3 18H21"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          )}
         </button>
       </div>
-
-      {/* Navigation */}
-      <nav className={HomePageStyles.sidebarNav}>
+      <nav className={styles.sidebarNav}>
         <ul>
           {navLinks.map((link, index) => (
-            <li key={index}>
-              <div className={HomePageStyles.navItemContainer}>
+            <li key={index} className={styles.navItem}>
+              <div className={styles.navLinkWrapper}>
                 <Link
                   to={link.link}
-                  className={`${HomePageStyles.navLink} ${
-                    link.active ? HomePageStyles.active : ""
+                  className={`${styles.navLink} ${
+                    link.active ? styles.active : ""
                   }`}
                   onClick={() => {
                     if (isMobile) toggleSidebar();
                     togglePopout(link.title);
                   }}
                 >
-                  <div className={HomePageStyles.navIcon}>{link.icon}</div>
-                  <span>{link.title}</span>
+                  <div className={styles.navIcon}>{link.icon}</div>
+                  {isSidebarOpen && (
+                    <span className={styles.navText}>{link.title}</span>
+                  )}
                   {isSidebarOpen && (
                     <svg
-                      className={HomePageStyles.chevronIcon}
+                      className={styles.chevronIcon}
                       width="16"
                       height="16"
                       viewBox="0 0 24 24"
@@ -258,16 +265,16 @@ const Sidebar = ({ user, isSidebarOpen, toggleSidebar }) => {
                   )}
                 </Link>
                 {isSidebarOpen && activePopout === link.title && (
-                  <div className={HomePageStyles.popoutMenu}>
+                  <div className={styles.popoutMenu}>
                     <Link
                       to={`${link.link}/details`}
-                      className={HomePageStyles.popoutItem}
+                      className={styles.popoutItem}
                     >
                       View Details
                     </Link>
                     <Link
                       to={`${link.link}/settings`}
-                      className={HomePageStyles.popoutItem}
+                      className={styles.popoutItem}
                     >
                       Settings
                     </Link>
@@ -278,40 +285,78 @@ const Sidebar = ({ user, isSidebarOpen, toggleSidebar }) => {
           ))}
         </ul>
       </nav>
-
-      {/* Footer */}
-      <div className={HomePageStyles.sidebarFooter}>
-        <div className={HomePageStyles.userInfo}>
-          <img
-            src={user?.avatar || "/default-avatar.svg"}
-            alt="User Avatar"
-            className={HomePageStyles.userAvatar}
-          />
-          {isSidebarOpen && (
-            <div>
+      <div className={styles.sidebarFooter}>
+        {isSidebarOpen ? (
+          <div className={styles.userInfo}>
+            <img
+              src={user?.avatar || "/default-avatar.svg"}
+              alt="User Avatar"
+              className={styles.userAvatar}
+              onError={(e) => {
+                e.target.src = "/default-avatar.svg";
+              }}
+            />
+            <div className={styles.userDetails}>
               <h4>{user?.name?.split(" ")[0] || "Guest"}</h4>
               <p>{user?.role || "User"}</p>
             </div>
-          )}
-        </div>
-
-        {isSidebarOpen && (
-          <button
-            className={HomePageStyles.logoutButton}
-            onClick={() => api.logout()}
-            aria-label="Logout"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M16 17L21 12L16 7M21 12H9M13 5V3H5V21H13V19"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span>Logout</span>
-          </button>
+            <button
+              className={styles.logoutButton}
+              onClick={handleLogout}
+              title="Log out"
+              aria-label="Log out"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9M16 17L21 12M21 12L16 7M21 12H9"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span>Log out</span>
+            </button>
+          </div>
+        ) : (
+          <div className={styles.userInfoCollapsed}>
+            <img
+              src={user?.avatar || "/default-avatar.svg"}
+              alt="User Avatar"
+              className={styles.userAvatar}
+              onError={(e) => {
+                e.target.src = "/default-avatar.svg";
+              }}
+            />
+            <button
+              className={styles.logoutButton}
+              onClick={handleLogout}
+              title="Log out"
+              aria-label="Log out"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9M16 17L21 12M21 12L16 7M21 12H9"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
         )}
       </div>
     </aside>
