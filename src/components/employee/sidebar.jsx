@@ -145,6 +145,50 @@ const Sidebar = ({ user, isSidebarOpen, toggleSidebar }) => {
       active: location.pathname === "/team",
     },
     {
+      title: "Reports",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M21 3H3V21H21V3Z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M9 8H15V12H9V8Z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M17 16H7"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M17 12H15"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M7 12H9"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+      link: "/reports",
+      active: location.pathname === "/reports",
+    },
+    {
       title: "Settings",
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
