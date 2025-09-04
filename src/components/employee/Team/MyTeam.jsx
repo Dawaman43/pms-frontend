@@ -305,7 +305,7 @@ const MyTeam = () => {
         id: member.id,
         name: member.name || "Unknown",
         role: member.role || "Team Member",
-        department: member.department || "N/A",
+        department: member.department_name || "N/A", // ← Use department_name
         employeeId:
           member.employeeId || `ASTU-ICT-${String(member.id).padStart(3, "0")}`,
         email: member.email || "N/A",

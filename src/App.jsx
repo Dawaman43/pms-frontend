@@ -4,6 +4,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import DashboardPage from "./pages/DashboardPage";
@@ -13,56 +14,58 @@ import SelfAssessment from "./components/employee/SelfAssessment/SelfAssessment"
 import PeerEvaluation from "./components/employee/PeerEvaluation/PeerEvaluation";
 import Reports from "./components/employee/Reports/Reports";
 import Profile from "./components/employee/Profile/Profile";
-import ProtectedRoute from "./ProtectedRoute";
-import "./App.css";
 import MyTeam from "./components/employee/Team/MyTeam";
 
-function App() {
+import ProtectedRoute from "./ProtectedRoute";
+import "./App.css";
+
+// ---------------- Root Redirect Component ----------------
+const DefaultRoute = () => {
   const token = localStorage.getItem("token");
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
   const role = userData.role;
 
-  const getDefaultRoute = () => {
-    if (!token) return <Navigate to="/login" replace />;
-    switch (role) {
-      case "admin":
-        return <Navigate to="/admin-dashboard" replace />;
-      case "team_leader":
-        return <Navigate to="/team-leader-dashboard" replace />;
-      case "staff":
-        return <Navigate to="/home" replace />;
-      default:
-        return <Navigate to="/home" replace />;
-    }
-  };
+  if (!token) return <Navigate to="/login" replace />;
 
+  switch (role) {
+    case "admin":
+      return <Navigate to="/admin-dashboard" replace />;
+    case "team_leader":
+      return <Navigate to="/team-leader-dashboard" replace />;
+    case "staff":
+      return <Navigate to="/home" replace />;
+    default:
+      return <Navigate to="/home" replace />;
+  }
+};
+
+// ---------------- Login Redirect Component ----------------
+const LoginRedirect = () => {
+  const token = localStorage.getItem("token");
+  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+  const role = userData.role;
+
+  if (token) {
+    if (role === "admin") return <Navigate to="/admin-dashboard" replace />;
+    if (role === "team_leader")
+      return <Navigate to="/team-leader-dashboard" replace />;
+    return <Navigate to="/home" replace />;
+  }
+
+  return <LoginPage />;
+};
+
+// ---------------- App Component ----------------
+function App() {
   return (
     <Router>
       <div className="App">
         <Routes>
-          {/* Root → role-based */}
-          <Route path="/" element={getDefaultRoute()} />
+          {/* Root → role-based redirect */}
+          <Route path="/" element={<DefaultRoute />} />
 
           {/* Login → redirect if already logged in */}
-          <Route
-            path="/login"
-            element={
-              token ? (
-                <Navigate
-                  to={
-                    role === "admin"
-                      ? "/admin-dashboard"
-                      : role === "team_leader"
-                      ? "/team-leader-dashboard"
-                      : "/home"
-                  }
-                  replace
-                />
-              ) : (
-                <LoginPage />
-              )
-            }
-          />
+          <Route path="/login" element={<LoginRedirect />} />
 
           {/* Protected Routes */}
           <Route
