@@ -8,6 +8,7 @@ import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import DashboardPage from "./pages/DashboardPage";
 import AdminDashboard from "./pages/AdminDashboard";
+import TeamLeaderDashboard from "./pages/TeamLeaderDashboard";
 import SelfAssessment from "./components/employee/SelfAssessment/SelfAssessment";
 import PeerEvaluation from "./components/employee/PeerEvaluation/PeerEvaluation";
 import Reports from "./components/employee/Reports/Reports";
@@ -20,7 +21,6 @@ function App() {
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
   const role = userData.role;
 
-  // Role-based redirect from root "/"
   const getDefaultRoute = () => {
     if (!token) return <Navigate to="/login" replace />;
     switch (role) {
@@ -39,10 +39,10 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
-          {/* Root route → role-based */}
+          {/* Root → role-based */}
           <Route path="/" element={getDefaultRoute()} />
 
-          {/* Login → prevent access if already logged in */}
+          {/* Login → redirect if already logged in */}
           <Route
             path="/login"
             element={
@@ -88,8 +88,16 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/team-leader-dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["team_leader"]}>
+                <TeamLeaderDashboard />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* Employee Routes (staff/team leader only) */}
+          {/* Employee routes */}
           <Route
             path="/self-assessment"
             element={

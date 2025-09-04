@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import styles from "./PeerEvaluation.module.css";
 import HomePageStyles from "../../../pages/HomePage.module.css";
@@ -23,10 +23,12 @@ const PeerEvaluation = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [allEvaluations, setAllEvaluations] = useState([]);
   const [showEvaluations, setShowEvaluations] = useState(false);
+  const [activePopout, setActivePopout] = useState(null);
+  const hasFetched = useRef(false);
 
   const location = useLocation();
 
-  // Use the same navLinks as in sidebar.jsx to ensure consistency
+  // Use the same navLinks as in SelfAssessment.jsx to ensure consistency
   const navLinks = [
     {
       title: "Dashboard",
@@ -55,7 +57,7 @@ const PeerEvaluation = () => {
         </svg>
       ),
       link: "/home",
-      active: location.pathname === "/home" || location.pathname === "/",
+      active: location.pathname === "/home",
     },
     {
       title: "Self Assessment",
@@ -226,21 +228,14 @@ const PeerEvaluation = () => {
             strokeLinejoin="round"
           />
           <path
-            d="M19.4 15C19.2669 15.3016 19.227 15.6363 19.2849 15.9606C19.3427 16.2849 19.4962 16.5836 19.725 16.8175C19.9538 17.0514 20.2473 17.2095 20.566 17.2709C20.8847 17.3323 21.2181 17.2943 21.52 17.16C22.3806 16.7591 23.1054 16.1044 23.5992 15.2836C24.0931 14.4628 24.3331 13.5124 24.29 12.555C24.3331 11.5976 24.0931 10.6472 23.5992 9.82639C23.1054 9.00555 22.3806 8.35093 21.52 7.95C21.2181 7.81567 20.8847 7.77774 20.566 7.83911C20.2473 7.90048 19.9538 8.05864 19.725 8.29254C19.4962 8.52643 19.3427 8.82515 19.2849 9.14944C19.227 9.47374 19.2669 9.80843 19.4 10.11"
+            d="M19.4 15C19.2669 15.3016 19.227 15.6363 19.2849 15.9606C19.3427 16.2849 19.4962 16.5836 19.725 16.8175C19.9538 17.0514 20.2473 17.2095 20.566 17.2709C20.8847 17.3323 21.2181 17.2943 21.52 17.16C22.3806 16.7591 23.1054 16.1044 23.5992 15.2836C24.0931 14.4628 24.3331 13.5124 24.29 12.555C24.3331 11.5976 24.0931 10.6472 23.5992 9.82639C23.1054 9.00555 22.3806 8.35093 21.52 7.95C21.2181 7.81567 20.8847 7.77774 20.566 7.83911C20.2473 7.90048 19.9538 8.05862 19.725 8.29251C19.4962 8.5264 19.3427 8.82514 19.2849 9.14944C19.227 9.47374 19.2669 9.80843 19.4 10.11"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
           <path
-            d="M4.6 15C4.73309 15.3016 4.773 15.6363 4.71511 15.9606C4.6573 16.2849 4.50381 16.5836 4.275 16.8175C4.04619 17.0514 3.75266 17.2095 3.434 17.2709C3.11534 17.3323 2.78191 17.2943 2.48 17.16C1.6194 16.7591 0.894564 16.1044 0.400785 15.2836C-0.093094 14.4628 -0.333109 13.5124 -0.290002 12.555C-0.333109 11.5976 -0.093094 10.6472 0.400785 9.82639C0.894564 9.00555 1.6194 8.35093 2.48 7.95C2.78191 7.81567 3.11534 7.77774 3.434 7.83911C3.75266 7.90048 4.04619 8.05864 4.275 8.29254C4.50381 8.52643 4.6573 8.82515 4.71511 9.14944C4.773 9.47374 4.73309 9.80843 4.6 10.11"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M19.4 9C19.2669 8.6984 19.227 8.3637 19.2849 8.0394C19.3427 7.7151 19.4962 7.4164 19.725 7.1825C19.9538 6.9486 20.2473 6.7905 20.566 6.7291C20.8847 6.6677 21.2181 6.7056 21.52 6.84C22.3806 7.2409 23.1054 7.8956 23.5992 8.7164C24.0931 9.5372 24.3331 10.4876 24.29 11.445C24.3331 12.4024 24.0931 13.3528 23.5992 14.1736C23.1054 14.9944 22.3806 15.6491 21.52 16.05C21.2181 16.1843 20.8847 16.2223 20.566 16.1609C20.2473 16.0995 19.9538 15.9414 19.725 15.7075C19.4962 15.4736 19.3427 15.1749 19.2849 14.8506C19.227 14.5263 19.2669 14.1916 19.4 13.89"
+            d="M4.6 8.85C4.73309 8.54843 4.77297 8.21374 4.71513 7.88944C4.65729 7.56514 4.50383 7.2664 4.27504 7.03251C4.04624 6.79862 3.75275 6.64048 3.43402 6.57911C3.11529 6.51774 2.78192 6.55567 2.48 6.69C1.61943 7.09094 0.894552 7.74556 0.400795 8.56639C-0.0930599 9.38723 -0.333065 10.3376 -0.29 11.295C-0.333065 12.2524 -0.0930599 13.2028 0.400795 14.0236C0.894552 14.8444 1.61943 15.4991 2.48 15.9C2.78192 16.0343 3.11529 16.0723 3.43402 16.0109C3.75275 15.9495 4.04624 15.7914 4.27504 15.5575C4.50383 15.3236 4.65729 15.0249 4.71513 14.7006C4.77297 14.3763 4.73309 14.0416 4.6 13.74"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
@@ -253,12 +248,42 @@ const PeerEvaluation = () => {
     },
   ];
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+    setActivePopout(null);
+  };
+
+  const togglePopout = (item) => {
+    setActivePopout(activePopout === item ? null : item);
+  };
+
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+
     const fetchData = async () => {
       try {
         setLoading(true);
-        const userData = JSON.parse(localStorage.getItem("userData"));
-        setUser(userData);
+        const tokenData = localStorage.getItem("userData");
+        if (!tokenData) throw new Error("User not logged in");
+        const userData = JSON.parse(tokenData);
+        const userResponse = await api.getUserById(userData.id);
+        setUser({
+          id: userResponse.id,
+          name: userResponse.name,
+          email: userResponse.email,
+          role: userResponse.role,
+          department:
+            userResponse.department || "Information Communication Technology",
+          position: userResponse.jobTitle || "Employee",
+          avatar: userResponse.profileImage
+            ? `${userResponse.profileImage}?t=${new Date().getTime()}`
+            : "/assets/avatar-placeholder.png",
+          employeeId:
+            userResponse.employeeId ||
+            `ASTU-ICT-${String(userResponse.id).padStart(3, "0")}`,
+          phone: userResponse.phone || "",
+        });
 
         // Fetch universal peer evaluation forms
         const formsData = await api.getTeamPeerEvaluationForms(null);
@@ -279,20 +304,15 @@ const PeerEvaluation = () => {
       }
     };
 
-    fetchData();
-
-    // Handle mobile view
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-      if (window.innerWidth <= 768) {
-        setIsSidebarOpen(false); // Close sidebar by default on mobile
-      } else {
-        setIsSidebarOpen(true); // Open sidebar by default on desktop
-      }
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+      setIsSidebarOpen(window.innerWidth >= 768);
     };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+
+    fetchData();
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+    return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
 
   const handleRatingChange = (peerIndex, criterionId, value) => {
@@ -333,7 +353,7 @@ const PeerEvaluation = () => {
         form_id: form.id,
         user_id: peer.id,
         scores: selectedPeers[activePeerIndex].ratings,
-        comments: "", // Add comments input if needed
+        comments: "",
       };
 
       await api.submitEvaluation(evaluationData);
@@ -354,29 +374,90 @@ const PeerEvaluation = () => {
     }
   };
 
+  if (loading || !user) {
+    return (
+      <div className={HomePageStyles.homeContainer}>
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingSpinner}></div>
+          <p>Loading peer evaluation data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={HomePageStyles.homeContainer}>
       <Sidebar
-        isOpen={isSidebarOpen}
-        toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-        navLinks={navLinks}
+        isSidebarOpen={isSidebarOpen}
+        toggleSidebar={toggleSidebar}
         user={user}
-        isMobile={isMobile}
+        navLinks={navLinks}
+        activePopout={activePopout}
+        togglePopout={togglePopout}
+        location={location}
       />
+
       <div
         className={`${HomePageStyles.mainWrapper} ${
-          isSidebarOpen ? "" : HomePageStyles.mainWrapperFull
+          !isSidebarOpen ? HomePageStyles.mainWrapperFull : ""
         }`}
       >
+        <header className={HomePageStyles.header}>
+          <div className={HomePageStyles.headerContent}>
+            <div className={HomePageStyles.headerLeft}>
+              {isMobile && (
+                <button
+                  className={HomePageStyles.mobileMenuButton}
+                  onClick={toggleSidebar}
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M3 12H21M3 6H21M3 18H21"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              )}
+              <div className={HomePageStyles.systemTitle}>
+                <h1>Performance Management System</h1>
+                <p>Adama Science & Technology University</p>
+              </div>
+            </div>
+
+            <div className={HomePageStyles.userSection}>
+              <div className={HomePageStyles.userInfo}>
+                <span className={HomePageStyles.userName}>{user.name}</span>
+                <span className={HomePageStyles.userRole}>{user.role}</span>
+              </div>
+              <div className={HomePageStyles.avatarContainer}>
+                <img
+                  src={user.avatar}
+                  alt="User Avatar"
+                  className={HomePageStyles.userAvatar}
+                  onError={(e) => {
+                    console.error("Header avatar failed to load:", user.avatar);
+                    e.target.src = "/assets/avatar-placeholder.png";
+                  }}
+                />
+                <div className={HomePageStyles.statusIndicator}></div>
+              </div>
+            </div>
+          </div>
+        </header>
+
         <main className={HomePageStyles.mainContent}>
           <section className={HomePageStyles.section}>
             <div className={styles.contentSection}>
-              {loading ? (
-                <div className={styles.loadingContainer}>
-                  <div className={styles.loadingSpinner}></div>
-                  <p>Loading peer evaluation data...</p>
-                </div>
-              ) : error ? (
+              {error ? (
                 <div className={styles.errorMessage}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                     <path

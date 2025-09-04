@@ -15,9 +15,9 @@ const handleResponse = async (response) => {
       errorData = await response.json();
     } catch {}
     if (response.status === 401) {
+      // Clear auth on expired/invalid token
       localStorage.removeItem("token");
       localStorage.removeItem("userData");
-      localStorage.removeItem("userRole");
       window.location.href = "/login";
       return;
     }
@@ -28,13 +28,11 @@ const handleResponse = async (response) => {
   return response.json();
 };
 
-/** Helper function for GET requests */
 const get = (url) =>
   fetch(`${API_BASE_URL}${url}`, { headers: getAuthHeaders() }).then(
     handleResponse
   );
 
-/** Helper function for POST/PUT/DELETE requests */
 const send = (url, method, data, isFormData = false) => {
   const headers = isFormData
     ? getAuthHeaders()
@@ -45,25 +43,17 @@ const send = (url, method, data, isFormData = false) => {
   );
 };
 
-/** API object */
+/** ================= API OBJECT ================= */
 const api = {
-  // ================= AUTH =================
+  // 🔐 AUTH
   login: async (email, password) => {
     const data = await send("/auth/login", "POST", { email, password });
     localStorage.setItem("token", data.token);
-    localStorage.setItem(
-      "userData",
-      JSON.stringify({
-        id: data.user.id,
-        email: data.user.email,
-        role: data.user.role,
-        name: data.user.name,
-      })
-    );
+    localStorage.setItem("userData", JSON.stringify(data.user));
     return data;
   },
 
-  // ================= USERS =================
+  // 👤 USERS
   getUserById: (id) => get(`/users/${id}`),
   getAllUsers: () => get("/users"),
   getAllUsersExceptCurrent: () => get("/users/all-except-current"),
@@ -83,7 +73,7 @@ const api = {
     return send(`/users/${id}/profile-picture`, "POST", formData, true);
   },
 
-  // ================= TEAMS =================
+  // 👥 TEAMS
   getAllTeams: () => get("/teams"),
   getTeamMembers: (teamId) => get(`/teams/members/${teamId}`),
   createTeam: async (teamData) => {
@@ -128,7 +118,7 @@ const api = {
   },
   deleteTeam: (teamId) => send(`/teams/${teamId}`, "DELETE"),
 
-  // ================= DEPARTMENTS =================
+  // 🏢 DEPARTMENTS
   getAllDepartments: () => get("/departments"),
   getDepartmentById: (id) => get(`/departments/${id}`),
   createDepartment: (data) => send("/departments", "POST", data),
@@ -139,7 +129,7 @@ const api = {
   getStaffByDepartment: (departmentId) =>
     get(`/departments/${departmentId}/staff`),
 
-  // ================= EVALUATION FORMS =================
+  // 📋 EVALUATION FORMS
   getEvaluationForms: () => get("/forms"),
   createEvaluationForm: (data) => send("/forms", "POST", data),
   updateEvaluationForm: (id, data) => send(`/forms/${id}`, "PUT", data),
@@ -149,17 +139,17 @@ const api = {
     return get(url);
   },
 
-  // ================= REPORTS =================
+  // 📊 REPORTS
   generatePerformanceReport: () => get("/reports/performance"),
   generateEmployeeReport: (userId) => {
     if (!userId) throw new Error("User ID required");
     return get(`/reports/employee/${userId}`);
   },
 
-  // ================= TASKS =================
+  // ✅ TASKS
   getUpcomingTasks: (userId) => get(`/tasks?userId=${userId}`),
 
-  // ================= EVALUATIONS =================
+  // 📝 EVALUATIONS
   getAllEvaluations: () => get("/evaluations"),
   getEvaluatesByUser: (userId) => {
     if (!userId) throw new Error("User ID required");
