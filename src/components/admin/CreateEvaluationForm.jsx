@@ -1,369 +1,256 @@
-import styles from "../../pages/AdminDashboard.module.css";
-import { useState, useEffect } from "react";
-import api from "../../api";
+import { useState } from "react";
+import api from "../../api"; // adjust path if needed
+import styles from "./pagesAdminDashboard.module.css";
 
-const CreateEvaluationForm = ({ departments }) => {
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    formType: "",
-    targetEvaluator: "",
-    period: "",
-    sections: [
-      {
-        id: Date.now(),
-        name: "",
-        criteria: [{ id: Date.now() + 1, name: "", weight: 100, maxScore: 5 }],
-      },
-    ],
-  });
-
+const CreateEvaluationForm = ({ onFormCreated }) => {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [formType, setFormType] = useState("self_assessment");
+  const [targetEvaluator, setTargetEvaluator] = useState("employee");
+  const [criteria, setCriteria] = useState([
+    { name: "", weight: 100, maxScore: 5 },
+  ]);
+  const [ratingScale, setRatingScale] = useState([]);
+  const [teamId, setTeamId] = useState(null);
+  const [periodId, setPeriodId] = useState("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [totalWeight, setTotalWeight] = useState(100);
+  const [successMessage, setSuccessMessage] = useState("");
 
-  const formTypes = ["self_assessment", "peer_evaluation"];
-  const targetEvaluators = ["employee", "peer", "manager"];
+  // Hardcoded periods
   const periods = [
-    "Q1 2025",
-    "Q2 2025",
-    "Q3 2025",
-    "Q4 2025",
-    "Mid-Year 2025",
-    "Year-End 2025",
+    { id: 1, name: "Q1", year: 2025 },
+    { id: 2, name: "Q2", year: 2025 },
+    { id: 3, name: "Q3", year: 2025 },
+    { id: 4, name: "Q4", year: 2025 },
+    { id: 5, name: "Mid-Year", year: 2025 },
+    { id: 6, name: "Year-End", year: 2025 },
   ];
 
-  // --- Calculate total weight dynamically ---
-  useEffect(() => {
-    let sum = 0;
-    formData.sections.forEach((s) =>
-      s.criteria.forEach((c) => (sum += parseFloat(c.weight || 0)))
-    );
-    setTotalWeight(sum);
-  }, [formData]);
-
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleCriteriaChange = (index, field, value) => {
+    const newCriteria = [...criteria];
+    newCriteria[index][field] =
+      field === "weight" || field === "maxScore" ? Number(value) : value;
+    setCriteria(newCriteria);
   };
 
-  const handleSectionChange = (sectionIndex, value) => {
-    const newSections = [...formData.sections];
-    newSections[sectionIndex].name = value;
-    setFormData({ ...formData, sections: newSections });
-  };
+  const addCriterion = () =>
+    setCriteria([...criteria, { name: "", weight: 0, maxScore: 5 }]);
+  const removeCriterion = (index) =>
+    setCriteria(criteria.filter((_, i) => i !== index));
 
-  const handleCriterionChange = (
-    sectionIndex,
-    criterionIndex,
-    field,
-    value
-  ) => {
-    const newSections = [...formData.sections];
-    newSections[sectionIndex].criteria[criterionIndex][field] =
-      field === "weight" || field === "maxScore"
-        ? parseFloat(value || 0)
-        : value;
-    setFormData({ ...formData, sections: newSections });
-  };
-
-  // --- Add/Remove Sections & Criteria ---
-  const addSection = () => {
-    setFormData((prev) => ({
-      ...prev,
-      sections: [
-        ...prev.sections,
-        {
-          id: Date.now(),
-          name: "",
-          criteria: [
-            { id: Date.now() + 1, name: "", weight: 100, maxScore: 5 },
-          ],
-        },
-      ],
-    }));
-  };
-
-  const removeSection = (sectionIndex) => {
-    if (formData.sections.length === 1) return;
-    setFormData((prev) => ({
-      ...prev,
-      sections: prev.sections.filter((_, i) => i !== sectionIndex),
-    }));
-  };
-
-  const addCriterion = (sectionIndex) => {
-    const newSections = [...formData.sections];
-    newSections[sectionIndex].criteria.push({
-      id: Date.now(),
-      name: "",
-      weight: 0,
-      maxScore: 5,
-    });
-    setFormData({ ...formData, sections: newSections });
-  };
-
-  const removeCriterion = (sectionIndex, criterionIndex) => {
-    const newSections = [...formData.sections];
-    if (newSections[sectionIndex].criteria.length === 1) return;
-    newSections[sectionIndex].criteria.splice(criterionIndex, 1);
-    setFormData({ ...formData, sections: newSections });
-  };
-
-  // --- Submit Form ---
-  const handleCreateForm = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
+    setSuccessMessage("");
+    setLoading(true);
 
-    if (
-      !formData.title ||
-      !formData.formType ||
-      !formData.targetEvaluator ||
-      !formData.period
-    ) {
-      setError("All required fields must be provided");
+    // Validate criteria
+    if (!criteria.length) {
+      setError("At least one criterion is required");
+      setLoading(false);
       return;
     }
 
-    if (formData.sections.some((s) => !s.name || s.criteria.length === 0)) {
-      setError("Each section must have a name and at least one criterion");
-      return;
-    }
-
-    if (
-      formData.sections.some((s) =>
-        s.criteria.some((c) => !c.name || c.weight <= 0 || c.maxScore <= 0)
-      )
-    ) {
-      setError("All criteria must have a name, weight > 0, and maxScore > 0");
-      return;
-    }
-
+    const totalWeight = criteria.reduce((sum, c) => sum + (c.weight || 0), 0);
     if (totalWeight !== 100) {
-      setError("Total weight of all criteria must equal 100%");
+      setError(
+        `Total criteria weight must equal 100%. Currently: ${totalWeight}%`
+      );
+      setLoading(false);
+      return;
+    }
+
+    // Validate required fields
+    if (!title.trim() || !formType || !targetEvaluator || !periodId) {
+      setError("All required fields must be provided");
+      setLoading(false);
       return;
     }
 
     try {
-      const payload = { ...formData, weight: 100 };
-      const response = await api.createEvaluationForm(payload);
-      setSuccess(response.message || "Form created successfully");
+      const formData = {
+        title: title.trim(),
+        description: description.trim(),
+        formType,
+        targetEvaluator,
+        criteria,
+        ratingScale: ratingScale.length ? ratingScale : [],
+        team_id: teamId || null,
+        period_id: periodId,
+      };
 
-      setFormData({
-        title: "",
-        description: "",
-        formType: "",
-        targetEvaluator: "",
-        period: "",
-        sections: [
-          {
-            id: Date.now(),
-            name: "",
-            criteria: [
-              { id: Date.now() + 1, name: "", weight: 100, maxScore: 5 },
-            ],
-          },
-        ],
-      });
+      const res = await api.createEvaluationForm(formData);
+
+      if (res?.formId) {
+        onFormCreated?.(res.formId);
+
+        // Show success message
+        setSuccessMessage(`Form created successfully! ID: ${res.formId}`);
+        setTimeout(() => setSuccessMessage(""), 3000);
+
+        // Reset form
+        setTitle("");
+        setDescription("");
+        setCriteria([{ name: "", weight: 100, maxScore: 5 }]);
+        setPeriodId("");
+        setRatingScale([]);
+        setTeamId(null);
+      }
     } catch (err) {
+      console.error(err);
       setError(err.message || "Failed to create form");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className={styles.createFormContent}>
-      <div className={styles.card}>
-        <div className={styles.cardHeader}>
-          <h3>Create Evaluation Form</h3>
-        </div>
-        {error && <div className={styles.errorMessage}>{error}</div>}
-        {success && <div className={styles.successMessage}>{success}</div>}
+    <div className={styles.card}>
+      <div className={styles.cardHeader}>
+        <h3>Create Evaluation Form</h3>
+      </div>
 
-        <form onSubmit={handleCreateForm} className={styles.registerForm}>
-          <div className={styles.formRow}>
-            <div className={styles.formGroup}>
-              <label>Title *</label>
+      {/* Messages */}
+      {error && <div className={styles.errorMessage}>{error}</div>}
+      {successMessage && (
+        <div className={styles.successMessage}>{successMessage}</div>
+      )}
+
+      <form className={styles.registerForm} onSubmit={handleSubmit}>
+        <div className={styles.formGroup}>
+          <label>Title</label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className={styles.formInput}
+            required
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>Description</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className={styles.formInput}
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>Form Type</label>
+          <select
+            value={formType}
+            onChange={(e) => setFormType(e.target.value)}
+            className={styles.formSelect}
+          >
+            <option value="self_assessment">Self Assessment</option>
+            <option value="peer_evaluation">Peer Evaluation</option>
+          </select>
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>Target Evaluator</label>
+          <select
+            value={targetEvaluator}
+            onChange={(e) => setTargetEvaluator(e.target.value)}
+            className={styles.formSelect}
+          >
+            <option value="employee">Employee</option>
+            <option value="team_leader">Team Leader</option>
+          </select>
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>Period</label>
+          <select
+            value={periodId}
+            onChange={(e) => setPeriodId(e.target.value)}
+            className={styles.formSelect}
+            required
+          >
+            <option value="">Select a period</option>
+            {periods.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name} {p.year}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>Criteria</label>
+          {criteria.map((c, index) => (
+            <div
+              key={index}
+              style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}
+            >
               <input
                 type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleFormChange}
+                placeholder="Name"
+                value={c.name}
+                onChange={(e) =>
+                  handleCriteriaChange(index, "name", e.target.value)
+                }
+                className={styles.formInput}
                 required
               />
-            </div>
-            <div className={styles.formGroup}>
-              <label>Form Type *</label>
-              <select
-                name="formType"
-                value={formData.formType}
-                onChange={handleFormChange}
+              <input
+                type="number"
+                placeholder="Weight"
+                value={c.weight}
+                onChange={(e) =>
+                  handleCriteriaChange(index, "weight", e.target.value)
+                }
+                className={styles.formInput}
+                style={{ width: "80px" }}
+                min={0}
+                max={100}
                 required
-              >
-                <option value="">Select type</option>
-                {formTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type.replace("_", " ").toUpperCase()}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className={styles.formRow}>
-            <div className={styles.formGroup}>
-              <label>Target Evaluator *</label>
-              <select
-                name="targetEvaluator"
-                value={formData.targetEvaluator}
-                onChange={handleFormChange}
+              />
+              <input
+                type="number"
+                placeholder="Max Score"
+                value={c.maxScore}
+                onChange={(e) =>
+                  handleCriteriaChange(index, "maxScore", e.target.value)
+                }
+                className={styles.formInput}
+                style={{ width: "80px" }}
+                min={1}
                 required
-              >
-                <option value="">Select target</option>
-                {targetEvaluators.map((t) => (
-                  <option key={t} value={t}>
-                    {t.toUpperCase()}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className={styles.formGroup}>
-              <label>Period *</label>
-              <select
-                name="period"
-                value={formData.period}
-                onChange={handleFormChange}
-                required
-              >
-                <option value="">Select period</option>
-                {periods.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label>Description</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleFormChange}
-              rows={4}
-            />
-          </div>
-
-          <div className={styles.sectionsContainer}>
-            <h4>Sections</h4>
-            {formData.sections.map((section, sIndex) => (
-              <div key={section.id} className={styles.sectionCard}>
-                <div className={styles.formRow}>
-                  <div className={styles.formGroup}>
-                    <label>Section Name *</label>
-                    <input
-                      type="text"
-                      value={section.name}
-                      onChange={(e) =>
-                        handleSectionChange(sIndex, e.target.value)
-                      }
-                      required
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeSection(sIndex)}
-                    disabled={formData.sections.length === 1}
-                  >
-                    Remove Section
-                  </button>
-                </div>
-
-                {section.criteria.map((c, cIndex) => (
-                  <div key={c.id} className={styles.formRow}>
-                    <div className={styles.formGroup}>
-                      <label>Criterion Name *</label>
-                      <input
-                        type="text"
-                        value={c.name}
-                        onChange={(e) =>
-                          handleCriterionChange(
-                            sIndex,
-                            cIndex,
-                            "name",
-                            e.target.value
-                          )
-                        }
-                        required
-                      />
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label>Weight *</label>
-                      <input
-                        type="number"
-                        value={c.weight}
-                        onChange={(e) =>
-                          handleCriterionChange(
-                            sIndex,
-                            cIndex,
-                            "weight",
-                            e.target.value
-                          )
-                        }
-                        min="1"
-                        required
-                      />
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label>Max Score *</label>
-                      <input
-                        type="number"
-                        value={c.maxScore}
-                        onChange={(e) =>
-                          handleCriterionChange(
-                            sIndex,
-                            cIndex,
-                            "maxScore",
-                            e.target.value
-                          )
-                        }
-                        min="1"
-                        required
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeCriterion(sIndex, cIndex)}
-                      disabled={section.criteria.length === 1}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-                <button type="button" onClick={() => addCriterion(sIndex)}>
-                  Add Criterion
+              />
+              {criteria.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeCriterion(index)}
+                  className={styles.closeButton}
+                >
+                  &times;
                 </button>
-              </div>
-            ))}
-            <button type="button" onClick={addSection}>
-              Add Section
-            </button>
-            <div
-              style={{
-                marginTop: "10px",
-                color: totalWeight !== 100 ? "red" : "green",
-              }}
-            >
-              Total Weight: {totalWeight}%
+              )}
             </div>
-          </div>
+          ))}
+          <button
+            type="button"
+            onClick={addCriterion}
+            className={styles.generateButton}
+          >
+            + Add Criterion
+          </button>
+        </div>
 
-          <div className={styles.formActions}>
-            <button type="submit">Create Form</button>
-          </div>
-        </form>
-      </div>
+        <div className={styles.formActions}>
+          <button
+            type="submit"
+            className={styles.submitButton}
+            disabled={loading}
+          >
+            {loading ? "Creating..." : "Create Form"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };
