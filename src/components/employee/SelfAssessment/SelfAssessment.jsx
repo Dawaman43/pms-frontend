@@ -12,12 +12,7 @@ const SelfAssessment = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [user, setUser] = useState(null);
-  const [formData, setFormData] = useState({
-    employeeName: "",
-    employeeId: "",
-    ratings: {},
-    comments: "",
-  });
+  const [formData, setFormData] = useState({});
   const [success, setSuccess] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -27,6 +22,7 @@ const SelfAssessment = () => {
   const hasFetched = useRef(false);
 
   const navLinks = [
+    // ... (Navigation links remain unchanged)
     {
       title: "Dashboard",
       icon: (
@@ -160,13 +156,6 @@ const SelfAssessment = () => {
             strokeLinejoin="round"
           />
           <path
-            d="M17 12H15"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
             d="M7 12H9"
             stroke="currentColor"
             strokeWidth="2"
@@ -207,179 +196,54 @@ const SelfAssessment = () => {
       link: "/profile",
       active: location.pathname === "/profile",
     },
-    {
-      title: "Settings",
-      icon: (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M19.4 15C19.2669 15.3016 19.227 15.6363 19.2849 15.9606C19.3427 16.2849 19.4962 16.5836 19.725 16.8175C19.9538 17.0514 20.2473 17.2095 20.566 17.2709C20.8847 17.3323 21.2181 17.2943 21.52 17.16C22.3806 16.7591 23.1054 16.1044 23.5992 15.2836C24.0931 14.4628 24.3331 13.5124 24.29 12.555C24.3331 11.5976 24.0931 10.6472 23.5992 9.82639C23.1054 9.00555 22.3806 8.35093 21.52 7.95C21.2181 7.81567 20.8847 7.77774 20.566 7.83911C20.2473 7.90048 19.9538 8.05862 19.725 8.29251C19.4962 8.5264 19.3427 8.82514 19.2849 9.14944C19.227 9.47374 19.2669 9.80843 19.4 10.11"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M4.6 8.85C4.73309 8.54843 4.77297 8.21374 4.71513 7.88944C4.65729 7.56514 4.50383 7.2664 4.27504 7.03251C4.04624 6.79862 3.75275 6.64048 3.43402 6.57911C3.11529 6.51774 2.78192 6.55567 2.48 6.69C1.61943 7.09094 0.894552 7.74556 0.400795 8.56639C-0.0930599 9.38723 -0.333065 10.3376 -0.29 11.295C-0.333065 12.2524 -0.0930599 13.2028 0.400795 14.0236C0.894552 14.8444 1.61943 15.4991 2.48 15.9C2.78192 16.0343 3.11529 16.0723 3.43402 16.0109C3.75275 15.9495 4.04624 15.7914 4.27504 15.5575C4.50383 15.3236 4.65729 15.0249 4.71513 14.7006C4.77297 14.3763 4.73309 14.0416 4.6 13.74"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ),
-      link: "/settings",
-      active: location.pathname === "/settings",
-    },
   ];
 
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-      setIsSidebarOpen(window.innerWidth >= 768);
-    };
+  // Hardcoded rating scale (1 to 4)
+  const ratingScale = [
+    { value: 1, label: "Poor" },
+    { value: 2, label: "Fair" },
+    { value: 3, label: "Good" },
+    { value: 4, label: "Excellent" },
+  ];
 
-    checkIfMobile();
-    window.addEventListener("resize", checkIfMobile);
-    return () => window.removeEventListener("resize", checkIfMobile);
-  }, []);
-
-  useEffect(() => {
-    if (hasFetched.current) return;
-    hasFetched.current = true;
-
-    const fetchUserAndForms = async () => {
-      try {
-        setLoading(true);
-        setError("");
-        const tokenData = localStorage.getItem("userData");
-        if (!tokenData) throw new Error("User not logged in");
-        const userData = JSON.parse(tokenData);
-        const userResponse = await api.getUserById(userData.id);
-        setUser({
-          id: userResponse.id,
-          name: userResponse.name,
-          email: userResponse.email,
-          role: userResponse.role,
-          department:
-            userResponse.department || "Information Communication Technology",
-          position: userResponse.jobTitle || "Employee",
-          avatar: userResponse.profileImage
-            ? `${userResponse.profileImage}?t=${new Date().getTime()}`
-            : "/assets/avatar-placeholder.png",
-          employeeId:
-            userResponse.employeeId ||
-            `ASTU-ICT-${String(userResponse.id).padStart(3, "0")}`,
-          phone: userResponse.phone || "",
-        });
-
-        setFormData((prev) => ({
-          ...prev,
-          employeeName: userResponse.name || "",
-          employeeId:
-            userResponse.employeeId ||
-            `ASTU-ICT-${String(userResponse.id).padStart(3, "0")}`,
-        }));
-
-        // Fetch evaluation forms
-        const evaluationForms = await api.getEvaluationForms();
-        const defaultRatingScale = [
-          { value: 1, label: "Bad" },
-          { value: 2, label: "Good" },
-          { value: 3, label: "Very Good" },
-          { value: 4, label: "Excellent" },
-        ];
-
-        const selfAssessmentForms = evaluationForms
-          .filter(
-            (f) => f.formType === "self_assessment" && f.status === "active"
-          )
-          .map((form) => {
-            let parsedForm = { ...form };
-            try {
-              if (typeof form.sections === "string") {
-                parsedForm.sections = JSON.parse(form.sections);
-              }
-              if (
-                !Array.isArray(parsedForm.sections) ||
-                !parsedForm.sections.every(
-                  (section) =>
-                    Array.isArray(section.criteria) && section.criteria.length
-                )
-              ) {
-                console.warn(
-                  `Invalid sections for form ${form.id}:`,
-                  parsedForm.sections
-                );
-                parsedForm.sections = [];
-              }
-            } catch (e) {
-              console.error(`Failed to parse sections for form ${form.id}:`, e);
-              parsedForm.sections = [];
-            }
-
-            // Assign fixed rating scale
-            parsedForm.ratingScale = defaultRatingScale;
-
-            const initialRatings = {};
-            parsedForm.sections.forEach((section, sIndex) => {
-              section.criteria.forEach((criterion, cIndex) => {
-                initialRatings[
-                  criterion.id || `${form.id}-${sIndex}-${cIndex}`
-                ] = 0;
-              });
-            });
-            parsedForm.ratings = initialRatings;
-            return parsedForm;
-          })
-          .filter(
-            (form) =>
-              form.sections.length &&
-              form.sections.every((section) => section.criteria?.length)
-          );
-
-        if (!selfAssessmentForms.length) {
-          setError("No valid self-assessment forms found.");
-          setForms([]);
-        } else {
-          setForms(selfAssessmentForms);
-        }
-
-        console.log("User:", userResponse);
-        console.log("Self-assessment forms:", selfAssessmentForms);
-      } catch (err) {
-        console.error("Error fetching user or forms:", err);
-        setError("Failed to fetch data. Please try again.");
-        setForms([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserAndForms();
-  }, []);
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-    setActivePopout(null);
+  // Calculate point for a single criterion: ((weight * level) / 4) * formWeight
+  const calculatePoint = (criterionWeight, level, formWeight) => {
+    if (!criterionWeight || !level || !formWeight) return 0;
+    // Formula: ((criterionWeight * level) / 4) * (formWeight / 100)
+    // formWeight is assumed to be a percentage (e.g., 70 for 70%)
+    return parseFloat(
+      (((criterionWeight * level) / 4) * (formWeight / 100)).toFixed(2)
+    );
   };
 
-  const togglePopout = (item) => {
-    setActivePopout(activePopout === item ? null : item);
+  // Calculate total points and average for a form
+  const calculateFormTotals = (formId) => {
+    const form = forms.find((f) => f.id === formId);
+    if (!form || !form.ratings || !form.criteria || !form.weight) {
+      return { totalPoints: 0, average: 0 };
+    }
+
+    // Total points: sum of raw user-selected scores (levels)
+    const totalPoints = form.criteria.reduce((sum, criterion) => {
+      const score = parseFloat(form.ratings[criterion.id] || 0);
+      return sum + (score || 0);
+    }, 0);
+
+    // Average: sum of calculated points
+    const totalCalculatedPoints = form.criteria.reduce((sum, criterion) => {
+      const score = parseFloat(form.ratings[criterion.id] || 0);
+      const criterionWeight = parseFloat(criterion.weight || 0);
+      const formWeight = parseFloat(form.weight || 0);
+      return (
+        sum + (score ? calculatePoint(criterionWeight, score, formWeight) : 0)
+      );
+    }, 0);
+
+    const average = parseFloat(totalCalculatedPoints.toFixed(2));
+    return { totalPoints, average };
   };
 
+  // Handle rating change
   const handleRatingChange = (formId, criterionId, value) => {
     setForms((prevForms) =>
       prevForms.map((form) =>
@@ -388,7 +252,7 @@ const SelfAssessment = () => {
               ...form,
               ratings: {
                 ...form.ratings,
-                [criterionId]: parseInt(value) || 0,
+                [criterionId]: value,
               },
             }
           : form
@@ -398,157 +262,228 @@ const SelfAssessment = () => {
 
   const handleSubmit = async (e, formId) => {
     e.preventDefault();
-    const form = forms.find((f) => f.id === formId);
-    if (!form) {
-      setError("Form not found.");
-      return;
-    }
-
-    if (!Object.values(form.ratings).some((rating) => rating > 0)) {
-      setError("Please provide ratings for all criteria.");
-      return;
-    }
-
-    const evaluationData = {
-      user_id: user.id,
-      form_id: form.id,
-      scores: form.ratings,
-      comments: formData.comments,
-    };
-
     setIsSubmitting(true);
+    setError("");
+    setSuccess("");
+
     try {
-      const response = await api.submitEvaluation(evaluationData);
+      const form = forms.find((f) => f.id === formId);
+      if (!form || !form.criteria) throw new Error("Form not found");
+
+      // Build scores object for submission
+      const scores = {};
+      let allCriteriaRated = true;
+
+      form.criteria.forEach((criterion, index) => {
+        const id = criterion.id || `temp-id-${index}`;
+        const score = parseFloat(form.ratings[id] ?? 0);
+        if (isNaN(score) || score === 0) allCriteriaRated = false;
+        scores[id] = score;
+      });
+
+      if (!allCriteriaRated) throw new Error("Please rate all criteria");
+
+      // Use scores object instead of undefined numericScores
+      const evaluationData = {
+        user_id: user.id,
+        form_id: formId,
+        scores: JSON.stringify(scores),
+        comments: formData[formId]?.comments || "",
+        period_id: form.period_id || 1,
+      };
+
+      await api.submitEvaluation(evaluationData);
+
       setSuccess("Self-assessment submitted successfully!");
-      setError("");
-      setForms((prevForms) => prevForms.filter((f) => f.id !== formId));
-      setFormData((prev) => ({ ...prev, comments: "" }));
-      console.log("Submitted:", response);
-    } catch (error) {
-      console.error("Error submitting self-assessment:", error);
-      setError("Failed to submit self-assessment. Please try again.");
+      // Reset ratings for the submitted form
+      setForms((prev) =>
+        prev.map((f) => (f.id === formId ? { ...f, ratings: {} } : f))
+      );
+    } catch (err) {
+      setError(err.message || "Failed to submit self-assessment");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (loading || !user) {
+  // Fetch forms and user data
+  useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+        setUser(userData);
+
+        const formsData = await api.getEvaluationForms();
+        const selfAssessmentForms = formsData
+          .filter(
+            (f) => f.formType === "self_assessment" && f.status === "active"
+          )
+          .map((f) => ({
+            ...f,
+            ratings: {},
+            criteria: f.criteria?.map((criterion, index) => ({
+              ...criterion,
+              id: criterion.id || `temp-id-${index}`, // Assign temporary ID if missing
+            })),
+          }));
+        setForms(selfAssessmentForms);
+
+        setFormData(
+          selfAssessmentForms.reduce(
+            (acc, form) => ({
+              ...acc,
+              [form.id]: {
+                employeeName: userData.name || "",
+                employeeId: userData.id || "",
+                ratings: {},
+                comments: "",
+              },
+            }),
+            {}
+          )
+        );
+
+        // Log forms to debug missing criterion IDs
+        selfAssessmentForms.forEach((form) => {
+          if (form.criteria.some((criterion) => !criterion.id)) {
+            console.warn(
+              `Form ${form.id} has criteria with missing IDs:`,
+              form.criteria
+            );
+          }
+        });
+      } catch (err) {
+        setError(err.message || "Failed to fetch forms or user data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Handle responsive sidebar
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      setIsSidebarOpen(!mobile);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  const togglePopout = (id) => setActivePopout(activePopout === id ? null : id);
+
+  if (loading) {
     return (
-      <div className={HomePageStyles.homeContainer}>
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingSpinner}></div>
-          <p>Loading self-assessment...</p>
-        </div>
+      <div className={styles.loader}>
+        <svg className={styles.spinner} viewBox="0 0 50 50">
+          <circle
+            className={styles.path}
+            cx="25"
+            cy="25"
+            r="20"
+            fill="none"
+            strokeWidth="5"
+          />
+        </svg>
+        <p>Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className={HomePageStyles.homeContainer}>
+    <div className={styles.container}>
       <Sidebar
-        isSidebarOpen={isSidebarOpen}
+        isOpen={isSidebarOpen}
         toggleSidebar={toggleSidebar}
-        user={user}
         navLinks={navLinks}
-        activePopout={activePopout}
-        togglePopout={togglePopout}
-        location={location}
+        userRole={user?.role}
+        isMobile={isMobile}
       />
 
       <div
-        className={`${HomePageStyles.mainWrapper} ${
-          !isSidebarOpen ? HomePageStyles.mainWrapperFull : ""
+        className={`${HomePageStyles.mainContent} ${
+          isSidebarOpen
+            ? HomePageStyles.sidebarOpen
+            : HomePageStyles.sidebarClosed
         }`}
       >
         <header className={HomePageStyles.header}>
-          <div className={HomePageStyles.headerContent}>
-            <div className={HomePageStyles.headerLeft}>
-              {isMobile && (
-                <button
-                  className={HomePageStyles.mobileMenuButton}
-                  onClick={toggleSidebar}
-                >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M3 12H21M3 6H21M3 18H21"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-              )}
-              <div className={HomePageStyles.systemTitle}>
-                <h1>Performance Management System</h1>
-                <p>Adama Science & Technology University</p>
-              </div>
-            </div>
-
-            <div className={HomePageStyles.userSection}>
-              <div className={HomePageStyles.userInfo}>
-                <span className={HomePageStyles.userName}>{user.name}</span>
-                <span className={HomePageStyles.userRole}>{user.role}</span>
-              </div>
-              <div className={HomePageStyles.avatarContainer}>
-                <img
-                  src={user.avatar}
-                  alt="User Avatar"
-                  className={HomePageStyles.userAvatar}
-                  onError={(e) => {
-                    console.error("Header avatar failed to load:", user.avatar);
-                    e.target.src = "/assets/avatar-placeholder.png";
-                  }}
-                />
-                <div className={HomePageStyles.statusIndicator}></div>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <main className={HomePageStyles.mainContent}>
-          <section className={styles.contentSection}>
-            <div className={styles.headerSection}>
-              <h2 className={styles.pageTitle}>Self-Assessment</h2>
-              <p className={styles.pageSubtitle}>
-                Complete your quarterly self-evaluation
-              </p>
-            </div>
-
-            {success && (
-              <div className={styles.successMessage}>
+          <div className={HomePageStyles.headerLeft}>
+            {isMobile && (
+              <button
+                className={HomePageStyles.menuButton}
+                onClick={toggleSidebar}
+              >
                 <svg
-                  width="20"
-                  height="20"
+                  width="24"
+                  height="24"
                   viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
-                    d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.709 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.7649 14.1003 1.98232 16.07 2.85999"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M22 4L12 14.01L9 11.01"
+                    d="M3 12H21M3 6H21M3 18H21"
                     stroke="currentColor"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span>{success}</span>
-              </div>
+              </button>
             )}
+            <h1 className={HomePageStyles.title}>Self Assessment</h1>
+          </div>
+          <div className={HomePageStyles.headerRight}>
+            <div className={HomePageStyles.userInfo}>
+              <span>{user?.name || "User"}</span>
+              <button
+                className={HomePageStyles.profileButton}
+                onClick={() => togglePopout("profile")}
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M6 20C6 17.7909 7.79086 16 10 16H14C16.2091 16 18 17.7909 18 20"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+              {activePopout === "profile" && (
+                <div className={HomePageStyles.popout}>
+                  <Link to="/profile">View Profile</Link>
+                  <button onClick={api.logout}>Logout</button>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
 
+        <main className={HomePageStyles.main}>
+          <section className={styles.formContainer}>
             {error && (
               <div className={styles.errorMessage}>
                 <svg
@@ -566,52 +501,64 @@ const SelfAssessment = () => {
                 <span>{error}</span>
               </div>
             )}
-
-            {forms.length === 0 ? (
-              <div className={styles.noDataMessage}>
-                No self-assessment forms available. Please contact the
-                administrator.
+            {success && (
+              <div className={styles.successMessage}>
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M9 16.2L4.8 12L3.4 13.4L9 19L21 7L19.6 5.6L9 16.2Z"
+                    fill="currentColor"
+                  />
+                </svg>
+                <span>{success}</span>
               </div>
-            ) : (
-              forms.map((form) => (
+            )}
+
+            {!forms.length && !error && (
+              <div className={styles.noDataMessage}>
+                No self-assessment forms available at the moment.
+              </div>
+            )}
+
+            {forms.map((form) => {
+              const { totalPoints, average } = calculateFormTotals(form.id);
+              console.log("Form Data:", {
+                id: form.id,
+                title: form.title,
+                weight: form.weight,
+                totalPoints,
+                average,
+                criteria: form.criteria,
+              });
+              return (
                 <form
                   key={form.id}
                   onSubmit={(e) => handleSubmit(e, form.id)}
                   className={styles.assessmentForm}
                 >
-                  <div className={styles.formGrid}>
+                  <div className={styles.formHeader}>
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>Employee Name</label>
                       <input
                         type="text"
-                        name="employeeName"
-                        value={formData.employeeName}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            employeeName: e.target.value,
-                          }))
+                        value={
+                          formData[form.id]?.employeeName || user?.name || ""
                         }
                         className={styles.formInput}
-                        required
                         disabled
                       />
                     </div>
-
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>Employee ID</label>
                       <input
                         type="text"
-                        name="employeeId"
-                        value={formData.employeeId}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            employeeId: e.target.value,
-                          }))
-                        }
+                        value={formData[form.id]?.employeeId || user?.id || ""}
                         className={styles.formInput}
-                        required
                         disabled
                       />
                     </div>
@@ -620,71 +567,98 @@ const SelfAssessment = () => {
                   <div className={styles.evaluationTableContainer}>
                     <h3 className={styles.formTitle}>{form.title}</h3>
                     <p className={styles.formDescription}>{form.description}</p>
-                    {form.sections?.length ? (
-                      <table className={styles.evaluationTable}>
-                        <thead>
-                          <tr>
-                            <th className={styles.tableHeader}>No</th>
-                            <th className={styles.tableHeader}>
-                              Behavioral Indicators
-                            </th>
-                            <th className={styles.tableHeader}>Weight</th>
-                            <th className={styles.tableHeader}>Rating</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {form.sections.flatMap((section, sIndex) =>
-                            section.criteria?.map((criterion, cIndex) => (
-                              <tr key={`${form.id}-${sIndex}-${cIndex}`}>
-                                <td>
-                                  {sIndex + 1}.{cIndex + 1}
-                                </td>
-                                <td>{criterion.name}</td>
-                                <td>{criterion.weight}%</td>
-                                <td>
-                                  <select
-                                    value={
-                                      form.ratings[
-                                        criterion.id ||
-                                          `${form.id}-${sIndex}-${cIndex}`
-                                      ] || ""
-                                    }
-                                    onChange={(e) =>
-                                      handleRatingChange(
-                                        form.id,
-                                        criterion.id ||
-                                          `${form.id}-${sIndex}-${cIndex}`,
-                                        e.target.value
-                                      )
-                                    }
-                                    required
-                                    className={styles.formInput}
-                                  >
-                                    <option value="">Select</option>
-                                    {form.ratingScale?.length &&
-                                    Array.isArray(form.ratingScale) ? (
-                                      form.ratingScale.map(
-                                        (scale, scaleIndex) => (
-                                          <option
-                                            key={scale.value ?? scaleIndex}
-                                            value={scale.value}
-                                          >
-                                            {scale.value} - {scale.label}
-                                          </option>
+
+                    <p>
+                      <strong>Form Weight:</strong> {form.weight || "N/A"}%
+                    </p>
+                    {form.criteria?.length ? (
+                      <>
+                        <table className={styles.evaluationTable}>
+                          <thead>
+                            <tr>
+                              <th className={styles.tableHeader}>No</th>
+                              <th className={styles.tableHeader}>
+                                Behavioral Indicators
+                              </th>
+                              <th className={styles.tableHeader}>Weight</th>
+                              <th className={styles.tableHeader}>Score</th>
+                              <th className={styles.tableHeader}>
+                                Calculated Point
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {form.criteria.map((criterion, index) => {
+                              const score = parseFloat(
+                                form.ratings[criterion.id] || 0
+                              );
+                              const calculatedPoint = score
+                                ? calculatePoint(
+                                    criterion.weight,
+                                    score,
+                                    form.weight
+                                  )
+                                : 0;
+                              // Use criterion.id if available, otherwise fall back to index
+                              const rowKey = criterion.id
+                                ? `${form.id}-${criterion.id}`
+                                : `${form.id}-index-${index}`;
+                              return (
+                                <tr key={rowKey} className={styles.tableRow}>
+                                  <td className={styles.tableCell}>
+                                    {index + 1}
+                                  </td>
+                                  <td className={styles.tableCell}>
+                                    {criterion.name || "Unnamed Criterion"}
+                                  </td>
+                                  <td className={styles.tableCell}>
+                                    {criterion.weight
+                                      ? `${criterion.weight}%`
+                                      : "N/A"}
+                                  </td>
+                                  <td className={styles.tableCell}>
+                                    <select
+                                      value={form.ratings[criterion.id] || ""}
+                                      onChange={(e) =>
+                                        handleRatingChange(
+                                          form.id,
+                                          criterion.id || `temp-id-${index}`,
+                                          e.target.value
                                         )
-                                      )
-                                    ) : (
-                                      <option disabled>
-                                        No valid ratings available
-                                      </option>
-                                    )}
-                                  </select>
-                                </td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
+                                      }
+                                      required
+                                      className={styles.ratingSelect}
+                                    >
+                                      <option value="">Select</option>
+                                      {ratingScale.map((scale) => (
+                                        <option
+                                          key={scale.value}
+                                          value={scale.value}
+                                        >
+                                          {scale.value} - {scale.label}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                  <td className={styles.tableCell}>
+                                    {calculatedPoint.toFixed(2)}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                        <div className={styles.totals}>
+                          <p>
+                            <strong>Total Score:</strong>{" "}
+                            {totalPoints.toFixed(0)}
+                          </p>
+                          <p>
+                            <strong>Average (Weighted Points):</strong>{" "}
+                            {average.toFixed(2)}%
+                          </p>
+                        </div>
+                      </>
                     ) : (
                       <div className={styles.noDataMessage}>
                         No evaluation criteria available for this form.
@@ -698,11 +672,14 @@ const SelfAssessment = () => {
                     </label>
                     <textarea
                       name="comments"
-                      value={formData.comments}
+                      value={formData[form.id]?.comments || ""}
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          comments: e.target.value,
+                          [form.id]: {
+                            ...prev[form.id],
+                            comments: e.target.value,
+                          },
                         }))
                       }
                       className={styles.commentsTextarea}
@@ -718,7 +695,7 @@ const SelfAssessment = () => {
                     <button
                       type="submit"
                       className={styles.submitButton}
-                      disabled={isSubmitting || !form.sections?.length}
+                      disabled={isSubmitting || !form.criteria?.length}
                     >
                       {isSubmitting ? (
                         <>
@@ -730,7 +707,7 @@ const SelfAssessment = () => {
                               r="20"
                               fill="none"
                               strokeWidth="5"
-                            ></circle>
+                            />
                           </svg>
                           Submitting...
                         </>
@@ -740,8 +717,8 @@ const SelfAssessment = () => {
                     </button>
                   </div>
                 </form>
-              ))
-            )}
+              );
+            })}
           </section>
         </main>
 

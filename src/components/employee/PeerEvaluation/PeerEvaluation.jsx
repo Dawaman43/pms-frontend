@@ -16,8 +16,6 @@ const PeerEvaluation = () => {
   const [selectedPeers, setSelectedPeers] = useState([]);
   const [availablePeers, setAvailablePeers] = useState([]);
   const [activePeerIndex, setActivePeerIndex] = useState(null);
-  const [formConfig, setFormConfig] = useState(null);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -26,10 +24,9 @@ const PeerEvaluation = () => {
   const [showEvaluations, setShowEvaluations] = useState(false);
   const [activePopout, setActivePopout] = useState(null);
   const hasFetched = useRef(false);
-
   const location = useLocation();
 
-  // Use the same navLinks as in SelfAssessment.jsx to ensure consistency
+  // Navigation links (same as SelfAssessment.jsx)
   const navLinks = [
     {
       title: "Dashboard",
@@ -164,13 +161,6 @@ const PeerEvaluation = () => {
             strokeLinejoin="round"
           />
           <path
-            d="M17 12H15"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
             d="M7 12H9"
             stroke="currentColor"
             strokeWidth="2"
@@ -249,6 +239,54 @@ const PeerEvaluation = () => {
     },
   ];
 
+  // Hardcoded rating scale (aligned with SelfAssessment.jsx)
+  const ratingScale = [
+    { value: 1, label: "Poor" },
+    { value: 2, label: "Fair" },
+    { value: 3, label: "Good" },
+    { value: 4, label: "Excellent" },
+  ];
+
+  // Calculate point for a single criterion: ((weight * level) / 4) * formWeight
+  const calculatePoint = (criterionWeight, level, formWeight) => {
+    if (!criterionWeight || !level || !formWeight) return 0;
+    // Formula: ((criterionWeight * level) / 4) * (formWeight / 100)
+    // formWeight is assumed to be a percentage (e.g., 70 for 70%)
+    return parseFloat(
+      (((criterionWeight * level) / 4) * (formWeight / 100)).toFixed(2)
+    );
+  };
+
+  // Calculate total points and average for a peer's evaluation
+  const calculatePeerTotals = (peer, form) => {
+    if (!peer || !peer.ratings || !form || !form.sections || !form.weight) {
+      return { totalPoints: 0, average: 0 };
+    }
+
+    // Total points: sum of raw user-selected scores (levels)
+    const totalPoints = form.sections
+      .flatMap((section) => section.criteria)
+      .reduce((sum, criterion) => {
+        const score = parseFloat(peer.ratings[criterion.id] || 0);
+        return sum + (score || 0);
+      }, 0);
+
+    // Average: sum of calculated points
+    const totalCalculatedPoints = form.sections
+      .flatMap((section) => section.criteria)
+      .reduce((sum, criterion) => {
+        const score = parseFloat(peer.ratings[criterion.id] || 0);
+        const criterionWeight = parseFloat(criterion.weight || 0);
+        const formWeight = parseFloat(form.weight || 0);
+        return (
+          sum + (score ? calculatePoint(criterionWeight, score, formWeight) : 0)
+        );
+      }, 0);
+
+    const average = parseFloat(totalCalculatedPoints.toFixed(2));
+    return { totalPoints, average };
+  };
+
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
     setActivePopout(null);
@@ -286,14 +324,6 @@ const PeerEvaluation = () => {
           phone: userResponse.phone || "",
         });
 
-        // Define hardcoded 4-point rating scale
-        const defaultRatingScale = [
-          { value: 1, label: "Bad" },
-          { value: 2, label: "Good" },
-          { value: 3, label: "Very Good" },
-          { value: 4, label: "Excellent" },
-        ];
-
         // Fetch universal peer evaluation forms
         const formsData = await api.getTeamPeerEvaluationForms(null);
         const forms = (formsData.forms || formsData).map((form) => {
@@ -320,8 +350,8 @@ const PeerEvaluation = () => {
             parsedForm.sections = [];
           }
 
-          // Assign fixed rating scale
-          parsedForm.ratingScale = defaultRatingScale;
+          // Assign fixed rating scale (aligned with SelfAssessment)
+          parsedForm.ratingScale = ratingScale;
 
           return parsedForm;
         });
@@ -388,9 +418,19 @@ const PeerEvaluation = () => {
       const form = allForms[selectedFormIndex];
       const peer = selectedPeers[activePeerIndex];
 
+      // Validate that all criteria have ratings
+      const allCriteriaRated = form.sections
+        .flatMap((section) => section.criteria)
+        .every((criterion) => peer.ratings[criterion.id]);
+
+      if (!allCriteriaRated) {
+        throw new Error("Please provide ratings for all criteria");
+      }
+
       const evaluationData = {
         form_id: form.id,
         user_id: peer.id,
+        evaluator_id: user.id,
         scores: selectedPeers[activePeerIndex].ratings,
         comments: "",
       };
@@ -686,11 +726,16 @@ const PeerEvaluation = () => {
                         </p>
                       </div>
 
-                      {allForms.map((form) => (
-                        <div key={form.id}>
+                      {allForms[selectedFormIndex] && (
+                        <div key={allForms[selectedFormIndex].id}>
                           <h5>
-                            {form.title} – {form.description}
+                            {allForms[selectedFormIndex].title} –{" "}
+                            {allForms[selectedFormIndex].description}
                           </h5>
+                          <p>
+                            <strong>Form Weight:</strong>{" "}
+                            {allForms[selectedFormIndex].weight || "N/A"}%
+                          </p>
                           <form onSubmit={handleSubmit}>
                             <div className={styles.evaluationTableContainer}>
                               <table className={styles.evaluationTable}>
@@ -704,65 +749,112 @@ const PeerEvaluation = () => {
                                       Weight
                                     </th>
                                     <th className={styles.tableHeader}>
-                                      Rating
+                                      Score
+                                    </th>
+                                    <th className={styles.tableHeader}>
+                                      Calculated Point
                                     </th>
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {form.sections.flatMap((section, sIndex) =>
-                                    section.criteria.map(
-                                      (criterion, cIndex) => (
-                                        <tr
-                                          key={
-                                            criterion.id ||
-                                            `${sIndex}-${cIndex}`
-                                          }
-                                          className={styles.tableRow}
-                                        >
-                                          <td className={styles.tableCell}>
-                                            {sIndex + 1}.{cIndex + 1}
-                                          </td>
-                                          <td className={styles.tableCell}>
-                                            {criterion.name}
-                                          </td>
-                                          <td className={styles.tableCell}>
-                                            {criterion.weight}%
-                                          </td>
-                                          <td className={styles.tableCell}>
-                                            <select
-                                              value={
-                                                selectedPeers[activePeerIndex]
-                                                  .ratings[criterion.id] || ""
+                                  {allForms[selectedFormIndex].sections.flatMap(
+                                    (section, sIndex) =>
+                                      section.criteria.map(
+                                        (criterion, cIndex) => {
+                                          const score = parseFloat(
+                                            selectedPeers[activePeerIndex]
+                                              .ratings[criterion.id] || 0
+                                          );
+                                          const calculatedPoint = score
+                                            ? calculatePoint(
+                                                criterion.weight,
+                                                score,
+                                                allForms[selectedFormIndex]
+                                                  .weight
+                                              )
+                                            : 0;
+                                          return (
+                                            <tr
+                                              key={
+                                                criterion.id ||
+                                                `${sIndex}-${cIndex}`
                                               }
-                                              onChange={(e) =>
-                                                handleRatingChange(
-                                                  activePeerIndex,
-                                                  criterion.id,
-                                                  e.target.value
-                                                )
-                                              }
-                                              className={styles.ratingSelect}
-                                              required
+                                              className={styles.tableRow}
                                             >
-                                              <option value="" disabled>
-                                                Select
-                                              </option>
-                                              {form.ratingScale.map((scale) => (
-                                                <option
-                                                  key={scale.value}
-                                                  value={scale.value}
+                                              <td className={styles.tableCell}>
+                                                {sIndex + 1}.{cIndex + 1}
+                                              </td>
+                                              <td className={styles.tableCell}>
+                                                {criterion.name}
+                                              </td>
+                                              <td className={styles.tableCell}>
+                                                {criterion.weight
+                                                  ? `${criterion.weight}%`
+                                                  : "N/A"}
+                                              </td>
+                                              <td className={styles.tableCell}>
+                                                <select
+                                                  value={
+                                                    selectedPeers[
+                                                      activePeerIndex
+                                                    ].ratings[criterion.id] ||
+                                                    ""
+                                                  }
+                                                  onChange={(e) =>
+                                                    handleRatingChange(
+                                                      activePeerIndex,
+                                                      criterion.id,
+                                                      e.target.value
+                                                    )
+                                                  }
+                                                  className={
+                                                    styles.ratingSelect
+                                                  }
+                                                  required
                                                 >
-                                                  {scale.value} - {scale.label}
-                                                </option>
-                                              ))}
-                                            </select>
-                                          </td>
-                                        </tr>
+                                                  <option value="" disabled>
+                                                    Select
+                                                  </option>
+                                                  {ratingScale.map((scale) => (
+                                                    <option
+                                                      key={scale.value}
+                                                      value={scale.value}
+                                                    >
+                                                      {scale.value} -{" "}
+                                                      {scale.label}
+                                                    </option>
+                                                  ))}
+                                                </select>
+                                              </td>
+                                              <td className={styles.tableCell}>
+                                                {calculatedPoint.toFixed(2)}
+                                              </td>
+                                            </tr>
+                                          );
+                                        }
                                       )
-                                    )
                                   )}
                                 </tbody>
                               </table>
+                              {selectedPeers[activePeerIndex] && (
+                                <div className={styles.totals}>
+                                  <p>
+                                    <strong>Total Score:</strong>{" "}
+                                    {calculatePeerTotals(
+                                      selectedPeers[activePeerIndex],
+                                      allForms[selectedFormIndex]
+                                    ).totalPoints.toFixed(0)}
+                                  </p>
+                                  <p>
+                                    <strong>Average (Weighted Points):</strong>{" "}
+                                    {calculatePeerTotals(
+                                      selectedPeers[activePeerIndex],
+                                      allForms[selectedFormIndex]
+                                    ).average.toFixed(2)}
+                                    %
+                                  </p>
+                                </div>
+                              )}
                             </div>
                             <div className={styles.formActions}>
                               <button
@@ -788,13 +880,13 @@ const PeerEvaluation = () => {
                                     Submitting...
                                   </>
                                 ) : (
-                                  `Submit ${form.title}`
+                                  `Submit ${allForms[selectedFormIndex].title}`
                                 )}
                               </button>
                             </div>
                           </form>
                         </div>
-                      ))}
+                      )}
                     </div>
                   )}
                 </div>

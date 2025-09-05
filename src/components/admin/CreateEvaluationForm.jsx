@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "../../api"; // adjust path if needed
+import api from "../../api";
 import styles from "./pagesAdminDashboard.module.css";
 
 const CreateEvaluationForm = ({ onFormCreated }) => {
@@ -8,8 +8,9 @@ const CreateEvaluationForm = ({ onFormCreated }) => {
   const [formType, setFormType] = useState("self_assessment");
   const [targetEvaluator, setTargetEvaluator] = useState("employee");
   const [criteria, setCriteria] = useState([
-    { name: "", weight: 100, maxScore: 5 },
+    { name: "", weight: 100, maxScore: 4 },
   ]);
+  const [formWeight, setFormWeight] = useState(100);
   const [ratingScale, setRatingScale] = useState([]);
   const [teamId, setTeamId] = useState(null);
   const [periodId, setPeriodId] = useState("");
@@ -17,7 +18,6 @@ const CreateEvaluationForm = ({ onFormCreated }) => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Hardcoded periods
   const periods = [
     { id: 1, name: "Q1", year: 2025 },
     { id: 2, name: "Q2", year: 2025 },
@@ -32,12 +32,20 @@ const CreateEvaluationForm = ({ onFormCreated }) => {
     newCriteria[index][field] =
       field === "weight" || field === "maxScore" ? Number(value) : value;
     setCriteria(newCriteria);
+    console.log(`Criterion #${index} updated:`, newCriteria[index]);
   };
 
-  const addCriterion = () =>
-    setCriteria([...criteria, { name: "", weight: 0, maxScore: 5 }]);
-  const removeCriterion = (index) =>
-    setCriteria(criteria.filter((_, i) => i !== index));
+  const addCriterion = () => {
+    const newCriteria = [...criteria, { name: "", weight: 0, maxScore: 5 }];
+    setCriteria(newCriteria);
+    console.log("Added new criterion. Current criteria:", newCriteria);
+  };
+
+  const removeCriterion = (index) => {
+    const newCriteria = criteria.filter((_, i) => i !== index);
+    setCriteria(newCriteria);
+    console.log(`Removed criterion #${index}. Current criteria:`, newCriteria);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,47 +53,44 @@ const CreateEvaluationForm = ({ onFormCreated }) => {
     setSuccessMessage("");
     setLoading(true);
 
-    // Validate criteria
-    if (!criteria.length) {
-      setError("At least one criterion is required");
-      setLoading(false);
-      return;
-    }
-
+    // Validate criteria weight
     const totalWeight = criteria.reduce((sum, c) => sum + (c.weight || 0), 0);
-    if (totalWeight !== 100) {
+    if (!criteria.length || totalWeight !== 100) {
       setError(
-        `Total criteria weight must equal 100%. Currently: ${totalWeight}%`
+        !criteria.length
+          ? "At least one criterion is required"
+          : `Total criteria weight must equal 100%. Currently: ${totalWeight}%`
       );
       setLoading(false);
       return;
     }
 
-    // Validate required fields
     if (!title.trim() || !formType || !targetEvaluator || !periodId) {
       setError("All required fields must be provided");
       setLoading(false);
       return;
     }
 
-    try {
-      const formData = {
-        title: title.trim(),
-        description: description.trim(),
-        formType,
-        targetEvaluator,
-        criteria,
-        ratingScale: ratingScale.length ? ratingScale : [],
-        team_id: teamId || null,
-        period_id: periodId,
-      };
+    // Send weight instead of formWeight
+    const formData = {
+      title: title.trim(),
+      description: description.trim(),
+      formType,
+      targetEvaluator,
+      criteria,
+      weight: formWeight, // <-- map formWeight to weight
+      ratingScale: ratingScale.length ? ratingScale : [],
+      team_id: teamId || null,
+      period_id: periodId,
+    };
 
+    console.log("Submitting form data:", formData);
+
+    try {
       const res = await api.createEvaluationForm(formData);
 
       if (res?.formId) {
         onFormCreated?.(res.formId);
-
-        // Show success message
         setSuccessMessage(`Form created successfully! ID: ${res.formId}`);
         setTimeout(() => setSuccessMessage(""), 3000);
 
@@ -93,6 +98,7 @@ const CreateEvaluationForm = ({ onFormCreated }) => {
         setTitle("");
         setDescription("");
         setCriteria([{ name: "", weight: 100, maxScore: 5 }]);
+        setFormWeight(100);
         setPeriodId("");
         setRatingScale([]);
         setTeamId(null);
@@ -111,7 +117,6 @@ const CreateEvaluationForm = ({ onFormCreated }) => {
         <h3>Create Evaluation Form</h3>
       </div>
 
-      {/* Messages */}
       {error && <div className={styles.errorMessage}>{error}</div>}
       {successMessage && (
         <div className={styles.successMessage}>{successMessage}</div>
@@ -135,6 +140,22 @@ const CreateEvaluationForm = ({ onFormCreated }) => {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className={styles.formInput}
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>Form Weight</label>
+          <input
+            type="number"
+            value={formWeight}
+            onChange={(e) => {
+              const val = Number(e.target.value);
+              setFormWeight(val);
+              console.log("Form weight updated:", val);
+            }}
+            className={styles.formInput}
+            min={1}
+            required
           />
         </div>
 
