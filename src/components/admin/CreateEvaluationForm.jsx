@@ -1,5 +1,5 @@
 import styles from "../../pages/AdminDashboard.module.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "../../api";
 
 const CreateEvaluationForm = ({ departments }) => {
@@ -8,18 +8,19 @@ const CreateEvaluationForm = ({ departments }) => {
     description: "",
     formType: "",
     targetEvaluator: "",
-    weight: "",
-    period: "", // New field for period
+    period: "",
     sections: [
       {
         id: Date.now(),
         name: "",
-        criteria: [{ id: Date.now(), name: "", weight: 0 }],
+        criteria: [{ id: Date.now() + 1, name: "", weight: 100, maxScore: 5 }],
       },
     ],
   });
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [totalWeight, setTotalWeight] = useState(100);
 
   const formTypes = ["self_assessment", "peer_evaluation"];
   const targetEvaluators = ["employee", "peer", "manager"];
@@ -30,42 +31,43 @@ const CreateEvaluationForm = ({ departments }) => {
     "Q4 2025",
     "Mid-Year 2025",
     "Year-End 2025",
-  ]; // Example periods
+  ];
 
-  // Generic form field change
+  // --- Calculate total weight dynamically ---
+  useEffect(() => {
+    let sum = 0;
+    formData.sections.forEach((s) =>
+      s.criteria.forEach((c) => (sum += parseFloat(c.weight || 0)))
+    );
+    setTotalWeight(sum);
+  }, [formData]);
+
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Section name change
   const handleSectionChange = (sectionIndex, value) => {
-    setFormData((prev) => {
-      const newSections = [...prev.sections];
-      newSections[sectionIndex].name = value;
-      return { ...prev, sections: newSections };
-    });
+    const newSections = [...formData.sections];
+    newSections[sectionIndex].name = value;
+    setFormData({ ...formData, sections: newSections });
   };
 
-  // Criterion change
   const handleCriterionChange = (
     sectionIndex,
     criterionIndex,
     field,
     value
   ) => {
-    setFormData((prev) => {
-      const newSections = [...prev.sections];
-      newSections[sectionIndex].criteria[criterionIndex][field] =
-        field === "weight" ? parseInt(value || 0, 10) : value;
-      return { ...prev, sections: newSections };
-    });
+    const newSections = [...formData.sections];
+    newSections[sectionIndex].criteria[criterionIndex][field] =
+      field === "weight" || field === "maxScore"
+        ? parseFloat(value || 0)
+        : value;
+    setFormData({ ...formData, sections: newSections });
   };
 
-  // Add new section
+  // --- Add/Remove Sections & Criteria ---
   const addSection = () => {
     setFormData((prev) => ({
       ...prev,
@@ -74,108 +76,93 @@ const CreateEvaluationForm = ({ departments }) => {
         {
           id: Date.now(),
           name: "",
-          criteria: [{ id: Date.now() + 1, name: "", weight: 0 }],
+          criteria: [
+            { id: Date.now() + 1, name: "", weight: 100, maxScore: 5 },
+          ],
         },
       ],
     }));
   };
 
-  // Remove section
   const removeSection = (sectionIndex) => {
     if (formData.sections.length === 1) return;
     setFormData((prev) => ({
       ...prev,
-      sections: prev.sections.filter((_, index) => index !== sectionIndex),
+      sections: prev.sections.filter((_, i) => i !== sectionIndex),
     }));
   };
 
-  // Add criterion
   const addCriterion = (sectionIndex) => {
-    setFormData((prev) => {
-      const newSections = [...prev.sections];
-      newSections[sectionIndex].criteria.push({
-        id: Date.now(),
-        name: "",
-        weight: 0,
-      });
-      return { ...prev, sections: newSections };
+    const newSections = [...formData.sections];
+    newSections[sectionIndex].criteria.push({
+      id: Date.now(),
+      name: "",
+      weight: 0,
+      maxScore: 5,
     });
+    setFormData({ ...formData, sections: newSections });
   };
 
-  // Remove criterion
   const removeCriterion = (sectionIndex, criterionIndex) => {
-    setFormData((prev) => {
-      const newSections = [...prev.sections];
-      if (newSections[sectionIndex].criteria.length === 1) return prev;
-      newSections[sectionIndex].criteria = newSections[
-        sectionIndex
-      ].criteria.filter((_, index) => index !== criterionIndex);
-      return { ...prev, sections: newSections };
-    });
+    const newSections = [...formData.sections];
+    if (newSections[sectionIndex].criteria.length === 1) return;
+    newSections[sectionIndex].criteria.splice(criterionIndex, 1);
+    setFormData({ ...formData, sections: newSections });
   };
 
-  // Submit form
+  // --- Submit Form ---
   const handleCreateForm = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
 
-    // Validation
     if (
       !formData.title ||
       !formData.formType ||
       !formData.targetEvaluator ||
-      !formData.weight ||
-      !formData.period // Validate period
+      !formData.period
     ) {
       setError("All required fields must be provided");
       return;
     }
-    if (
-      formData.sections.length === 0 ||
-      formData.sections.some(
-        (section) => !section.name || section.criteria.length === 0
-      )
-    ) {
+
+    if (formData.sections.some((s) => !s.name || s.criteria.length === 0)) {
       setError("Each section must have a name and at least one criterion");
       return;
     }
+
     if (
-      formData.sections.some((section) =>
-        section.criteria.some(
-          (criterion) => !criterion.name || criterion.weight <= 0
-        )
+      formData.sections.some((s) =>
+        s.criteria.some((c) => !c.name || c.weight <= 0 || c.maxScore <= 0)
       )
     ) {
-      setError("All criteria must have a name and weight greater than 0");
+      setError("All criteria must have a name, weight > 0, and maxScore > 0");
+      return;
+    }
+
+    if (totalWeight !== 100) {
+      setError("Total weight of all criteria must equal 100%");
       return;
     }
 
     try {
-      const payload = {
-        title: formData.title,
-        description: formData.description,
-        formType: formData.formType,
-        targetEvaluator: formData.targetEvaluator,
-        weight: parseInt(formData.weight, 10),
-        period: formData.period, // Include period in payload
-        sections: formData.sections,
-      };
-
+      const payload = { ...formData, weight: 100 };
       const response = await api.createEvaluationForm(payload);
       setSuccess(response.message || "Form created successfully");
+
       setFormData({
         title: "",
         description: "",
         formType: "",
         targetEvaluator: "",
-        weight: "",
-        period: "", // Reset period
+        period: "",
         sections: [
           {
             id: Date.now(),
             name: "",
-            criteria: [{ id: Date.now() + 1, name: "", weight: 0 }],
+            criteria: [
+              { id: Date.now() + 1, name: "", weight: 100, maxScore: 5 },
+            ],
           },
         ],
       });
@@ -192,6 +179,7 @@ const CreateEvaluationForm = ({ departments }) => {
         </div>
         {error && <div className={styles.errorMessage}>{error}</div>}
         {success && <div className={styles.successMessage}>{success}</div>}
+
         <form onSubmit={handleCreateForm} className={styles.registerForm}>
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
@@ -201,9 +189,7 @@ const CreateEvaluationForm = ({ departments }) => {
                 name="title"
                 value={formData.title}
                 onChange={handleFormChange}
-                placeholder="Enter form title"
                 required
-                style={{ color: "#1a202c" }}
               />
             </div>
             <div className={styles.formGroup}>
@@ -214,7 +200,7 @@ const CreateEvaluationForm = ({ departments }) => {
                 onChange={handleFormChange}
                 required
               >
-                <option value="">Select form type</option>
+                <option value="">Select type</option>
                 {formTypes.map((type) => (
                   <option key={type} value={type}>
                     {type.replace("_", " ").toUpperCase()}
@@ -233,7 +219,7 @@ const CreateEvaluationForm = ({ departments }) => {
                 onChange={handleFormChange}
                 required
               >
-                <option value="">Select target evaluator</option>
+                <option value="">Select target</option>
                 {targetEvaluators.map((t) => (
                   <option key={t} value={t}>
                     {t.toUpperCase()}
@@ -241,23 +227,6 @@ const CreateEvaluationForm = ({ departments }) => {
                 ))}
               </select>
             </div>
-            <div className={styles.formGroup}>
-              <label>Weight *</label>
-              <input
-                type="number"
-                name="weight"
-                value={formData.weight}
-                onChange={handleFormChange}
-                min="1"
-                max="100"
-                placeholder="Enter weight (1-100)"
-                required
-                style={{ color: "#1a202c" }}
-              />
-            </div>
-          </div>
-
-          <div className={styles.formRow}>
             <div className={styles.formGroup}>
               <label>Period *</label>
               <select
@@ -267,9 +236,9 @@ const CreateEvaluationForm = ({ departments }) => {
                 required
               >
                 <option value="">Select period</option>
-                {periods.map((period) => (
-                  <option key={period} value={period}>
-                    {period}
+                {periods.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
                   </option>
                 ))}
               </select>
@@ -283,15 +252,12 @@ const CreateEvaluationForm = ({ departments }) => {
               value={formData.description}
               onChange={handleFormChange}
               rows={4}
-              placeholder="Enter form description"
-              style={{ color: "#1a202c" }}
             />
           </div>
 
-          {/* Sections */}
           <div className={styles.sectionsContainer}>
             <h4>Sections</h4>
-            {formData.sections.map((section, sectionIndex) => (
+            {formData.sections.map((section, sIndex) => (
               <div key={section.id} className={styles.sectionCard}>
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
@@ -300,98 +266,101 @@ const CreateEvaluationForm = ({ departments }) => {
                       type="text"
                       value={section.name}
                       onChange={(e) =>
-                        handleSectionChange(sectionIndex, e.target.value)
+                        handleSectionChange(sIndex, e.target.value)
                       }
-                      placeholder="Enter section name"
                       required
                     />
                   </div>
                   <button
                     type="button"
-                    className={styles.closeButton}
-                    onClick={() => removeSection(sectionIndex)}
+                    onClick={() => removeSection(sIndex)}
                     disabled={formData.sections.length === 1}
                   >
                     Remove Section
                   </button>
                 </div>
 
-                {/* Criteria */}
-                <div className={styles.criteriaContainer}>
-                  <h5>Criteria</h5>
-                  {section.criteria.map((criterion, criterionIndex) => (
-                    <div key={criterion.id} className={styles.formRow}>
-                      <div className={styles.formGroup}>
-                        <label>Criterion Name *</label>
-                        <input
-                          type="text"
-                          value={criterion.name}
-                          onChange={(e) =>
-                            handleCriterionChange(
-                              sectionIndex,
-                              criterionIndex,
-                              "name",
-                              e.target.value
-                            )
-                          }
-                          placeholder="Enter criterion name"
-                          required
-                        />
-                      </div>
-                      <div className={styles.formGroup}>
-                        <label>Weight *</label>
-                        <input
-                          type="number"
-                          value={criterion.weight}
-                          onChange={(e) =>
-                            handleCriterionChange(
-                              sectionIndex,
-                              criterionIndex,
-                              "weight",
-                              e.target.value
-                            )
-                          }
-                          min="1"
-                          max="100"
-                          placeholder="Enter weight (1-100)"
-                          required
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        className={styles.closeButton}
-                        onClick={() =>
-                          removeCriterion(sectionIndex, criterionIndex)
+                {section.criteria.map((c, cIndex) => (
+                  <div key={c.id} className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                      <label>Criterion Name *</label>
+                      <input
+                        type="text"
+                        value={c.name}
+                        onChange={(e) =>
+                          handleCriterionChange(
+                            sIndex,
+                            cIndex,
+                            "name",
+                            e.target.value
+                          )
                         }
-                        disabled={section.criteria.length === 1}
-                      >
-                        Remove
-                      </button>
+                        required
+                      />
                     </div>
-                  ))}
-                  <button
-                    type="button"
-                    className={styles.actionButton}
-                    onClick={() => addCriterion(sectionIndex)}
-                  >
-                    Add Criterion
-                  </button>
-                </div>
+                    <div className={styles.formGroup}>
+                      <label>Weight *</label>
+                      <input
+                        type="number"
+                        value={c.weight}
+                        onChange={(e) =>
+                          handleCriterionChange(
+                            sIndex,
+                            cIndex,
+                            "weight",
+                            e.target.value
+                          )
+                        }
+                        min="1"
+                        required
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label>Max Score *</label>
+                      <input
+                        type="number"
+                        value={c.maxScore}
+                        onChange={(e) =>
+                          handleCriterionChange(
+                            sIndex,
+                            cIndex,
+                            "maxScore",
+                            e.target.value
+                          )
+                        }
+                        min="1"
+                        required
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeCriterion(sIndex, cIndex)}
+                      disabled={section.criteria.length === 1}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+                <button type="button" onClick={() => addCriterion(sIndex)}>
+                  Add Criterion
+                </button>
               </div>
             ))}
-            <button
-              type="button"
-              className={styles.actionButton}
-              onClick={addSection}
-            >
+            <button type="button" onClick={addSection}>
               Add Section
             </button>
+            <div
+              style={{
+                marginTop: "10px",
+                color: totalWeight !== 100 ? "red" : "green",
+              }}
+            >
+              Total Weight: {totalWeight}%
+            </div>
           </div>
 
           <div className={styles.formActions}>
-            <button type="submit" className={styles.submitButton}>
-              Create Form
-            </button>
+            <button type="submit">Create Form</button>
           </div>
         </form>
       </div>
