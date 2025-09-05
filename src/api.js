@@ -42,6 +42,7 @@ const send = (url, method, data, isFormData = false) => {
     handleResponse
   );
 };
+
 /** ================= API OBJECT ================= */
 const api = {
   // 🔐 AUTH
@@ -51,7 +52,6 @@ const api = {
     localStorage.setItem("userData", JSON.stringify(data.user));
     return data;
   },
-
   logout: () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userData");
@@ -80,58 +80,43 @@ const api = {
 
   // 👥 TEAMS
   getAllTeams: () => get("/teams"),
-
-  // Logged-in user's peers (excluding self)
   getMyTeamMembers: () => get("/teams/my-team"),
-
-  // Logged-in leader/admin's full team (including self)
-  getMyFullTeam: () => get("/teams/my-team/full"), // ✅ added
-
-  // Get team members by userId
-  getTeamMembersByUserId: (userId) => get(`/teams/members/${userId}`), // ✅ added
-
+  getMyFullTeam: () => get("/teams/my-team/full"),
+  getTeamMembersByUserId: (userId) => get(`/teams/members/${userId}`),
   createTeam: async (teamData) => {
     const { memberIds, ...teamCore } = teamData;
     const teamResult = await send("/teams", "POST", teamCore);
     const teamId = teamResult.id || teamResult.teamId;
-
     if (memberIds?.length) {
       await Promise.all(
         memberIds.map((id) => api.updateUser(id, { team_id: teamId }))
       );
     }
-
     const updatedMembers = memberIds?.length
       ? await Promise.all(memberIds.map(api.getUserById))
       : [];
     return { ...teamResult, members: updatedMembers };
   },
-
   updateTeam: async (teamId, teamData) => {
     const { memberIds, ...teamCore } = teamData;
     const teamResult = await send(`/teams/${teamId}`, "PUT", teamCore);
-
     if (memberIds) {
       const currentMembers = await api.getTeamMembers(teamId);
       const currentIds = currentMembers.map((m) => m.id);
-
       const removeIds = currentIds.filter((id) => !memberIds.includes(id));
       await Promise.all(
         removeIds.map((id) => api.updateUser(id, { team_id: null }))
       );
-
       const addIds = memberIds.filter((id) => !currentIds.includes(id));
       await Promise.all(
         addIds.map((id) => api.updateUser(id, { team_id: teamId }))
       );
     }
-
     const updatedMembers = memberIds?.length
       ? await Promise.all(memberIds.map(api.getUserById))
       : [];
     return { ...teamResult, members: updatedMembers };
   },
-
   deleteTeam: (teamId) => send(`/teams/${teamId}`, "DELETE"),
 
   // 🏢 DEPARTMENTS
@@ -161,6 +146,10 @@ const api = {
     if (!userId) throw new Error("User ID required");
     return get(`/reports/employee/${userId}`);
   },
+  getQuarterlyPerformance: (userId) => {
+    if (!userId) throw new Error("User ID required");
+    return get(`/reports/employee/${userId}/quarterly`);
+  },
 
   // ✅ TASKS
   getUpcomingTasks: (userId) => get(`/tasks?userId=${userId}`),
@@ -175,4 +164,5 @@ const api = {
   updateEvaluation: (id, data) => send(`/evaluations/${id}`, "PUT", data),
   deleteEvaluation: (id) => send(`/evaluations/${id}`, "DELETE"),
 };
+
 export default api;
