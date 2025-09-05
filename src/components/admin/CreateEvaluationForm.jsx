@@ -9,6 +9,7 @@ const CreateEvaluationForm = ({ departments }) => {
     formType: "",
     targetEvaluator: "",
     weight: "",
+    period: "", // New field for period
     sections: [
       {
         id: Date.now(),
@@ -22,6 +23,14 @@ const CreateEvaluationForm = ({ departments }) => {
 
   const formTypes = ["self_assessment", "peer_evaluation"];
   const targetEvaluators = ["employee", "peer", "manager"];
+  const periods = [
+    "Q1 2025",
+    "Q2 2025",
+    "Q3 2025",
+    "Q4 2025",
+    "Mid-Year 2025",
+    "Year-End 2025",
+  ]; // Example periods
 
   // Generic form field change
   const handleFormChange = (e) => {
@@ -116,7 +125,8 @@ const CreateEvaluationForm = ({ departments }) => {
       !formData.title ||
       !formData.formType ||
       !formData.targetEvaluator ||
-      !formData.weight
+      !formData.weight ||
+      !formData.period // Validate period
     ) {
       setError("All required fields must be provided");
       return;
@@ -148,6 +158,7 @@ const CreateEvaluationForm = ({ departments }) => {
         formType: formData.formType,
         targetEvaluator: formData.targetEvaluator,
         weight: parseInt(formData.weight, 10),
+        period: formData.period, // Include period in payload
         sections: formData.sections,
       };
 
@@ -159,6 +170,7 @@ const CreateEvaluationForm = ({ departments }) => {
         formType: "",
         targetEvaluator: "",
         weight: "",
+        period: "", // Reset period
         sections: [
           {
             id: Date.now(),
@@ -242,6 +254,25 @@ const CreateEvaluationForm = ({ departments }) => {
                 required
                 style={{ color: "#1a202c" }}
               />
+            </div>
+          </div>
+
+          <div className={styles.formRow}>
+            <div className={styles.formGroup}>
+              <label>Period *</label>
+              <select
+                name="period"
+                value={formData.period}
+                onChange={handleFormChange}
+                required
+              >
+                <option value="">Select period</option>
+                {periods.map((period) => (
+                  <option key={period} value={period}>
+                    {period}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
