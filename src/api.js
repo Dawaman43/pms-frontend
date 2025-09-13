@@ -1,6 +1,6 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
-  "https://pms-backend-1-a5de.onrender.com";
+  "https://pms-backend-1-a5de.onrender.com/api";
 
 /** Get authorization headers if token exists */
 const getAuthHeaders = () => {
