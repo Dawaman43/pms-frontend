@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import api from "../../../api";
-import styles from "./profile.module.css";
+import styles from "./Profile.module.css";
 import HomePageStyles from "../../../pages/HomePage.module.css";
 import Sidebar from "../sidebar";
 
