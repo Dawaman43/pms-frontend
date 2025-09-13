@@ -54,11 +54,11 @@ const HomePage = () => {
           const averageScore =
             evaluations.length > 0
               ? evaluations.reduce((sum, e) => {
-                  const scores = e.scores.reduce(
-                    (s, score) => s + score.value,
+                  const scores = Object.values(e.scores).reduce(
+                    (s, score) => s + score.points,
                     0
                   );
-                  return sum + scores / e.scores.length;
+                  return sum + scores / Object.keys(e.scores).length;
                 }, 0) / evaluations.length
               : 0;
 
@@ -72,18 +72,27 @@ const HomePage = () => {
           // Fetch recent activities
           const activities = evaluations.slice(0, 5).map((e) => ({
             id: e.id,
-            action: `Completed ${e.formType} evaluation`,
-            timestamp: e.submissionDate,
+            action: `Completed ${e.formTitle} evaluation`,
+            timestamp: e.submitted_at,
           }));
           setRecentActivities(activities);
 
-          // Fetch quarterly performance data
-          const quarterlyData = await api.getQuarterlyPerformance(userId);
-          setQuarterlyPerformance(quarterlyData);
+          // Fetch quarterly performance from backend (logged-in user)
+          const quarterlyData = await api.getMyQuarterlyReport();
+          setQuarterlyPerformance(
+            quarterlyData.length
+              ? quarterlyData
+              : [
+                  { quarter: "Q1", score: 0 },
+                  { quarter: "Q2", score: 0 },
+                  { quarter: "Q3", score: 0 },
+                  { quarter: "Q4", score: 0 },
+                ]
+          );
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
-        // Fallback to empty quarterly data if API call fails
+        // Fallback
         setQuarterlyPerformance([
           { quarter: "Q1", score: 0 },
           { quarter: "Q2", score: 0 },

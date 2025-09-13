@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import styles from "./SelfAssessment.module.css";
@@ -20,9 +19,10 @@ const SelfAssessment = () => {
   const [activePopout, setActivePopout] = useState(null);
   const location = useLocation();
   const hasFetched = useRef(false);
+  const popoutRef = useRef(null);
 
+  // Navigation links (aligned with PeerEvaluation.jsx)
   const navLinks = [
-    // ... (Navigation links remain unchanged)
     {
       title: "Dashboard",
       icon: (
@@ -196,9 +196,153 @@ const SelfAssessment = () => {
       link: "/profile",
       active: location.pathname === "/profile",
     },
+    {
+      title: "Settings",
+      icon: (
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M19.4 15C19.2669 15.3016 19.227 15.6363 19.2849 15.9606C19.3427 16.2849 19.4962 16.5836 19.725 16.8175C19.9538 17.0514 20.2473 17.2095 20.566 17.2709C20.8847 17.3323 21.2181 17.2943 21.52 17.16C22.3806 16.7591 23.1054 16.1044 23.5992 15.2836C24.0931 14.4628 24.3331 13.5124 24.29 12.555C24.3331 11.5976 24.0931 10.6472 23.5992 9.82639C23.1054 9.00555 22.3806 8.35093 21.52 7.95C21.2181 7.81567 20.8847 7.77774 20.566 7.83911C20.2473 7.90048 19.9538 8.05862 19.725 8.29251C19.4962 8.5264 19.3427 8.82514 19.2849 9.14944C19.227 9.47374 19.2669 9.80843 19.4 10.11"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M4.6 8.85C4.73309 8.54843 4.77297 8.21374 4.71513 7.88944C4.65729 7.56514 4.50383 7.2664 4.27504 7.03251C4.04624 6.79862 3.75275 6.64048 3.43402 6.57911C3.11529 6.51774 2.78192 6.55567 2.48 6.69C1.61943 7.09094 0.894552 7.74556 0.400795 8.56639C-0.0930599 9.38723 -0.333065 10.3376 -0.29 11.295C-0.333065 12.2524 -0.0930599 13.2028 0.400795 14.0236C0.894552 14.8444 1.61943 15.4991 2.48 15.9C2.78192 16.0343 3.11529 16.0723 3.43402 16.0109C3.75275 15.9495 4.04624 15.7914 4.27504 15.5575C4.50383 15.3236 4.65729 15.0249 4.71513 14.7006C4.77297 14.3763 4.73309 14.0416 4.6 13.74"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+      link: "/settings",
+      active: location.pathname === "/settings",
+    },
   ];
 
-  // Hardcoded rating scale (1 to 4)
+  // Detect screen size
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      setIsSidebarOpen(!mobile);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Close popout when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popoutRef.current && !popoutRef.current.contains(event.target)) {
+        setActivePopout(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Fetch forms and user data
+  useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const userDataRaw = localStorage.getItem("userData") || "{}";
+        const userDataStored = JSON.parse(userDataRaw);
+        if (!userDataStored.id) {
+          throw new Error("User not authenticated");
+        }
+
+        const user = await api.getUserById(userDataStored.id);
+        console.log("Fetched user:", user); // Debug user object
+
+        // --- START OF THE FIX ---
+        // Format the user data to match what the Sidebar component expects.
+        const formattedUser = {
+          id: user.id,
+          name: user.name || "Unknown User",
+          email: user.email || "",
+          role: user.role || "User",
+          position: user.jobTitle || "Employee",
+          avatar: user.profileImage // Use 'profileImage' from API
+            ? `${user.profileImage}`
+            : "/assets/avatar-placeholder.png", // Provide a fallback
+          employeeId: user.id || "",
+          phone: user.phone || "",
+        };
+        setUser(formattedUser);
+        // --- END OF THE FIX ---
+
+        const formsData = await api.getEvaluationForms();
+        const selfAssessmentForms = formsData
+          .filter(
+            (f) => f.formType === "self_assessment" && f.status === "active"
+          )
+          .map((f) => ({
+            ...f,
+            ratings: {},
+            criteria: f.criteria?.map((criterion, index) => ({
+              ...criterion,
+              id: criterion.id || `temp-id-${index}`,
+            })),
+          }));
+
+        setForms(selfAssessmentForms);
+        setFormData(
+          selfAssessmentForms.reduce(
+            (acc, form) => ({
+              ...acc,
+              [form.id]: {
+                employeeName: formattedUser.name || "",
+                employeeId: formattedUser.id || "",
+                comments: "",
+              },
+            }),
+            {}
+          )
+        );
+
+        // Log forms to debug missing criterion IDs
+        selfAssessmentForms.forEach((form) => {
+          if (form.criteria.some((criterion) => !criterion.id)) {
+            console.warn(
+              `Form ${form.id} has criteria with missing IDs:`,
+              form.criteria
+            );
+          }
+        });
+      } catch (err) {
+        setError(err.message || "Failed to fetch forms or user data");
+        if (err.message.includes("User not authenticated")) {
+          window.location.href = "/login";
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Hardcoded rating scale (aligned with PeerEvaluation.jsx)
   const ratingScale = [
     { value: 1, label: "Poor" },
     { value: 2, label: "Fair" },
@@ -209,8 +353,6 @@ const SelfAssessment = () => {
   // Calculate point for a single criterion: ((weight * level) / 4) * formWeight
   const calculatePoint = (criterionWeight, level, formWeight) => {
     if (!criterionWeight || !level || !formWeight) return 0;
-    // Formula: ((criterionWeight * level) / 4) * (formWeight / 100)
-    // formWeight is assumed to be a percentage (e.g., 70 for 70%)
     return parseFloat(
       (((criterionWeight * level) / 4) * (formWeight / 100)).toFixed(2)
     );
@@ -222,14 +364,10 @@ const SelfAssessment = () => {
     if (!form || !form.ratings || !form.criteria || !form.weight) {
       return { totalPoints: 0, average: 0 };
     }
-
-    // Total points: sum of raw user-selected scores (levels)
     const totalPoints = form.criteria.reduce((sum, criterion) => {
       const score = parseFloat(form.ratings[criterion.id] || 0);
       return sum + (score || 0);
     }, 0);
-
-    // Average: sum of calculated points
     const totalCalculatedPoints = form.criteria.reduce((sum, criterion) => {
       const score = parseFloat(form.ratings[criterion.id] || 0);
       const criterionWeight = parseFloat(criterion.weight || 0);
@@ -238,7 +376,6 @@ const SelfAssessment = () => {
         sum + (score ? calculatePoint(criterionWeight, score, formWeight) : 0)
       );
     }, 0);
-
     const average = parseFloat(totalCalculatedPoints.toFixed(2));
     return { totalPoints, average };
   };
@@ -260,6 +397,7 @@ const SelfAssessment = () => {
     );
   };
 
+  // Submit assessment
   const handleSubmit = async (e, formId) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -270,10 +408,8 @@ const SelfAssessment = () => {
       const form = forms.find((f) => f.id === formId);
       if (!form || !form.criteria) throw new Error("Form not found");
 
-      // Build scores object for submission
       const scores = {};
       let allCriteriaRated = true;
-
       form.criteria.forEach((criterion, index) => {
         const id = criterion.id || `temp-id-${index}`;
         const score = parseFloat(form.ratings[id] ?? 0);
@@ -283,7 +419,6 @@ const SelfAssessment = () => {
 
       if (!allCriteriaRated) throw new Error("Please rate all criteria");
 
-      // Use scores object instead of undefined numericScores
       const evaluationData = {
         user_id: user.id,
         form_id: formId,
@@ -293,12 +428,14 @@ const SelfAssessment = () => {
       };
 
       await api.submitEvaluation(evaluationData);
-
       setSuccess("Self-assessment submitted successfully!");
-      // Reset ratings for the submitted form
       setForms((prev) =>
         prev.map((f) => (f.id === formId ? { ...f, ratings: {} } : f))
       );
+      setFormData((prev) => ({
+        ...prev,
+        [formId]: { ...prev[formId], comments: "" },
+      }));
     } catch (err) {
       setError(err.message || "Failed to submit self-assessment");
     } finally {
@@ -306,184 +443,142 @@ const SelfAssessment = () => {
     }
   };
 
-  // Fetch forms and user data
-  useEffect(() => {
-    if (hasFetched.current) return;
-    hasFetched.current = true;
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+    setActivePopout(null);
+  };
 
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-        setUser(userData);
+  const togglePopout = (item) => {
+    setActivePopout(activePopout === item ? null : item);
+  };
 
-        const formsData = await api.getEvaluationForms();
-        const selfAssessmentForms = formsData
-          .filter(
-            (f) => f.formType === "self_assessment" && f.status === "active"
-          )
-          .map((f) => ({
-            ...f,
-            ratings: {},
-            criteria: f.criteria?.map((criterion, index) => ({
-              ...criterion,
-              id: criterion.id || `temp-id-${index}`, // Assign temporary ID if missing
-            })),
-          }));
-        setForms(selfAssessmentForms);
-
-        setFormData(
-          selfAssessmentForms.reduce(
-            (acc, form) => ({
-              ...acc,
-              [form.id]: {
-                employeeName: userData.name || "",
-                employeeId: userData.id || "",
-                ratings: {},
-                comments: "",
-              },
-            }),
-            {}
-          )
-        );
-
-        // Log forms to debug missing criterion IDs
-        selfAssessmentForms.forEach((form) => {
-          if (form.criteria.some((criterion) => !criterion.id)) {
-            console.warn(
-              `Form ${form.id} has criteria with missing IDs:`,
-              form.criteria
-            );
-          }
-        });
-      } catch (err) {
-        setError(err.message || "Failed to fetch forms or user data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  // Handle responsive sidebar
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth <= 768;
-      setIsMobile(mobile);
-      setIsSidebarOpen(!mobile);
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-  const togglePopout = (id) => setActivePopout(activePopout === id ? null : id);
-
-  if (loading) {
-    return (
-      <div className={styles.loader}>
-        <svg className={styles.spinner} viewBox="0 0 50 50">
-          <circle
-            className={styles.path}
-            cx="25"
-            cy="25"
-            r="20"
-            fill="none"
-            strokeWidth="5"
-          />
-        </svg>
-        <p>Loading...</p>
-      </div>
-    );
-  }
+  const getInitials = (name) => {
+    if (!name) return "U";
+    const names = name.trim().split(" ");
+    return names
+      .slice(0, 2)
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+  };
 
   return (
     <div className={styles.container}>
       <Sidebar
-        isOpen={isSidebarOpen}
+        isSidebarOpen={isSidebarOpen}
         toggleSidebar={toggleSidebar}
         navLinks={navLinks}
-        userRole={user?.role}
-        isMobile={isMobile}
+        activePopout={activePopout}
+        togglePopout={togglePopout}
+        user={user} // Now passing correctly formatted user object
       />
-
       <div
-        className={`${HomePageStyles.mainContent} ${
-          isSidebarOpen
-            ? HomePageStyles.sidebarOpen
-            : HomePageStyles.sidebarClosed
+        className={`${styles.mainContent} ${
+          isSidebarOpen ? "" : styles.mainContentFull
         }`}
       >
-        <header className={HomePageStyles.header}>
-          <div className={HomePageStyles.headerLeft}>
-            {isMobile && (
-              <button
-                className={HomePageStyles.menuButton}
-                onClick={toggleSidebar}
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+        <header className={styles.header}>
+          <div className={styles.headerContent}>
+            <div className={styles.headerLeft}>
+              {isMobile && (
+                <button
+                  onClick={toggleSidebar}
+                  className={styles.mobileMenuButton}
+                  aria-label="Toggle sidebar"
                 >
-                  <path
-                    d="M3 12H21M3 6H21M3 18H21"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            )}
-            <h1 className={HomePageStyles.title}>Self Assessment</h1>
-          </div>
-          <div className={HomePageStyles.headerRight}>
-            <div className={HomePageStyles.userInfo}>
-              <span>{user?.name || "User"}</span>
-              <button
-                className={HomePageStyles.profileButton}
-                onClick={() => togglePopout("profile")}
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M6 20C6 17.7909 7.79086 16 10 16H14C16.2091 16 18 17.7909 18 20"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-              {activePopout === "profile" && (
-                <div className={HomePageStyles.popout}>
-                  <Link to="/profile">View Profile</Link>
-                  <button onClick={api.logout}>Logout</button>
-                </div>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M3 6H21"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M3 12H21"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M3 18H21"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
               )}
+              <h1 className={styles.title}>Self Assessment</h1>
+            </div>
+            <div className={styles.headerRight}>
+              <div className={styles.userInfo} ref={popoutRef}>
+                {user ? (
+                  <button
+                    className={styles.profileButton}
+                    onClick={() => togglePopout("profile")}
+                    aria-label="User profile"
+                  >
+                    {user.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt="User avatar"
+                        className={styles.userAvatar}
+                        onError={(e) => {
+                          console.error("Avatar load failed:", user.avatar);
+                          e.target.style.display = "none";
+                          setUser((prev) => ({ ...prev, avatar: null })); // fallback to initials
+                        }}
+                      />
+                    ) : (
+                      <div
+                        className={`${styles.userAvatar} ${styles.userAvatarInitials}`}
+                      >
+                        {getInitials(user.name || "Unknown User")}
+                      </div>
+                    )}
+                  </button>
+                ) : (
+                  <div
+                    className={`${styles.userAvatar} ${styles.userAvatarInitials}`}
+                  >
+                    <span>Loading...</span>
+                  </div>
+                )}
+                {activePopout === "profile" && user && (
+                  <div className={styles.popout}>
+                    <Link to="/profile">Profile</Link>
+                    <Link to="/settings">Settings</Link>
+                    <button
+                      onClick={() => {
+                        localStorage.removeItem("userData");
+                        window.location.href = "/login";
+                      }}
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </header>
-
-        <main className={HomePageStyles.main}>
-          <section className={styles.formContainer}>
+        <main className={styles.main}>
+          <section className={styles.contentSection}>
+            {loading && (
+              <div className={styles.loader}>
+                <div className={styles.spinner}></div>
+                <p>Loading self-assessment forms...</p>
+              </div>
+            )}
             {error && (
               <div className={styles.errorMessage}>
                 <svg
@@ -492,6 +587,7 @@ const SelfAssessment = () => {
                   viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
                 >
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z"
@@ -509,6 +605,7 @@ const SelfAssessment = () => {
                   viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
                 >
                   <path
                     d="M9 16.2L4.8 12L3.4 13.4L9 19L21 7L19.6 5.6L9 16.2Z"
@@ -518,28 +615,19 @@ const SelfAssessment = () => {
                 <span>{success}</span>
               </div>
             )}
-
             {!forms.length && !error && (
               <div className={styles.noDataMessage}>
                 No self-assessment forms available at the moment.
               </div>
             )}
-
             {forms.map((form) => {
               const { totalPoints, average } = calculateFormTotals(form.id);
-              console.log("Form Data:", {
-                id: form.id,
-                title: form.title,
-                weight: form.weight,
-                totalPoints,
-                average,
-                criteria: form.criteria,
-              });
               return (
                 <form
                   key={form.id}
                   onSubmit={(e) => handleSubmit(e, form.id)}
                   className={styles.assessmentForm}
+                  aria-label={`Self-assessment form: ${form.title}`}
                 >
                   <div className={styles.formHeader}>
                     <div className={styles.formGroup}>
@@ -551,6 +639,7 @@ const SelfAssessment = () => {
                         }
                         className={styles.formInput}
                         disabled
+                        aria-readonly="true"
                       />
                     </div>
                     <div className={styles.formGroup}>
@@ -560,29 +649,37 @@ const SelfAssessment = () => {
                         value={formData[form.id]?.employeeId || user?.id || ""}
                         className={styles.formInput}
                         disabled
+                        aria-readonly="true"
                       />
                     </div>
                   </div>
-
                   <div className={styles.evaluationTableContainer}>
                     <h3 className={styles.formTitle}>{form.title}</h3>
                     <p className={styles.formDescription}>{form.description}</p>
-
                     <p>
                       <strong>Form Weight:</strong> {form.weight || "N/A"}%
                     </p>
                     {form.criteria?.length ? (
                       <>
-                        <table className={styles.evaluationTable}>
+                        <table
+                          className={styles.evaluationTable}
+                          aria-label="Evaluation criteria"
+                        >
                           <thead>
                             <tr>
-                              <th className={styles.tableHeader}>No</th>
-                              <th className={styles.tableHeader}>
+                              <th scope="col" className={styles.tableHeader}>
+                                No
+                              </th>
+                              <th scope="col" className={styles.tableHeader}>
                                 Behavioral Indicators
                               </th>
-                              <th className={styles.tableHeader}>Weight</th>
-                              <th className={styles.tableHeader}>Score</th>
-                              <th className={styles.tableHeader}>
+                              <th scope="col" className={styles.tableHeader}>
+                                Weight
+                              </th>
+                              <th scope="col" className={styles.tableHeader}>
+                                Score
+                              </th>
+                              <th scope="col" className={styles.tableHeader}>
                                 Calculated Point
                               </th>
                             </tr>
@@ -599,7 +696,6 @@ const SelfAssessment = () => {
                                     form.weight
                                   )
                                 : 0;
-                              // Use criterion.id if available, otherwise fall back to index
                               const rowKey = criterion.id
                                 ? `${form.id}-${criterion.id}`
                                 : `${form.id}-index-${index}`;
@@ -628,6 +724,9 @@ const SelfAssessment = () => {
                                       }
                                       required
                                       className={styles.ratingSelect}
+                                      aria-label={`Rate ${
+                                        criterion.name || "criterion"
+                                      }`}
                                     >
                                       <option value="">Select</option>
                                       {ratingScale.map((scale) => (
@@ -665,7 +764,6 @@ const SelfAssessment = () => {
                       </div>
                     )}
                   </div>
-
                   <div className={styles.commentsSection}>
                     <label className={styles.formLabel}>
                       Additional Comments
@@ -685,28 +783,37 @@ const SelfAssessment = () => {
                       className={styles.commentsTextarea}
                       placeholder="Provide any additional comments about your performance..."
                       rows={4}
+                      aria-label="Additional comments"
                     />
                   </div>
-
                   <div className={styles.formActions}>
-                    <Link to="/home" className={styles.cancelButton}>
+                    <Link
+                      to="/home"
+                      className={styles.cancelButton}
+                      aria-label="Cancel assessment"
+                    >
                       Cancel
                     </Link>
                     <button
                       type="submit"
                       className={styles.submitButton}
                       disabled={isSubmitting || !form.criteria?.length}
+                      aria-label="Submit assessment"
                     >
                       {isSubmitting ? (
                         <>
-                          <svg className={styles.spinner} viewBox="0 0 50 50">
+                          <svg
+                            className={styles.spinner}
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
                             <circle
                               className={styles.path}
-                              cx="25"
-                              cy="25"
-                              r="20"
+                              cx="12"
+                              cy="12"
+                              r="10"
                               fill="none"
-                              strokeWidth="5"
+                              strokeWidth="4"
                             />
                           </svg>
                           Submitting...
@@ -721,7 +828,6 @@ const SelfAssessment = () => {
             })}
           </section>
         </main>
-
         <footer className={HomePageStyles.footer}>
           <div className={HomePageStyles.footerContent}>
             <p>
@@ -729,9 +835,15 @@ const SelfAssessment = () => {
               University. All rights reserved.
             </p>
             <div className={HomePageStyles.footerLinks}>
-              <Link to="/help">Help</Link>
-              <Link to="/privacy">Privacy</Link>
-              <Link to="/terms">Terms</Link>
+              <Link to="/help" aria-label="Help page">
+                Help
+              </Link>
+              <Link to="/privacy" aria-label="Privacy policy">
+                Privacy
+              </Link>
+              <Link to="/terms" aria-label="Terms of service">
+                Terms
+              </Link>
             </div>
           </div>
         </footer>

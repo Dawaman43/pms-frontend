@@ -163,6 +163,9 @@ const api = {
   submitEvaluation: (data) => send("/evaluations", "POST", data),
   updateEvaluation: (id, data) => send(`/evaluations/${id}`, "PUT", data),
   deleteEvaluation: (id) => send(`/evaluations/${id}`, "DELETE"),
+
+  // ✅ LOGGED-IN USER QUARTERLY EVALUATION REPORT
+  getMyQuarterlyReport: () => get("/evaluations/dashboard/quarterly"),
 };
 
 export default api;
